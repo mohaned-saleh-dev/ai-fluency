@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NewsIntel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --bg: #0a0e17; --card: #111827; --card-h: #1a2332; --surface: #0f1520;
+    --border: #1e293b; --t1: #e2e8f0; --t2: #94a3b8; --tm: #64748b;
+    --blue: #3b82f6; --green: #10b981; --amber: #f59e0b; --cyan: #06b6d4;
+    --rose: #f43f5e; --r: 10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--t1);line-height:1.6;min-height:100vh}
+
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:1.1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+  .logo{font-size:1.3rem;font-weight:700;letter-spacing:-.03em}.logo span{color:var(--blue)}
+  .hdr-r{display:flex;align-items:center;gap:1.2rem;font-size:.8rem;color:var(--tm)}
+  .hdr-r .ct{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-weight:500}
+  .btn{background:var(--blue);border:none;color:#fff;padding:.4rem .9rem;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;transition:opacity .15s}
+  .btn:hover{opacity:.85}.btn:disabled{opacity:.4;cursor:wait}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--t2);padding:.28rem .7rem;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:500;transition:all .12s;text-decoration:none}
+  .btn-outline:hover{border-color:var(--tm);color:var(--t1)}
+  .btn-outline.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+  .filters{display:flex;gap:.4rem;padding:.8rem 2rem;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+  .flbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tm);margin-right:.4rem;font-weight:500}
+  .fsep{width:1px;height:22px;background:var(--border);margin:0 .7rem}
+
+  .wrap{max-width:1400px;margin:0 auto;padding:1.5rem 2rem;display:grid;grid-template-columns:1fr 370px;gap:1.5rem}
+  @media(max-width:1024px){.wrap{grid-template-columns:1fr}}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;position:sticky;top:110px;max-height:calc(100vh - 140px);overflow-y:auto}
+  .panel h2{font-size:.95rem;font-weight:700;margin-bottom:.8rem;color:var(--amber)}
+  .panel-body{font-size:.83rem;color:var(--t2);line-height:1.7}
+  .panel-body h2{font-size:.88rem;color:var(--cyan);margin-top:1rem;margin-bottom:.35rem}
+
+  #feed{display:flex;flex-direction:column;gap:.9rem}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;transition:border-color .12s}
+  .card:hover{border-color:var(--tm)}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;margin-bottom:.35rem}
+  .card-title{font-size:.97rem;font-weight:600;line-height:1.35;letter-spacing:-.01em}
+  .card-title a{color:var(--t1);text-decoration:none;transition:color .12s}
+  .card-title a:hover{color:var(--blue);text-decoration:underline}
+  .card-src{font-size:.68rem;color:var(--tm);text-decoration:none;font-family:'JetBrains Mono',monospace}
+  .card-src:hover{color:var(--blue);text-decoration:underline}
+  .pub{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;padding:.12rem .45rem;border-radius:4px;flex-shrink:0}
+  .pub-ft{color:#fcd0b1;background:rgba(252,208,177,.12)}
+  .pub-bl{color:#a3bffa;background:rgba(163,191,250,.12)}
+  .pub-hbr{color:#fca5a5;background:rgba(252,165,165,.12)}
+  .pub-def{color:var(--t2);background:rgba(148,163,184,.1)}
+  .card-meta{font-size:.73rem;color:var(--tm);margin-bottom:.6rem;font-family:'JetBrains Mono',monospace}
+  .tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.7rem}
+  .tag{font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:.12rem .4rem;border-radius:4px}
+  .tag-fintech{color:var(--green);background:rgba(16,185,129,.12)}
+  .tag-markets{color:var(--blue);background:rgba(59,130,246,.12)}
+  .tag-mena{color:var(--amber);background:rgba(245,158,11,.12)}
+  .card-body{font-size:.84rem;color:var(--t2);line-height:1.7}
+  .slbl{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tm);margin-top:.8rem;margin-bottom:.25rem}
+  .slbl:first-child{margin-top:0}
+  .stxt{margin-bottom:.4rem}
+  .ai-box{margin-top:.7rem;padding:.9rem;background:rgba(59,130,246,.06);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;line-height:1.7}
+
+  .status-bar{text-align:center;padding:3rem 2rem;color:var(--tm)}
+  .status-bar h3{font-size:1rem;margin-bottom:.4rem;color:var(--t2)}
+  .dot-pulse{display:inline-flex;gap:4px;margin-top:.5rem}
+  .dot-pulse span{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pulse 1.2s ease-in-out infinite}
+  .dot-pulse span:nth-child(2){animation-delay:.2s}.dot-pulse span:nth-child(3){animation-delay:.4s}
+  @keyframes pulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
+
+  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">News<span>Intel</span></div>
+  <div class="hdr-r">
+    <span id="countLabel"></span>
+    <span id="updatedLabel"></span>
+    <button class="btn" id="refreshBtn" onclick="triggerRefresh()">Refresh</button>
+  </div>
+</header>
+
+<div class="filters" id="filterBar">
+  <span class="flbl">Topic</span>
+  <button class="btn-outline on" data-topic="all" onclick="setFilter('topic','all')">All</button>
+  {% for key, label in topics.items() %}
+  <button class="btn-outline" data-topic="{{ key }}" onclick="setFilter('topic','{{ key }}')">{{ label }}</button>
+  {% endfor %}
+  <div class="fsep"></div>
+  <span class="flbl">Source</span>
+  <span id="pubFilters"><button class="btn-outline on" data-pub="all" onclick="setFilter('publisher','all')">All</button></span>
+</div>
+
+<div class="wrap">
+  <div id="feed">
+    <div class="status-bar" id="statusMsg">
+      <h3>Loading articles...</h3>
+      <p>Fetching from Financial Times, Bloomberg & HBR</p>
+      <div class="dot-pulse"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Daily Intelligence Briefing</h2>
+    <div class="panel-body" id="briefing"><p style="color:var(--tm)">Generating briefing...</p></div>
+  </div>
+</div>
+
+<script>
+const state = { topic: 'all', publisher: 'all', polling: null };
+
+function pubClass(p) {
+  if (p === 'Financial Times') return 'pub-ft';
+  if (p === 'Bloomberg') return 'pub-bl';
+  if (p === 'Harvard Business Review') return 'pub-hbr';
+  return 'pub-def';
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderCard(a) {
+  let html = `<div class="card"><div class="card-top"><div><div class="card-title"><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a></div>`;
+  html += `<span class="card-src">${esc(a.source_name)}</span></div>`;
+  html += `<span class="pub ${pubClass(a.publisher)}">${esc(a.publisher)}</span></div>`;
+  html += `<div class="card-meta">${esc(a.published)}</div>`;
+  if (a.topics && a.topics.length) {
+    html += '<div class="tags">';
+    a.topics.forEach(t => { html += `<span class="tag tag-${t}">${t}</span>`; });
+    html += '</div>';
+  }
+  html += '<div class="card-body">';
+  if (a.summary) html += `<div class="slbl">Summary</div><div class="stxt">${esc(a.summary)}</div>`;
+  if (a.preview_text) html += `<div class="slbl">Preview</div><div class="stxt">${esc(a.preview_text)}</div>`;
+  if (a.ai_brief) html += `<div class="slbl">AI Intelligence Brief</div><div class="ai-box">${a.ai_brief.replace(/\n/g,'<br>')}</div>`;
+  html += '</div></div>';
+  return html;
+}
+
+function renderFeed(data) {
+  const feed = document.getElementById('feed');
+  const countEl = document.getElementById('countLabel');
+  const updEl = document.getElementById('updatedLabel');
+  const briefEl = document.getElementById('briefing');
+  const pubContainer = document.getElementById('pubFilters');
+
+  if (!data.articles || data.articles.length === 0) {
+    const statusText = data.status === 'ready'
+      ? '<h3>No articles found</h3><p>Try adjusting your filters or click Refresh.</p>'
+      : '<h3>Loading articles...</h3><p>Fetching from Financial Times, Bloomberg & HBR</p><div class="dot-pulse"><span></span><span></span><span></span></div>';
+    feed.innerHTML = `<div class="status-bar">${statusText}</div>`;
+  } else {
+    feed.innerHTML = data.articles.map(renderCard).join('');
+  }
+
+  countEl.textContent = `Showing ${data.filtered} of ${data.total} articles`;
+  if (data.last_refresh) {
+    const d = new Date(data.last_refresh);
+    updEl.textContent = `Updated ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  }
+
+  if (data.publishers && data.publishers.length) {
+    let ph = '<button class="btn-outline' + (state.publisher==='all'?' on':'') + '" data-pub="all" onclick="setFilter(\'publisher\',\'all\')">All</button>';
+    data.publishers.forEach(p => {
+      ph += `<button class="btn-outline${state.publisher===p?' on':''}" data-pub="${p}" onclick="setFilter('publisher','${p}')">${p}</button>`;
+    });
+    pubContainer.innerHTML = ph;
+  }
+
+  if (data.daily_briefing) {
+    briefEl.innerHTML = data.daily_briefing.replace(/\n/g,'<br>').replace(/## /g,'<h2>');
+  } else if (data.status === 'summarizing') {
+    briefEl.innerHTML = '<p style="color:var(--tm)">Summarizing articles...</p>';
+  }
+}
+
+async function fetchArticles() {
+  try {
+    const params = new URLSearchParams({ topic: state.topic, publisher: state.publisher });
+    const resp = await fetch('/api/articles?' + params);
+    const data = await resp.json();
+    renderFeed(data);
+    return data.status;
+  } catch (e) {
+    console.error('Fetch failed', e);
+    return 'error';
+  }
+}
+
+function setFilter(type, value) {
+  state[type] = value;
+  document.querySelectorAll(`[data-${type === 'topic' ? 'topic' : 'pub'}]`).forEach(b => {
+    b.classList.toggle('on', b.getAttribute(`data-${type === 'topic' ? 'topic' : 'pub'}`) === value);
+  });
+  fetchArticles();
+}
+
+async function triggerRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = 'Refreshing...';
+  await fetch('/api/refresh', { method: 'POST' });
+  startPolling();
+}
+
+let pollCount = 0;
+
+function startPolling() {
+  if (state.polling) clearInterval(state.polling);
+  pollCount = 0;
+  state.polling = setInterval(async () => {
+    const status = await fetchArticles();
+    pollCount++;
+    if (status === 'ready') {
+      const btn = document.getElementById('refreshBtn');
+      btn.disabled = false;
+      btn.textContent = 'Refresh';
+      // Keep polling slowly to pick up AI briefs as they finish
+      if (pollCount > 40) {
+        clearInterval(state.polling);
+        state.polling = null;
+      }
+    }
+  }, 5000);
+}
+
+(async () => {
+  const status = await fetchArticles();
+  startPolling();
+  if (status === 'ready') {
+    document.getElementById('refreshBtn').disabled = false;
+    document.getElementById('refreshBtn').textContent = 'Refresh';
+  }
+})();
+
+setInterval(triggerRefresh, 30 * 60 * 1000);
+</script>
+</body>
+</html>
