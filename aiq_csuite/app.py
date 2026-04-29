@@ -201,6 +201,63 @@ def health_llm():
     )
 
 
+def _resume_dimension_shifts_for_client(messages: List[dict], ev_rows: List) -> List[dict]:
+    """Map dim_shift events to chat indices so the UI can replay topic banners."""
+    model_idxs = [i for i, m in enumerate(messages) if (m.get("role") or "") == "model"]
+    out: List[dict] = []
+    for k, r in enumerate(ev_rows):
+        try:
+            payload = json.loads(r["payload_json"] or "{}")
+        except (json.JSONDecodeError, TypeError, KeyError):
+            continue
+        code = payload.get("code")
+        if not code:
+            continue
+        label = str(payload.get("label") or "")[:120]
+        idx_k = k + 1
+        if idx_k >= len(model_idxs):
+            break
+        out.append({"insert_before_index": model_idxs[idx_k], "code": str(code), "label": label})
+    return out
+
+
+@app.route("/api/session/<session_id>", methods=["GET"])
+def get_session_resume(session_id: str):
+    """Public read for resuming an in-progress chat (bookmark / reload / new tab)."""
+    init_db()
+    _expire_stale_sessions()
+    with get_conn() as c:
+        row = c.execute(
+            "SELECT variation_json, ended_at, started_at, created_at FROM sessions WHERE id = ?",
+            (session_id,),
+        ).fetchone()
+    if not row:
+        return jsonify({"error": "Unknown session"}), 404
+    var = json.loads(row[0] or "{}")
+    assessment = (var or {}).get("assessment") if isinstance(var, dict) else None
+    ended = row[1] is not None and row[1] != 0
+    started_at = float(row[2] or row[3] or 0.0)
+    msgs = list_messages(session_id)
+    public_msgs = [{"role": m["role"], "content": m["content"]} for m in msgs]
+    with get_conn() as c:
+        ev_rows = c.execute(
+            "SELECT payload_json FROM events WHERE session_id = ? AND type = ? ORDER BY created_at",
+            (session_id, "dim_shift"),
+        ).fetchall()
+    shifts = _resume_dimension_shifts_for_client(msgs, ev_rows)
+    return jsonify(
+        {
+            "session_id": session_id,
+            "ended": ended,
+            "assessment": assessment,
+            "messages": public_msgs,
+            "dimension_shifts": shifts,
+            "target_duration_sec": TARGET_DURATION_SEC,
+            "started_at": started_at,
+        }
+    )
+
+
 @app.route("/api/session/start", methods=["POST"])
 def start_session():
     ok, _, detail, _ = _llm_status()

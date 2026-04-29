@@ -13,7 +13,92 @@
     assessment: null,
     wrapCtaActive: false,
   };
+  /** Persisted so reload / new tab / recovery after errors can continue the same server session. */
+  const STORAGE_KEY = "aiq_csuite_active_session";
   let wrapCtaCountdown = null;
+
+  function persistActiveSession(sid) {
+    if (!sid) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, sid);
+      const u = new URL(location.href);
+      u.searchParams.set("session", sid);
+      history.replaceState({}, "", u.pathname + u.search + (u.hash || ""));
+    } catch (_) {}
+  }
+
+  function clearActiveSession() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      const u = new URL(location.href);
+      if (u.searchParams.has("session")) {
+        u.searchParams.delete("session");
+        history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
+      }
+    } catch (_) {}
+  }
+
+  async function tryResumeOnLoad() {
+    const params = new URLSearchParams(location.search);
+    let sid = (params.get("session") || "").trim();
+    if (!sid) {
+      try {
+        sid = (localStorage.getItem(STORAGE_KEY) || "").trim();
+      } catch (_) {}
+    }
+    if (!sid) return false;
+    let st;
+    try {
+      st = await apiGet("/api/session/" + encodeURIComponent(sid));
+    } catch (_) {
+      clearActiveSession();
+      return false;
+    }
+    if (st.ended || !st.messages || !st.messages.length) {
+      clearActiveSession();
+      if (st.ended) {
+        const berr = $("#startErr");
+        if (berr) {
+          showErr(
+            berr,
+            "That session already ended (results were finalized). Start a new assessment below."
+          );
+        }
+      }
+      return false;
+    }
+    sessionState.id = st.session_id;
+    sessionState.assessment = st.assessment || null;
+    sessionState.lastDimCode = null;
+    sessionState.wrapCtaActive = false;
+    const shifts = st.dimension_shifts || [];
+    const byIdx = {};
+    shifts.forEach(function (s) {
+      if (s.insert_before_index != null) byIdx[s.insert_before_index] = s;
+    });
+    if (shifts.length) {
+      sessionState.lastDimCode = shifts[shifts.length - 1].code;
+    }
+    persistActiveSession(st.session_id);
+    msgBox.innerHTML = "";
+    for (let i = 0; i < st.messages.length; i++) {
+      if (byIdx[i]) addDimBanner(byIdx[i]);
+      const m = st.messages[i];
+      addBubble(m.content, (m.role || "") === "user");
+    }
+    stepIntro.style.display = "none";
+    stepChat.style.display = "block";
+    if (stepResults) stepResults.style.display = "none";
+    if ($("#app")) $("#app").classList.remove("results-only");
+    const sa = st.started_at;
+    if (sa != null && typeof sa === "number" && sa > 1) {
+      sessionState.t0 = Date.now() - Math.max(0, Date.now() / 1000 - sa) * 1000;
+    } else {
+      sessionState.t0 = Date.now();
+    }
+    startTimer();
+    return true;
+  }
 
   const DIM_ORDER = ["D1", "D2", "D3", "D4", "D5", "D6"];
   const DIM_META = {
@@ -534,6 +619,7 @@
   async function runCompleteAndShowResults() {
     if (!sessionState.id) return;
     const o = await api("/api/session/" + sessionState.id + "/complete", {});
+    clearActiveSession();
     if (o.assessment) sessionState.assessment = o.assessment;
     if (sessionState.interval) clearInterval(sessionState.interval);
     const S = o && o.scores;
@@ -631,6 +717,7 @@
       sessionState.lastDimCode = null;
       sessionState.assessment = o.assessment || null;
       sessionState.wrapCtaActive = false;
+      persistActiveSession(o.session_id);
       if (wrapCtaCountdown) {
         clearInterval(wrapCtaCountdown);
         wrapCtaCountdown = null;
@@ -706,9 +793,18 @@
       }
     } catch (e2) {
       setTyping(false);
-      const detail = (e2.status === 503 || e2.status === 502) && e2.message ? e2.message : "Something went wrong: " + (e2.message || "unknown");
+      const st = e2.status;
+      const retriable = st === 502 || st === 503 || st === 504 || !st;
+      const detail = retriable
+        ? "Temporary connection issue — your session is still saved. Wait a moment and press Send again, or refresh this page to continue."
+        : (e2.message || "Something went wrong — try again.");
       showErr($("#chatErr"), detail);
-      addBubble("Could not get a reply. See the note under the input.", false);
+      addBubble(
+        retriable
+          ? "Could not reach the server just now. Your chat is still here — send again when ready."
+          : "Could not get a reply. See the note under the input.",
+        false
+      );
     }
     $("#sendBtn").disabled = false;
   };
@@ -750,6 +846,14 @@
     }
     this.style.pointerEvents = "auto";
   };
+
+  (function resumeBoot() {
+    const bb = $("#btnBegin");
+    if (bb) bb.disabled = true;
+    tryResumeOnLoad().finally(function () {
+      if (bb && !sessionState.id) bb.disabled = false;
+    });
+  })();
 
   (async function initAssessmentSelects() {
     const sl = document.getElementById("selLevel");
