@@ -170,17 +170,21 @@ def parse_dimension_banner(raw: str) -> Tuple[str, Optional[dict]]:
 
 
 # --- Interviewer post-check: fix truncation, missing question, or praise-only turn ---
+# Use re.IGNORECASE — Python 3.11+ rejects a second inline (?i) after `|` (must be only at start).
 FRAG_INCOMPLETE = re.compile(
-    r"(?i)(,|\b)\s*(?:how|what|when|where|why|which|who|given)\s*,?\s*$|"
-    r"(?i)\bhow (?:do|would|are|is|can|could|should|have|did)\s*,?\s*$"
+    r"(,|\b)\s*(?:how|what|when|where|why|which|who|given)\s*,?\s*$|"
+    r"\bhow (?:do|would|are|is|can|could|should|have|did)\s*,?\s*$",
+    re.IGNORECASE,
 )
 FRAG_PRAISE = re.compile(
-    r"(?i)^(that\'?s|this is|good|clear|makes sense|useful|great|helpful|understood)\b"
+    r"^(that\'?s|this is|good|clear|makes sense|useful|great|helpful|understood)\b",
+    re.IGNORECASE,
 )
 FRAG_EVALUATIVE = re.compile(
-    r"(?i)(that\'?s a (very )?(clear|good|sensible|wise|strong|practical|smart) "
+    r"(that\'?s a (very )?(clear|good|sensible|wise|strong|practical|smart) "
     r"|a (very )?clear (decision|call|move|metric)|good (call|move)|i (really )?appreciate|"
-    r"(well done|nicely (done|put)|i like how you))"
+    r"(well done|nicely (done|put)|i like how you))",
+    re.IGNORECASE,
 )
 
 
@@ -197,9 +201,11 @@ def _interviewer_needs_repair(visible: str) -> bool:
         return True
     if re.search(r"\[SESSION_COMPLETE\]\s*\Z", v, re.IGNORECASE | re.DOTALL):
         return False
-    if FRAG_INCOMPLETE.search(v) or re.search(r"(?i)given that[^.!?\n]{0,200}\Z", v):
+    if FRAG_INCOMPLETE.search(v) or re.search(
+        r"given that[^.!?\n]{0,200}\Z", v, re.IGNORECASE
+    ):
         return True
-    if re.search(r"(?i)understood\.?\s*given", v) and "?" not in v:
+    if re.search(r"understood\.?\s*given", v, re.IGNORECASE) and "?" not in v:
         return True
     if "?" not in v and len(v) > 20:
         return True
