@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Contentful article downloader ONLY — used by render.yaml (root dockerfilePath).
+# AiQ CSuite uses a SEPARATE image: aiq_csuite/Dockerfile (+ docker-entrypoint.sh)
+# and render-aiq.yaml (rootDir: aiq_csuite).
+# -----------------------------------------------------------------------------
 # Contentful article downloader (Flask) — production image
 FROM python:3.11-slim
 
