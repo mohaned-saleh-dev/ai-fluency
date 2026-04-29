@@ -1,0 +1,75 @@
+// Batch 6: Articles 51-60
+List<Knowledge__kav> articles = new List<Knowledge__kav>();
+
+Knowledge__kav a0 = new Knowledge__kav();
+a0.Title = 'Can I send an email to a customer or merchant if there is no existing case?';
+a0.Summary = '[Email & Communication] Can I send an email to a customer or merchant if there is no existing case?';
+a0.UrlName = 'faq-051-can-i-send-an-email-to-a-customer-or-merchant-if-there-is-no-existing-case';
+a0.Answer__c = '<p><strong>No</strong>, in the current Salesforce setup, you cannot send an email without an existing case. The system requires an active case to facilitate email communication.</p>\n\n<p><strong>Workaround:</strong> If you need to contact a merchant proactively and no case exists, make an <strong>outbound phone call</strong> — this will automatically create a new case. You can then use that case to send emails.</p>';
+articles.add(a0);
+
+Knowledge__kav a1 = new Knowledge__kav();
+a1.Title = 'What should I do if I\'m online in the email queue but not receiving any emails?';
+a1.Summary = '[Email & Communication] What should I do if I\'m online in the email queue but not receiving any emails?';
+a1.UrlName = 'faq-052-what-should-i-do-if-im-online-in-the-email-queue-but-not-receiving-any-emails';
+a1.Answer__c = '<p>Follow these steps:</p>\n\n<ol>\n<li><strong>Toggle your Omni-Channel status</strong> — Switch from "Online" to "Offline," wait 10-15 seconds, then switch back to "Online."</li>\n<li><strong>Log out and log back in</strong> — Close your browser, reopen it, and log in through JumpCloud.</li>\n<li><strong>Verify queue assignment</strong> — Ask your team lead or admin to confirm you are correctly assigned to the email queue.</li>\n</ol>\n\n<p>This sequence refreshes your connection to the queue and usually resolves the issue.</p>';
+articles.add(a1);
+
+Knowledge__kav a2 = new Knowledge__kav();
+a2.Title = 'What is the correct process for internal email escalations to the Care team?';
+a2.Summary = '[Email & Communication] What is the correct process for internal email escalations to the Care team?';
+a2.UrlName = 'faq-053-what-is-the-correct-process-for-internal-email-escalations-to-the-care-team';
+a2.Answer__c = '<p>When a Tamara internal employee needs to escalate a customer or partner email to the Care team:</p>\n\n<ol>\n<li><strong>Forward</strong> the entire email thread to: <strong><code>care.escalations@tamara.co</code></strong></li>\n<li><strong>Do not</strong> CC this address into an ongoing thread — always forward.</li>\n</ol>\n\n<p>Forwarding creates a clean new case in Salesforce, clearly marked as an internal escalation. This prevents agents from confusing the internal sender with the customer.</p>';
+articles.add(a2);
+
+Knowledge__kav a3 = new Knowledge__kav();
+a3.Title = 'How do "Pending" and "Closed" statuses work differently from Zendesk?';
+a3.Summary = '[Workflows & Processes] How do "Pending" and "Closed" statuses work differently from Zendesk?';
+a3.UrlName = 'faq-054-how-do-pending-and-closed-statuses-work-differently-from-zendesk';
+a3.Answer__c = '<p>There are key differences between Salesforce and Zendesk statuses:</p>\n\n<ol>\n<li><strong>Pending cases stay with the agent</strong> — Unlike Zendesk, when you set a case to "Pending" (e.g., "Pending on Partner"), the case stays assigned to you. It does <strong>not</strong> go back to the queue. *(The team is working to change this behavior to match Zendesk.)*</li>\n</ol>\n\n<ol>\n<li><strong>"Closed" is not terminal</strong> — In Salesforce, "Closed" is equivalent to "Solved" in Zendesk. A closed case <strong>can be reopened</strong> if the customer replies within 3 days.</li>\n</ol>\n\n<ol>\n<li><strong>Closing a case does not affect disputes</strong> — Closing a Salesforce case does <strong>not</strong> impact the dispute status in the CS Panel. The systems are not linked for this, so you can safely close cases.</li>\n</ol>';
+articles.add(a3);
+
+Knowledge__kav a4 = new Knowledge__kav();
+a4.Title = 'Do changes I make to a dispute ticket in Salesforce automatically update CS Hub?';
+a4.Summary = '[Workflows & Processes] Do changes I make to a dispute ticket in Salesforce automatically update CS Hub?';
+a4.UrlName = 'faq-055-do-changes-i-make-to-a-dispute-ticket-in-salesforce-automatically-update-cs-hub';
+a4.Answer__c = '<p><strong>No.</strong> There is no live two-way integration between Salesforce and CS Hub for dispute data. If you change the "Issue Type" on a dispute ticket in Salesforce, it will <strong>not</strong> update the claim reason in CS Hub.</p>\n\n<p>If the claim reason needs to be corrected in CS Hub, you must do it <strong>manually</strong> by going directly into CS Hub and updating it there.</p>';
+articles.add(a4);
+
+Knowledge__kav a5 = new Knowledge__kav();
+a5.Title = 'What Omni-Channel status should I use for short breaks?';
+a5.Summary = '[Workflows & Processes] What Omni-Channel status should I use for short breaks?';
+a5.UrlName = 'faq-056-what-omni-channel-status-should-i-use-for-short-breaks';
+a5.Answer__c = '<p>The "Away" status is <strong>not currently implemented</strong> in Salesforce. For short breaks (e.g., 5-minute breaks):</p>\n\n<ul>\n<li>Use the <strong>"Task"</strong> status in Omni-Channel.</li>\n</ul>\n\n<p>This will pause new work routing to you while you are on break. Switch back to "Online" when you return.</p>';
+articles.add(a5);
+
+Knowledge__kav a6 = new Knowledge__kav();
+a6.Title = 'Is "Nida Masoud" a real person or an automated system?';
+a6.Summary = '[Workflows & Processes] Is "Nida Masoud" a real person or an automated system?';
+a6.UrlName = 'faq-057-is-nida-masoud-a-real-person-or-an-automated-system';
+a6.Answer__c = '<p><strong>"Nida Masoud" is a system user / automation.</strong> Any follow-up messages or reminders sent under this name are generated automatically by the system, not by a human agent. You do <strong>not</strong> need to manually follow up on tickets where "Nida" has already sent a reminder.</p>';
+articles.add(a6);
+
+Knowledge__kav a7 = new Knowledge__kav();
+a7.Title = 'How many cases can I work on at the same time?';
+a7.Summary = '[Workflows & Processes] How many cases can I work on at the same time?';
+a7.UrlName = 'faq-058-how-many-cases-can-i-work-on-at-the-same-time';
+a7.Answer__c = '<p>The standard workload capacity is <strong>3 active cases</strong> (in "Working" status) at the same time. You should not receive more than 3 unless they are reopened cases returning to you.</p>\n\n<p>If you are only receiving 1 case at a time when you should receive more, ask your admin to check your capacity settings.</p>';
+articles.add(a7);
+
+Knowledge__kav a8 = new Knowledge__kav();
+a8.Title = 'When is the correct time to escalate a case to another team?';
+a8.Summary = '[Workflows & Processes] When is the correct time to escalate a case to another team?';
+a8.UrlName = 'faq-059-when-is-the-correct-time-to-escalate-a-case-to-another-team';
+a8.Answer__c = '<p>Always escalate <strong>after wrap-up</strong>:</p>\n\n<ol>\n<li><strong>Finish the call or chat</strong> with the customer first.</li>\n<li><strong>Complete all case notes</strong> and fill in all required fields.</li>\n<li><strong>Disconnect the call</strong> or <strong>end the chat session</strong>.</li>\n<li><strong>Then</strong> transfer or escalate the case.</li>\n</ol>\n\n<p>Escalating while still on a call or with an active chat can cause the case to bounce back to you or lose the transfer.</p>';
+articles.add(a8);
+
+Knowledge__kav a9 = new Knowledge__kav();
+a9.Title = 'Why can\'t I save a case as "Pending Customer" if it was previously closed?';
+a9.Summary = '[Workflows & Processes] Why can\'t I save a case as "Pending Customer" if it was previously closed?';
+a9.UrlName = 'faq-060-why-cant-i-save-a-case-as-pending-customer-if-it-was-previously-closed';
+a9.Answer__c = '<p>Salesforce does not allow you to change a case status from <strong>"Closed" to "Pending Customer."</strong> The case must be in an active status (like "New" or "Working") for you to set it to "Pending Customer."</p>\n\n<p>If a closed case needs to go back to pending, it would first need to be reopened (typically triggered by a customer reply within the 3-day window).</p>';
+articles.add(a9);
+
+insert articles;
+System.debug('Batch 6: Inserted ' + articles.size() + ' articles');

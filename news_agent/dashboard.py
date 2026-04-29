@@ -2,7 +2,7 @@
 Flask web dashboard for the News Intelligence Agent.
 
 Page loads instantly. RSS articles appear within seconds.
-AI briefs fill in progressively in the background.
+AI briefs generated concurrently via OpenAI GPT-4o-mini.
 """
 
 from __future__ import annotations
@@ -47,21 +47,45 @@ async def _refresh_data_async() -> None:
     _cache["status"] = "fetching"
     logger.info("Background: fetching RSS feeds...")
 
-    articles = await aggregate_news(fetch_previews=False)
+    articles = await aggregate_news(fetch_previews=True, max_preview_count=40)
 
     _cache["articles"] = articles
     _cache["last_refresh"] = datetime.now(timezone.utc)
-    _cache["status"] = "ready"
-    logger.info("Background: %d articles ready. Starting AI summaries...", len(articles))
+    _cache["status"] = "summarizing"
+    logger.info("Background: %d articles ready. Generating AI summaries...", len(articles))
 
-    for i, article in enumerate(articles[:10]):
-        logger.info("AI summary %d/10: %s", i + 1, article.title[:50])
-        await summarize_article(article)
-        await asyncio.sleep(16)
+    ft = [a for a in articles if a.publisher == "Financial Times"]
+    bl = [a for a in articles if a.publisher == "Bloomberg"]
+    free = [a for a in articles if not a.is_paywalled]
+    queue = ft[:15] + bl[:15] + free[:5]
 
-    briefing = await generate_daily_briefing(articles[:10])
+    seen = set()
+    deduped: list[Article] = []
+    for a in queue:
+        if id(a) not in seen:
+            deduped.append(a)
+            seen.add(id(a))
+
+    sem = asyncio.Semaphore(10)
+
+    async def _summarize_one(i: int, article: Article):
+        async with sem:
+            logger.info("AI summary %d/%d: %s", i + 1, len(deduped), article.title[:50])
+            await summarize_article(article)
+
+    await asyncio.gather(*[_summarize_one(i, a) for i, a in enumerate(deduped)])
+
+    done = sum(1 for a in deduped if a.ai_brief)
+    logger.info("Background: %d/%d AI summaries complete.", done, len(deduped))
+
+    for a in articles:
+        if a.ai_status == "pending" and id(a) not in seen:
+            a.ai_status = "not_queued"
+
+    briefing = await generate_daily_briefing(deduped)
     _cache["daily_briefing"] = briefing
-    logger.info("Background: daily briefing generated.")
+    _cache["status"] = "ready"
+    logger.info("Background: daily briefing generated. All done.")
 
 
 def _trigger_background_refresh():
@@ -103,7 +127,7 @@ def api_articles():
 
 @app.route("/api/refresh", methods=["POST"])
 def api_refresh():
-    if _cache["status"] not in ("fetching",):
+    if _cache["status"] not in ("fetching", "summarizing"):
         _cache["last_refresh"] = None
         _cache["status"] = "idle"
         _trigger_background_refresh()

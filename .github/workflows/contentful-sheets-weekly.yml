@@ -1,0 +1,38 @@
+# Weekly Contentful → Google Sheet. Add repo secrets, then use "Run workflow" or the cron.
+# Secrets: CONTENTFUL_MANAGEMENT_TOKEN, GOOGLE_SHEET_ID, GOOGLE_SERVICE_ACCOUNT_JSON
+name: Contentful to Google Sheets
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 06:00 UTC; adjust in workflow if needed
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Service account key
+        env:
+          SA_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SA_JSON" ]; then echo "Missing secret GOOGLE_SERVICE_ACCOUNT_JSON" >&2; exit 1; fi
+          python3 -c "import os; f=open('/tmp/gcp-sa.json','w',encoding='utf-8'); f.write(os.environ['SA_JSON']); f.close()"
+      - name: Sync
+        env:
+          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_FILE: /tmp/gcp-sa.json
+        run: |
+          if [ -z "$CONTENTFUL_MANAGEMENT_TOKEN" ] || [ -z "$GOOGLE_SHEET_ID" ]; then
+            echo "Set secrets CONTENTFUL_MANAGEMENT_TOKEN and GOOGLE_SHEET_ID" >&2
+            exit 1
+          fi
+          python3 scripts/contentful_sheets_sync.py
+      - name: Remove key
+        if: always()
+        run: rm -f /tmp/gcp-sa.json

@@ -1,0 +1,80 @@
+Slack Threads Report - January 7, 2026
+=====================================
+
+IMPORTANT THREADS (Less than 15 days old)
+------------------------------------------
+
+1. Thread in tamara-byob-pilot-ext (Wednesday)
+   - Channel: tamara-byob-pilot-ext
+   - Participants: Vinay Sagar, Sudeep Padalkar, Muhammad Asif
+   - Topic: "@Mahmoud Gabr @Sudeep Padalkar can you provide me with a user id that has more than one orders..."
+
+2. Thread in it-helpdesk (Wednesday)
+   - Channel: it-helpdesk
+   - Participants: Robin, Assist, and 3 others
+   - Topic: "Hey team @IT Helper, please add aziz@woorp.ai to the channel"
+
+3. Thread in cx-partner-ai-chatbot-ext (Wednesday)
+   - Channel: cx-partner-ai-chatbot-ext
+   - Participants: Sunil, Muhammad Asif, and 3 others
+   - Topic: "@Vinay Sagar @Sunil @Muhammad Asif what's the update on the launch"
+
+
+THREADS MARKED AS READ (Older than 15 days)
+-------------------------------------------
+
+The following threads older than 15 days have been marked as read:
+
+1. Mention in project-account (December 9th, 2025 - 29 days old)
+   - Topic: "Aligning on CX items"
+   - Mentions: @Mohaned Saleh
+
+2. Mention in project-account (December 9th, 2025 - 29 days old)
+   - Topic: "Aligning on CX items"
+
+3. Mention in project-account (December 9th, 2025 - 29 days old)
+   - Topic: "Aligning on CX items"
+
+4. Thread in it-helpdesk (December 8th, 2025 - 30 days old)
+   - Topic: "@IT Helper access on Figma"
+   - Participants: Passant Elsadek, Robin, and 5 others
+
+5. Thread in it-helpdesk (December 6th, 2025 - 32 days old)
+   - Topic: "@IT Helper access to Zendesk"
+   - Participants: Passant Elsadek, Robin, and 5 others
+
+6. Mention in it-helpdesk (December 6th, 2025 - 32 days old)
+   - Topic: "@IT Helper access to Zendesk"
+   - Mentions: @Mohaned Saleh
+
+7. Thread in it-helpdesk (December 3rd, 2025 - 35 days old)
+   - Topic: "Temp admin access, update apps"
+   - Participants: Ebram Nagy, Robin, and 4 others
+
+8. Thread in care-tech-releases (December 2nd, 2025 - 36 days old)
+   - Topic: "What's New – [FRONTLINE AGENT ENABLEMENT] Flexible Compensation Amounts"
+
+9. Thread in direct message (November 27th, 2025 - 41 days old)
+   - Topic: "Sharing this resume here for a strong senior candidate"
+   - Participants: Mohamed Aly Abdallah, Haris Salman, Hung Phan
+
+10. Thread in direct message (November 26th, 2025 - 42 days old)
+    - Topic: "DA candidate who has completed the interviews"
+    - Participants: Haris Salman, Omar Mohsen, and 3 others
+
+11. Thread in it-helpdesk (November 26th, 2025 - 42 days old)
+    - Topic: "Need to create a new subspace under an external Notion space"
+    - Participants: Mohamed Aly Abdallah, Robin, and 5 others
+
+...and additional threads from November 24th, 22nd, 21st, and earlier.
+
+
+SUMMARY
+-------
+- Important threads (< 15 days): 3
+- Old threads marked as read (> 15 days): 11+ threads
+- Unread count reduced from 448 to 240 (approximately 208 threads marked as read)
+
+All threads older than 15 days that were visible in the Activity view have been marked as read. 
+They should no longer appear in your threads view. The unread count has significantly decreased, 
+confirming that the threads have been successfully marked as read.

@@ -1,0 +1,75 @@
+// Batch 3: Articles 21-30
+List<Knowledge__kav> articles = new List<Knowledge__kav>();
+
+Knowledge__kav a0 = new Knowledge__kav();
+a0.Title = 'What should I do if I keep getting logged out of Salesforce randomly?';
+a0.Summary = '[Login, Access & Troubleshooting] What should I do if I keep getting logged out of Salesforce randomly?';
+a0.UrlName = 'faq-021-what-should-i-do-if-i-keep-getting-logged-out-of-salesforce-randomly';
+a0.Answer__c = '<p>Random logouts are almost always caused by having <strong>multiple Salesforce tabs open</strong> in your browser.</p>\n\n<p><strong>Fix:</strong></p>\n<ul>\n<li>Make sure you only have <strong>one Salesforce tab</strong> open at all times.</li>\n<li>Opening multiple Salesforce tabs can disrupt your session and switch your status to offline.</li>\n</ul>\n\n<p>If it still happens with one tab, clear your browser cache, close the browser entirely, and log back in through JumpCloud.</p>';
+articles.add(a0);
+
+Knowledge__kav a1 = new Knowledge__kav();
+a1.Title = 'How do I perform a hard refresh in Salesforce?';
+a1.Summary = '[Login, Access & Troubleshooting] How do I perform a hard refresh in Salesforce?';
+a1.UrlName = 'faq-022-how-do-i-perform-a-hard-refresh-in-salesforce';
+a1.Answer__c = '<p>A hard refresh forces your browser to reload everything from scratch, bypassing any cached data:</p>\n\n<ul>\n<li><strong>Windows / Linux:</strong> Press <strong>Ctrl + Shift + R</strong></li>\n<li><strong>Mac:</strong> Press <strong>Cmd + Shift + R</strong></li>\n</ul>\n\n<p>This is the go-to fix for most display glitches, missing buttons, or UI issues in Salesforce.</p>';
+articles.add(a1);
+
+Knowledge__kav a2 = new Knowledge__kav();
+a2.Title = 'What are the general troubleshooting steps for any Salesforce issue?';
+a2.Summary = '[Login, Access & Troubleshooting] What are the general troubleshooting steps for any Salesforce issue?';
+a2.UrlName = 'faq-023-what-are-the-general-troubleshooting-steps-for-any-salesforce-issue';
+a2.Answer__c = '<p>For almost any Salesforce problem (display issues, errors, missing features, connectivity problems), try these steps in order:</p>\n\n<ol>\n<li><strong>Hard refresh</strong> — Press Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac).</li>\n<li><strong>Clear browser cache and cookies</strong> — Go to browser settings and clear all browsing data.</li>\n<li><strong>Close all Salesforce and JumpCloud tabs</strong> — Make sure everything is shut down.</li>\n<li><strong>Close and reopen your browser</strong> — Not just the tabs, the entire browser application.</li>\n<li><strong>Log back in through JumpCloud</strong> — Always use JumpCloud as your entry point.</li>\n<li><strong>Check browser permissions</strong> — Make sure pop-ups and microphone access are allowed for the Salesforce domain.</li>\n</ol>\n\n<p>If the issue continues after all of these, report it to the <strong>IT Helpdesk Slack channel</strong> with details and screenshots.</p>';
+articles.add(a2);
+
+Knowledge__kav a3 = new Knowledge__kav();
+a3.Title = 'How do I enable microphone and pop-up permissions for Salesforce?';
+a3.Summary = '[Login, Access & Troubleshooting] How do I enable microphone and pop-up permissions for Salesforce?';
+a3.UrlName = 'faq-024-how-do-i-enable-microphone-and-pop-up-permissions-for-salesforce';
+a3.Answer__c = '<p>Many Salesforce features (especially phone/calls) require your browser to allow microphone access and pop-ups:</p>\n\n<ol>\n<li>Open Google Chrome (recommended browser).</li>\n<li>Navigate to your Salesforce page.</li>\n<li>Click the <strong>padlock icon</strong> (or tune icon) in the address bar, to the left of the URL.</li>\n<li>In the dropdown, find:</li>\n</ol>\n<ul>\n<li><strong>Microphone</strong> — Set to <strong>"Allow"</strong></li>\n<li><strong>Pop-ups and redirects</strong> — Set to <strong>"Allow"</strong></li>\n</ul>\n<ol>\n<li><strong>Refresh the page</strong> after changing these settings.</li>\n</ol>\n\n<p><strong>Tip:</strong> If calls or Omni-Channel are not working, try toggling these permissions off and then back on, then do a hard refresh. This resets the connection.</p>';
+articles.add(a3);
+
+Knowledge__kav a4 = new Knowledge__kav();
+a4.Title = 'How do I request Salesforce Care access if I only have Commercial Salesforce?';
+a4.Summary = '[Login, Access & Troubleshooting] How do I request Salesforce Care access if I only have Commercial Salesforce?';
+a4.UrlName = 'faq-025-how-do-i-request-salesforce-care-access-if-i-only-have-commercial-salesforce';
+a4.Answer__c = '<p>If you can see Salesforce Commercial but not Salesforce Service Cloud (Care):</p>\n\n<ol>\n<li><strong>Raise a ticket with IT</strong> — Submit a formal request specifying that you need "Salesforce Care" (Service Cloud) access.</li>\n<li><strong>Mention JumpCloud</strong> — Tell IT that this access needs to be added to your JumpCloud profile.</li>\n<li><strong>Specify queues</strong> — If you need access to specific queues (e.g., TNS queues for AE and SA), include that in the request.</li>\n<li>After IT confirms the change, <strong>log out and log back in</strong> for the new access to take effect.</li>\n</ol>';
+articles.add(a4);
+
+Knowledge__kav a5 = new Knowledge__kav();
+a5.Title = 'How can Team Leads get phone access for making outbound calls?';
+a5.Summary = '[Login, Access & Troubleshooting] How can Team Leads get phone access for making outbound calls?';
+a5.UrlName = 'faq-026-how-can-team-leads-get-phone-access-for-making-outbound-calls';
+a5.Answer__c = '<p>Team Leads and SMEs who need Salesforce phone access (Genesys integration) must:</p>\n\n<ol>\n<li><strong>Get Genesys access first</strong> — Raise a ticket with IT requesting a Genesys user account.</li>\n<li><strong>Request SF phone access</strong> — Once Genesys access is confirmed, have your manager or admin request "Care SF phone access" from the Salesforce admin team.</li>\n<li>The admin will enable phone features on your Salesforce profile.</li>\n<li>After access is granted, <strong>log out and log back in</strong>, then check that your microphone and pop-ups are allowed.</li>\n</ol>';
+articles.add(a5);
+
+Knowledge__kav a6 = new Knowledge__kav();
+a6.Title = 'What should I do if I can\'t change my Omni-Channel status?';
+a6.Summary = '[Login, Access & Troubleshooting] What should I do if I can\'t change my Omni-Channel status?';
+a6.UrlName = 'faq-027-what-should-i-do-if-i-cant-change-my-omni-channel-status';
+a6.Answer__c = '<p>If you are unable to select a status (like "Online" or "Task") in the Omni-Channel widget:</p>\n\n<ol>\n<li><strong>Hard refresh</strong> the page — Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac).</li>\n<li><strong>Clear your browser cache</strong> and cookies.</li>\n<li><strong>Log out</strong> of Salesforce completely.</li>\n<li><strong>Close the browser</strong> and reopen it.</li>\n<li><strong>Log back in</strong> through JumpCloud.</li>\n</ol>\n\n<p>If the issue still persists, ask your admin to check your user configuration.</p>';
+articles.add(a6);
+
+Knowledge__kav a7 = new Knowledge__kav();
+a7.Title = 'What should I do if I can\'t view cases assigned to another team?';
+a7.Summary = '[Login, Access & Troubleshooting] What should I do if I can\'t view cases assigned to another team?';
+a7.UrlName = 'faq-028-what-should-i-do-if-i-cant-view-cases-assigned-to-another-team';
+a7.Answer__c = '<p>If you get an access error when trying to view cases belonging to another team (e.g., Partner Care), it means your role does not have visibility into that team\'s cases.</p>\n\n<p><strong>To fix:</strong></p>\n<ol>\n<li>Contact your team lead or a Salesforce admin.</li>\n<li>Explain which team\'s cases you need to view and why.</li>\n<li>The admin can grant you the necessary access.</li>\n<li>After access is granted, <strong>log out and log back in</strong> for the change to take effect.</li>\n</ol>';
+articles.add(a7);
+
+Knowledge__kav a8 = new Knowledge__kav();
+a8.Title = 'What should I do if I can\'t edit cases, add comments, or access files in Salesforce?';
+a8.Summary = '[Login, Access & Troubleshooting] What should I do if I can\'t edit cases, add comments, or access files in Salesforce?';
+a8.UrlName = 'faq-029-what-should-i-do-if-i-cant-edit-cases-add-comments-or-access-files-in-salesforce';
+a8.Answer__c = '<p>If the Salesforce interface is not responding properly (cannot edit, add comments, or open files):</p>\n\n<ol>\n<li><strong>Clear your browser cache and cookies.</strong></li>\n<li><strong>Close the browser completely.</strong></li>\n<li><strong>Restart your computer</strong> (if clearing cache alone didn\'t help).</li>\n<li><strong>Reopen the browser and log back in.</strong></li>\n</ol>\n\n<p>This resolves most interface glitches caused by corrupted cached data.</p>';
+articles.add(a8);
+
+Knowledge__kav a9 = new Knowledge__kav();
+a9.Title = 'What Omni-Channel status should I select to receive inbound calls?';
+a9.Summary = '[Phone & Calls] What Omni-Channel status should I select to receive inbound calls?';
+a9.UrlName = 'faq-030-what-omni-channel-status-should-i-select-to-receive-inbound-calls';
+a9.Answer__c = '<p>To receive inbound phone calls, you <strong>must</strong> set your Omni-Channel status to <strong>"Online."</strong></p>\n\n<p><strong>Do NOT</strong> select "Outbound & Transfer Calls" if you want to receive inbound calls. That status is specifically for:</p>\n<ul>\n<li>Making outbound calls</li>\n<li>Receiving calls transferred from other agents</li>\n</ul>\n\n<p>If you are on "Outbound & Transfer Calls," no new inbound calls will be routed to you.</p>';
+articles.add(a9);
+
+insert articles;
+System.debug('Batch 3: Inserted ' + articles.size() + ' articles');

@@ -43,6 +43,7 @@ class Article:
     topics: list[str] = field(default_factory=list)
     is_paywalled: bool = False
     ai_brief: Optional[str] = None
+    ai_status: str = "pending"
 
     @property
     def fingerprint(self) -> str:
@@ -67,6 +68,7 @@ class Article:
             "topics": self.topics,
             "is_paywalled": self.is_paywalled,
             "ai_brief": self.ai_brief,
+            "ai_status": self.ai_status,
         }
 
 
@@ -134,38 +136,32 @@ async def fetch_rss_feed(client: httpx.AsyncClient, source: RSSSource) -> list[A
 # Free preview extraction (meta tags + first paragraphs)
 # ---------------------------------------------------------------------------
 
-async def extract_free_preview(client: httpx.AsyncClient, url: str) -> str:
-    """Pull publicly served meta descriptions and the first few <p> tags."""
+async def extract_article_text(client: httpx.AsyncClient, url: str) -> str:
+    """Extract full article text from a URL. Works best on free/non-paywalled sites."""
     try:
         resp = await client.get(url, timeout=FETCH_TIMEOUT, follow_redirects=True)
         resp.raise_for_status()
     except Exception as e:
-        logger.debug("Preview fetch failed for %s: %s", url, e)
+        logger.debug("Article fetch failed for %s: %s", url, e)
         return ""
 
     soup = BeautifulSoup(resp.text, "html.parser")
+
+    for tag in soup.find_all(["nav", "script", "style", "footer", "header", "aside", "form", "figure"]):
+        tag.decompose()
+
     parts: list[str] = []
 
     og_desc = soup.find("meta", property="og:description")
     if og_desc and og_desc.get("content"):
         parts.append(og_desc["content"].strip())
 
-    meta_desc = soup.find("meta", attrs={"name": "description"})
-    if meta_desc and meta_desc.get("content"):
-        desc = meta_desc["content"].strip()
-        if desc not in parts:
-            parts.append(desc)
-
-    p_count = 0
     for p in soup.find_all("p"):
         text = p.get_text(strip=True)
-        if len(text) > 60 and text not in parts:
+        if len(text) > 50 and text not in parts:
             parts.append(text)
-            p_count += 1
-            if p_count >= 3:
-                break
 
-    return " ".join(parts)[:1500]
+    return "\n\n".join(parts)[:5000]
 
 
 # ---------------------------------------------------------------------------
@@ -222,19 +218,19 @@ async def aggregate_news(
         )
 
         if fetch_previews:
-            # Bloomberg returns 403 on all direct article URLs; skip them
-            skip_domains = {"bloomberg.com"}
-            targets = [
-                a for a in all_articles[:max_preview_count]
-                if not any(d in a.url for d in skip_domains)
-            ]
-            preview_results = await asyncio.gather(
-                *[extract_free_preview(client, a.url) for a in targets],
-                return_exceptions=True,
-            )
-            for article, preview in zip(targets, preview_results):
-                if isinstance(preview, str) and preview:
-                    article.preview_text = preview
+            free_targets = [a for a in all_articles if not a.is_paywalled][:max_preview_count]
+            if free_targets:
+                logger.info("Extracting full text from %d free articles...", len(free_targets))
+                text_results = await asyncio.gather(
+                    *[extract_article_text(client, a.url) for a in free_targets],
+                    return_exceptions=True,
+                )
+                extracted = 0
+                for article, text in zip(free_targets, text_results):
+                    if isinstance(text, str) and text:
+                        article.preview_text = text
+                        extracted += 1
+                logger.info("Extracted text from %d/%d free articles", extracted, len(free_targets))
 
     logger.info("Aggregation complete: %d articles from %d feeds", len(all_articles), len(feed_sources))
     return all_articles

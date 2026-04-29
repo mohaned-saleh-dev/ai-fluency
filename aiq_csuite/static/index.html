@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AiQ assessment — Tamara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="icon"
+    href="/static/brand/tamara-mark-icon.png"
+    type="image/png"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/static/brand.css" />
+</head>
+<body>
+  <div class="shell" id="app">
+    <div class="intro-panel" id="step-intro">
+      <div class="slide-plate no-hero-num">
+        <div class="brand-bar">
+          <div class="logo-wordmark logo-surface" title="tamara">
+            <div class="logo-lockup" aria-label="tamara">
+              <img
+                class="tamara-mark"
+                src="/static/brand/tamara-mark-icon.png"
+                width="160"
+                height="160"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+              <span class="tamara-word">tamara</span>
+            </div>
+          </div>
+          <span class="badge">Internal preview</span>
+        </div>
+        <h1 class="display-title">AiQ <span class="accent">assessment</span></h1>
+        <p class="sub">
+          About ten minutes. We explore how you use AI in practice — not a form, not a performance review.
+        </p>
+        <ul class="expect">
+          <li>One clear question at a time. You can <strong>ask for clarification</strong> or a simpler phrasing any time.</li>
+          <li>Answer in whatever length feels natural; we&rsquo;re not counting words or judging polish.</li>
+          <li>We <strong>cover all six</strong> areas in conversation; some get a bit more time than others, depending on your level and job family.</li>
+        </ul>
+        <p class="sub" style="margin: 0.5rem 0 0.35rem; font-size: 0.88rem">
+          <strong>Who you are for this run</strong>
+        </p>
+        <div class="assessment-picks" id="assessmentPicks">
+          <label class="apick">
+            <span class="apick-lbl">Level</span>
+            <select id="selLevel" class="apick-ctrl" aria-label="Your level"></select>
+          </label>
+          <label class="apick">
+            <span class="apick-lbl">Job family</span>
+            <select id="selJobFamily" class="apick-ctrl" aria-label="Your job family"></select>
+          </label>
+        </div>
+        <div class="err-banner" id="startErr"></div>
+        <button class="btn prim" type="button" id="btnBegin">Begin</button>
+      </div>
+    </div>
+    <div class="card" id="step-chat" style="display: none">
+      <div class="card-h">
+        <div class="card-brand">
+          <div class="logo-wordmark" title="tamara">
+            <div class="logo-lockup" aria-label="tamara">
+              <img
+                class="tamara-mark"
+                src="/static/brand/tamara-mark-icon.png"
+                width="160"
+                height="160"
+                alt=""
+                role="presentation"
+              />
+              <span class="tamara-word">tamara</span>
+            </div>
+          </div>
+          <div class="card-headline">
+            <span class="aiq-title">AiQ Assessment</span>
+          </div>
+        </div>
+        <span class="pill">In session</span>
+        <span id="timer">0:00 / ~10:00</span>
+      </div>
+      <div class="messages" id="msgBox"></div>
+      <div
+        class="wrap-cta"
+        id="wrapCta"
+        role="status"
+        aria-live="polite"
+        hidden
+      >
+        <p class="wrap-cta__text">
+          When you&rsquo;re ready, tap <strong>View results</strong> for your one-page summary from this session.
+        </p>
+        <p class="wrap-cta__timer" id="wrapCtaTimer" hidden></p>
+      </div>
+      <div class="composer">
+        <form id="fChat">
+          <textarea id="txt" rows="2" placeholder="Your reply, or a clarifying question…" required></textarea>
+          <button class="prim" type="submit" id="sendBtn">Send</button>
+        </form>
+        <p class="muted" style="font-size: 0.92rem">Press <strong>Enter</strong> to send · <strong>Shift+Enter</strong> for a new line</p>
+        <p class="muted" style="margin-top: 0.25rem"><a href="#" id="linkDone" class="link-view-results">View results</a></p>
+      </div>
+    </div>
+    <div class="err-banner" id="chatErr"></div>
+    <section
+      class="step-results"
+      id="step-results"
+      style="display: none"
+      aria-label="Your AiQ results"
+    >
+      <div id="resultsMount" class="results-mount"></div>
+    </section>
+  </div>
+  <div
+    class="end-modal"
+    id="endModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="endModalTitle"
+    hidden
+  >
+    <div class="end-modal__backdrop" id="endModalBackdrop" aria-hidden="true"></div>
+    <div class="end-modal__panel slide-plate no-hero-num" role="document">
+      <h2 class="end-modal__title" id="endModalTitle">End this session?</h2>
+      <div class="end-modal__body" id="endModalBody"></div>
+      <p class="end-modal__err" id="endModalError" hidden></p>
+      <p class="end-modal__loading" id="endModalLoading" hidden>Preparing your one-page summary… this can take up to a minute.</p>
+      <div class="end-modal__actions">
+        <button type="button" class="btn btn--secondary" id="endModalContinue">Continue</button>
+        <button type="button" class="btn prim" id="endModalConfirm">End here</button>
+      </div>
+    </div>
+  </div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

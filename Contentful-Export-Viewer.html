@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contentful — download CSV & Word</title>
+  <style>
+    :root { --bg: #0f1419; --panel: #1a2130; --text: #e6edf3; --muted: #8b9ab0; --acc: #3b82f6; --ok: #22c55e; --border: #2d3a4f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.55; }
+    .wrap { max-width: 32rem; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.4rem; }
+    p, li { color: var(--muted); font-size: 0.9rem; }
+    p.lead { font-size: 0.88rem; margin: 0 0 1rem; }
+    label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0.9rem 0 0.35rem; }
+    input[type="url"], input[type="text"], input[type="password"] {
+      width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border);
+      background: #0d1117; color: var(--text); font-size: 0.95rem; font-family: inherit;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0; }
+    button, .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      border: none; font-family: inherit; text-decoration: none; color: #fff;
+    }
+    .primary { background: var(--ok); color: #052e1a; }
+    .primary:hover { filter: brightness(1.05); }
+    .secondary { background: var(--acc); color: #fff; }
+    .secondary:hover { filter: brightness(1.05); }
+    .ghost { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+    .hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
+    .out { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.8rem; word-break: break-all; color: #94a3b8; margin: 0.5rem 0; }
+    details { margin: 1rem 0; font-size: 0.88rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Download the Contentful export</h1>
+    <p class="lead">
+      Your team runs a small <strong>Contentful article downloader</strong> site. You type its address here once, then you get
+      <strong>CSV</strong> and <strong>Word</strong> files with the same content — nothing to install.
+    </p>
+    <label for="base">Server address (base URL)</label>
+    <input type="url" id="base" inputmode="url" autocomplete="off" placeholder="e.g. https://your-downloader.onrender.com  or  http://192.168.1.10:5050" />
+    <p class="hint">No slash at the end. Use the IP your colleague gave you, not 127.0.0.1, unless you run the server on this same computer.</p>
+    <label for="k">Access key (optional — only if they gave you a k= link)</label>
+    <input type="password" id="k" autocomplete="off" placeholder="Leave empty if the link had no k=" />
+    <p class="row">
+      <button type="button" class="ghost" id="save">Remember on this device</button>
+    </p>
+    <p class="row" style="margin-top:1rem;">
+      <a class="btn primary" id="aCsv" href="#" role="button">Download CSV</a>
+      <a class="btn secondary" id="aDoc" href="#" role="button">Download Word (.docx)</a>
+    </p>
+    <p class="hint">Your browser will download a file, or may open a sign-in if the site is protected.</p>
+    <div class="out" id="urlPreview" hidden>—</div>
+    <details>
+      <summary>Using direct file links (Hosty / Drive) instead of a server</summary>
+      <p>If they did <strong>not</strong> give a server, only a link to a file, paste the full <strong>CSV</strong> and <strong>Word</strong> links below. Otherwise leave these empty.</p>
+      <label for="directCsv">Direct link to <code>.csv</code> file (optional)</label>
+      <input type="url" id="directCsv" placeholder="https://…" />
+      <label for="directDoc">Direct link to <code>.docx</code> file (optional)</label>
+      <input type="url" id="directDoc" placeholder="https://…" />
+      <p class="row" style="margin-top:0.75rem;">
+        <a class="btn primary" id="aCsv2" href="#">Get CSV (direct link)</a>
+        <a class="btn secondary" id="aDoc2" href="#">Get Word (direct link)</a>
+      </p>
+    </details>
+  </div>
+  <script>
+(function () {
+  const LS = { base: "contentful-dl-base", k: "contentful-dl-k" };
+  const $ = (id) => document.getElementById(id);
+  const base = $("base");
+  const k = $("k");
+  if (localStorage.getItem(LS.base)) base.value = localStorage.getItem(LS.base) || "";
+  if (localStorage.getItem(LS.k)) k.value = localStorage.getItem(LS.k) || "";
+  function trimBase(b) { return b.replace(/\/+$/g, ""); }
+  function extraQuery(b) { var t = (k && k.value && k.value.trim()); return t ? ((b.indexOf("?") >= 0 ? "&" : "?") + "k=" + encodeURIComponent(t)) : ""; }
+  function build(path) { var b = trimBase((base && base.value) || ""); if (!b) return null; return b + path + extraQuery(b + path); }
+  function setLinks() { var a = build("/download/entries.csv"); var d = build("/download/entries.docx"); $("aCsv").href = a || "#"; $("aDoc").href = d || "#"; if (a) $("urlPreview").hidden = false, $("urlPreview").textContent = a.replace(/\/download.*$/, "/…"); }
+  setLinks();
+  [base, k].forEach(function (el) {
+    if (!el) return;
+    el.addEventListener("input", setLinks);
+    el.addEventListener("change", setLinks);
+  });
+  $("save").addEventListener("click", function () { localStorage.setItem(LS.base, base.value.trim()); localStorage.setItem(LS.k, k.value || ""); });
+  [ $("aCsv"), $("aDoc") ].forEach(function (a) {
+    a.addEventListener("click", function (e) { var b = (base && base.value && base.value.trim()); if (!b) { e.preventDefault(); alert("Enter the server address first (ask your team)."); } });
+  });
+  function direct(el, path) { el && el.addEventListener("click", function (e) { var u = (path === "c" ? $("directCsv") : $("directDoc")).value.trim(); if (!u) { e.preventDefault(); alert("Paste the full file link, or use the main downloads above if you have a server address."); } else { e.preventDefault(); window.location.href = u; } }); }
+  direct($("aCsv2"), "c");
+  direct($("aDoc2"), "d");
+  $("aCsv2").href = "#";
+  $("aDoc2").href = "#";
+})();
+  </script>
+</body>
+</html>

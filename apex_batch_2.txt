@@ -1,0 +1,75 @@
+// Batch 2: Articles 11-20
+List<Knowledge__kav> articles = new List<Knowledge__kav>();
+
+Knowledge__kav a0 = new Knowledge__kav();
+a0.Title = 'Why am I not receiving new cases even though I\'m online?';
+a0.Summary = '[Case Management] Why am I not receiving new cases even though I\'m online?';
+a0.UrlName = 'faq-011-why-am-i-not-receiving-new-cases-even-though-im-online';
+a0.Answer__c = '<p>The most common reason is that you have reached your <strong>maximum limit of assigned cases</strong> (typically 100 pending tickets). The system will not assign new cases until your count is reduced.</p>\n\n<p><strong>To fix:</strong></p>\n<ol>\n<li>Go to your assigned cases list in Salesforce.</li>\n<li>Filter for cases with a "Pending" status (e.g., "Pending on Partner," "Pending Customer").</li>\n<li><strong>Close</strong> any pending cases that no longer require your active follow-up.</li>\n<li>Closing these cases frees up your capacity, and the system will start assigning new cases to you again.</li>\n</ol>\n\n<p><strong>Important:</strong> Closing a Salesforce case does <strong>not</strong> affect the dispute status in the CS Panel. The two systems are not linked for this purpose, so you can safely close SF cases without impacting disputes.</p>';
+articles.add(a0);
+
+Knowledge__kav a1 = new Knowledge__kav();
+a1.Title = 'What should I do if I have a pending case that I can\'t close but it\'s blocking new assignments?';
+a1.Summary = '[Case Management] What should I do if I have a pending case that I can\'t close but it\'s blocking new assignments?';
+a1.UrlName = 'faq-012-what-should-i-do-if-i-have-a-pending-case-that-i-cant-close-but-its-blocking-new';
+a1.Answer__c = '<p>If a case is pending (e.g., waiting for a partner or customer response) and you cannot close it yet, but it is preventing you from getting new work:</p>\n\n<ol>\n<li>Change the case status to <strong>"Transferred to Tech"</strong> (or another appropriate paused status). This puts the case in a "paused" state.</li>\n<li>The system will now <strong>route new cases</strong> to you since the paused case no longer counts toward your active workload.</li>\n<li>To return to the paused case later, use your case <strong>views</strong> at the top of the Salesforce page (e.g., "My Cases," "Cases Transferred to Tech").</li>\n</ol>';
+articles.add(a1);
+
+Knowledge__kav a2 = new Knowledge__kav();
+a2.Title = 'What is the correct case status to use when waiting for a customer\'s response?';
+a2.Summary = '[Case Management] What is the correct case status to use when waiting for a customer\'s response?';
+a2.UrlName = 'faq-013-what-is-the-correct-case-status-to-use-when-waiting-for-a-customers-response';
+a2.Answer__c = '<p>Set the case status to <strong>"Closed."</strong></p>\n\n<p>If the customer replies within <strong>3 days</strong>, the system will <strong>automatically reopen</strong> the case so you can continue working on it. You do not need to keep the case open while waiting.</p>';
+articles.add(a2);
+
+Knowledge__kav a3 = new Knowledge__kav();
+a3.Title = 'Why can\'t I merge two cases in Salesforce?';
+a3.Summary = '[Case Management] Why can\'t I merge two cases in Salesforce?';
+a3.UrlName = 'faq-014-why-cant-i-merge-two-cases-in-salesforce';
+a3.Answer__c = '<p>The case merge feature is <strong>currently not functional</strong> in Salesforce. The admin team is working to enable it, but it is not available yet.</p>\n\n<p><strong>Workaround:</strong> If you have duplicate cases, close one of them with the status <strong>"Merged"</strong> and add the <strong>other case\'s number</strong> in a case comment. This links them for reference.</p>';
+articles.add(a3);
+
+Knowledge__kav a4 = new Knowledge__kav();
+a4.Title = 'Why can\'t I edit a case after I\'ve escalated or transferred it?';
+a4.Summary = '[Case Management] Why can\'t I edit a case after I\'ve escalated or transferred it?';
+a4.UrlName = 'faq-015-why-cant-i-edit-a-case-after-ive-escalated-or-transferred-it';
+a4.Answer__c = '<p>By design, agents <strong>cannot edit cases after escalation or transfer</strong>. This is intentional — the workflow requires you to complete <strong>all actions and notes</strong> before transferring.</p>\n\n<p><strong>Always do this before transferring:</strong></p>\n<ol>\n<li>Fill in all required case fields.</li>\n<li>Add all relevant case comments and notes.</li>\n<li>Attach any necessary files.</li>\n<li><strong>Then</strong> transfer or escalate.</li>\n</ol>';
+articles.add(a4);
+
+Knowledge__kav a5 = new Knowledge__kav();
+a5.Title = 'What should I do if a chat case is incorrectly assigned to another agent but I\'m the one working on it?';
+a5.Summary = '[Case Management] What should I do if a chat case is incorrectly assigned to another agent but I\'m the one working on it?';
+a5.UrlName = 'faq-016-what-should-i-do-if-a-chat-case-is-incorrectly-assigned-to-another-agent-but-im';
+a5.Answer__c = '<p>If you are actively handling a chat but the case shows another agent as the owner:</p>\n\n<ol>\n<li>Contact your <strong>team lead or admin</strong> via the Slack helpdesk channel.</li>\n<li>Provide the <strong>case number</strong> and explain that you are the one working on it.</li>\n<li>The admin can <strong>manually change the case owner</strong> to your name, which will give you full edit access.</li>\n</ol>';
+articles.add(a5);
+
+Knowledge__kav a6 = new Knowledge__kav();
+a6.Title = 'Why are cases from abandoned calls not editable?';
+a6.Summary = '[Case Management] Why are cases from abandoned calls not editable?';
+a6.UrlName = 'faq-017-why-are-cases-from-abandoned-calls-not-editable';
+a6.Answer__c = '<p>Cases created for <strong>abandoned calls</strong> (calls where the customer disconnected before an agent answered) are <strong>automatically closed</strong> by the system. Once auto-closed, these cases become non-editable. You cannot transfer, update, or save changes on them. This is expected behavior.</p>';
+articles.add(a6);
+
+Knowledge__kav a7 = new Knowledge__kav();
+a7.Title = 'How do I add a note to a case if the option isn\'t working?';
+a7.Summary = '[Case Management] How do I add a note to a case if the option isn\'t working?';
+a7.UrlName = 'faq-018-how-do-i-add-a-note-to-a-case-if-the-option-isnt-working';
+a7.Answer__c = '<p>If you are unable to add a note to a Salesforce case, <strong>refresh the page</strong> (press F5 or Ctrl+R). This resolves most temporary interface glitches. If the issue persists, try a hard refresh (Ctrl+Shift+R on Windows, Cmd+Shift+R on Mac).</p>';
+articles.add(a7);
+
+Knowledge__kav a8 = new Knowledge__kav();
+a8.Title = 'How do I log in to Salesforce Service Cloud?';
+a8.Summary = '[Login, Access & Troubleshooting] How do I log in to Salesforce Service Cloud?';
+a8.UrlName = 'faq-019-how-do-i-log-in-to-salesforce-service-cloud';
+a8.Answer__c = '<p>You must log in to Salesforce through <strong>JumpCloud</strong> (your company\'s Identity Provider):</p>\n\n<ol>\n<li>Open your <strong>JumpCloud</strong> application.</li>\n<li>Find and click the <strong>Salesforce Service Cloud</strong> app.</li>\n<li>JumpCloud will authenticate you and redirect you to Salesforce.</li>\n</ol>\n\n<p><strong>Do not</strong> try to log in directly at salesforce.com or login.salesforce.com — always go through JumpCloud.</p>';
+articles.add(a8);
+
+Knowledge__kav a9 = new Knowledge__kav();
+a9.Title = 'What should I do if I can\'t log in to Salesforce?';
+a9.Summary = '[Login, Access & Troubleshooting] What should I do if I can\'t log in to Salesforce?';
+a9.UrlName = 'faq-020-what-should-i-do-if-i-cant-log-in-to-salesforce';
+a9.Answer__c = '<p>Follow these troubleshooting steps in order:</p>\n\n<ol>\n<li><strong>Clear your browser\'s cache and cookies</strong> — Go to your browser settings, find "Clear browsing data," and clear cached images/files and cookies.</li>\n<li><strong>Close your browser completely</strong> — Close all tabs and windows, not just the Salesforce tab.</li>\n<li><strong>Close JumpCloud</strong> — If you have JumpCloud open in another tab or window, close it too.</li>\n<li><strong>Reopen your browser</strong> — Start fresh.</li>\n<li><strong>Log in through JumpCloud</strong> — Open JumpCloud and click the Salesforce app to log in.</li>\n</ol>\n\n<p>If none of these work, report the issue in the <strong>IT Helpdesk Slack channel</strong> with a screenshot of any error messages.</p>';
+articles.add(a9);
+
+insert articles;
+System.debug('Batch 2: Inserted ' + articles.size() + ' articles');

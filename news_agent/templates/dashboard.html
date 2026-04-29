@@ -38,18 +38,23 @@
   .panel-body h2{font-size:.88rem;color:var(--cyan);margin-top:1rem;margin-bottom:.35rem}
 
   #feed{display:flex;flex-direction:column;gap:.9rem}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;transition:border-color .12s}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;transition:border-color .12s;cursor:pointer}
   .card:hover{border-color:var(--tm)}
+  .card .card-body{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+  .card.open .card-body{display:block}
+  .card.open{border-color:var(--blue);background:var(--card-h)}
   .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;margin-bottom:.35rem}
-  .card-title{font-size:.97rem;font-weight:600;line-height:1.35;letter-spacing:-.01em}
-  .card-title a{color:var(--t1);text-decoration:none;transition:color .12s}
-  .card-title a:hover{color:var(--blue);text-decoration:underline}
+  .card-title{font-size:.97rem;font-weight:600;line-height:1.35;letter-spacing:-.01em;margin-bottom:.15rem}
+  .card-snippet{font-size:.82rem;color:var(--tm);line-height:1.5;margin-top:.35rem}
+  .card.open .card-snippet{display:none}
   .card-src{font-size:.68rem;color:var(--tm);text-decoration:none;font-family:'JetBrains Mono',monospace}
   .card-src:hover{color:var(--blue);text-decoration:underline}
   .pub{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;padding:.12rem .45rem;border-radius:4px;flex-shrink:0}
   .pub-ft{color:#fcd0b1;background:rgba(252,208,177,.12)}
   .pub-bl{color:#a3bffa;background:rgba(163,191,250,.12)}
   .pub-hbr{color:#fca5a5;background:rgba(252,165,165,.12)}
+  .pub-bbc{color:#fde68a;background:rgba(253,230,138,.12)}
+  .pub-npr{color:#86efac;background:rgba(134,239,172,.12)}
   .pub-def{color:var(--t2);background:rgba(148,163,184,.1)}
   .card-meta{font-size:.73rem;color:var(--tm);margin-bottom:.6rem;font-family:'JetBrains Mono',monospace}
   .tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.7rem}
@@ -61,7 +66,14 @@
   .slbl{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tm);margin-top:.8rem;margin-bottom:.25rem}
   .slbl:first-child{margin-top:0}
   .stxt{margin-bottom:.4rem}
-  .ai-box{margin-top:.7rem;padding:.9rem;background:rgba(59,130,246,.06);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;line-height:1.7}
+  .ai-box{margin-top:.7rem;padding:1.1rem 1.2rem;background:rgba(59,130,246,.06);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;line-height:1.8;font-size:.85rem}
+  .ai-box strong{color:var(--cyan);font-weight:600}
+  .ai-box ul{margin:.3rem 0 .5rem 1.2rem;list-style:disc}
+  .ai-box li{margin-bottom:.2rem}
+  .full-text{font-size:.83rem;color:var(--t2);line-height:1.75;margin-top:.4rem;max-height:600px;overflow-y:auto;padding-right:.5rem}
+  .full-text p{margin-bottom:.6rem}
+  .ai-pending{display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;background:rgba(245,158,11,.06);border-left:3px solid var(--amber);border-radius:0 6px 6px 0;font-size:.8rem;color:var(--amber);margin-bottom:.6rem}
+  .ai-quota{padding:.6rem 1rem;background:rgba(100,116,139,.08);border-left:3px solid var(--tm);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--tm);margin-bottom:.6rem}
 
   .status-bar{text-align:center;padding:3rem 2rem;color:var(--tm)}
   .status-bar h3{font-size:1rem;margin-bottom:.4rem;color:var(--t2)}
@@ -99,7 +111,7 @@
   <div id="feed">
     <div class="status-bar" id="statusMsg">
       <h3>Loading articles...</h3>
-      <p>Fetching from Financial Times, Bloomberg & HBR</p>
+      <p>Fetching from Financial Times, Bloomberg, HBR, BBC & NPR</p>
       <div class="dot-pulse"><span></span><span></span><span></span></div>
     </div>
   </div>
@@ -110,12 +122,14 @@
 </div>
 
 <script>
-const state = { topic: 'all', publisher: 'all', polling: null };
+const state = { topic: 'all', publisher: 'all', polling: null, openCards: new Set() };
 
 function pubClass(p) {
   if (p === 'Financial Times') return 'pub-ft';
   if (p === 'Bloomberg') return 'pub-bl';
   if (p === 'Harvard Business Review') return 'pub-hbr';
+  if (p === 'BBC News') return 'pub-bbc';
+  if (p === 'NPR') return 'pub-npr';
   return 'pub-def';
 }
 
@@ -125,22 +139,72 @@ function esc(s) {
   return d.innerHTML;
 }
 
-function renderCard(a) {
-  let html = `<div class="card"><div class="card-top"><div><div class="card-title"><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a></div>`;
-  html += `<span class="card-src">${esc(a.source_name)}</span></div>`;
+function mdToHtml(text) {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^- (.+)/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    .replace(/^(\d+)\. (.+)/gm, '<li>$2</li>')
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+}
+
+function renderCard(a, idx) {
+  const snippet = a.ai_brief
+    ? a.ai_brief.replace(/\*\*/g, '').replace(/#+\s*/g, '').substring(0, 200) + '...'
+    : a.summary
+      ? a.summary.substring(0, 200) + (a.summary.length > 200 ? '...' : '')
+      : '';
+  const hasContent = a.ai_brief || a.preview_text || a.summary;
+  const indicator = ' ▸';
+
+  const isOpen = state.openCards.has(String(idx));
+  let html = `<div class="card${isOpen ? ' open' : ''}" data-idx="${idx}" onclick="toggleCard(this)">`;
+  html += `<div class="card-top"><div><div class="card-title">${esc(a.title)}${indicator}</div>`;
+  html += `<span class="card-src">${esc(a.publisher)} · ${esc(a.source_name)} · ${esc(a.published)}</span></div>`;
   html += `<span class="pub ${pubClass(a.publisher)}">${esc(a.publisher)}</span></div>`;
-  html += `<div class="card-meta">${esc(a.published)}</div>`;
   if (a.topics && a.topics.length) {
     html += '<div class="tags">';
     a.topics.forEach(t => { html += `<span class="tag tag-${t}">${t}</span>`; });
     html += '</div>';
   }
+  if (snippet) html += `<div class="card-snippet">${esc(snippet)}</div>`;
   html += '<div class="card-body">';
-  if (a.summary) html += `<div class="slbl">Summary</div><div class="stxt">${esc(a.summary)}</div>`;
-  if (a.preview_text) html += `<div class="slbl">Preview</div><div class="stxt">${esc(a.preview_text)}</div>`;
-  if (a.ai_brief) html += `<div class="slbl">AI Intelligence Brief</div><div class="ai-box">${a.ai_brief.replace(/\n/g,'<br>')}</div>`;
+
+  if (a.ai_brief) {
+    html += `<div class="ai-box">${mdToHtml(a.ai_brief)}</div>`;
+  } else if (a.ai_status === 'pending') {
+    html += `<div class="ai-pending"><span class="dot-pulse"><span></span><span></span><span></span></span> AI analysis generating...</div>`;
+  } else if (a.ai_status === 'quota_exhausted') {
+    html += `<div class="ai-quota">Daily AI quota reached — summary from RSS feed shown below.</div>`;
+  }
+
+  if (a.summary && !a.ai_brief) {
+    html += `<div class="slbl">Summary</div>`;
+    html += `<div class="stxt">${esc(a.summary)}</div>`;
+  }
+
+  if (a.preview_text && a.preview_text.length > 100) {
+    html += `<div class="slbl">Full Article Text</div>`;
+    html += `<div class="full-text">${a.preview_text.split('\n\n').map(p => '<p>' + esc(p) + '</p>').join('')}</div>`;
+  }
+
+  if (a.url) {
+    html += `<div style="margin-top:.8rem"><a href="${esc(a.url)}" target="_blank" class="btn-outline" style="display:inline-block" onclick="event.stopPropagation()">Open original ↗</a></div>`;
+  }
+
   html += '</div></div>';
   return html;
+}
+
+function toggleCard(el) {
+  const idx = el.getAttribute('data-idx');
+  if (el.classList.toggle('open')) {
+    state.openCards.add(idx);
+  } else {
+    state.openCards.delete(idx);
+  }
 }
 
 function renderFeed(data) {
@@ -153,10 +217,10 @@ function renderFeed(data) {
   if (!data.articles || data.articles.length === 0) {
     const statusText = data.status === 'ready'
       ? '<h3>No articles found</h3><p>Try adjusting your filters or click Refresh.</p>'
-      : '<h3>Loading articles...</h3><p>Fetching from Financial Times, Bloomberg & HBR</p><div class="dot-pulse"><span></span><span></span><span></span></div>';
+      : '<h3>Loading articles...</h3><p>Fetching from Financial Times, Bloomberg, HBR, BBC & NPR</p><div class="dot-pulse"><span></span><span></span><span></span></div>';
     feed.innerHTML = `<div class="status-bar">${statusText}</div>`;
   } else {
-    feed.innerHTML = data.articles.map(renderCard).join('');
+    feed.innerHTML = data.articles.map((a, i) => renderCard(a, i)).join('');
   }
 
   countEl.textContent = `Showing ${data.filtered} of ${data.total} articles`;

@@ -1,0 +1,75 @@
+// Batch 1: Articles 1-10
+List<Knowledge__kav> articles = new List<Knowledge__kav>();
+
+Knowledge__kav a0 = new Knowledge__kav();
+a0.Title = 'How do I create a new case for an outbound call if one doesn\'t already exist?';
+a0.Summary = '[Case Management] How do I create a new case for an outbound call if one doesn\'t already exist?';
+a0.UrlName = 'faq-001-how-do-i-create-a-new-case-for-an-outbound-call-if-one-doesnt-already-exist';
+a0.Answer__c = '<p>When you make an outbound call, Salesforce will automatically prompt you to link the voice call to an existing open case for that customer or partner. If no open cases exist, the system will automatically create a new case and link it to the voice call.</p>\n\n<p><strong>You do not need to manually create a case.</strong> The system handles it for you as part of the outbound call flow.</p>\n\n<p>If a new case was not created, it usually means the customer already has an open case — the system linked your call to that existing case instead.</p>';
+articles.add(a0);
+
+Knowledge__kav a1 = new Knowledge__kav();
+a1.Title = 'How do I transfer a case to another team (e.g., Partner Team, Tech Team, Finance)?';
+a1.Summary = '[Case Management] How do I transfer a case to another team (e.g., Partner Team, Tech Team, Finance)?';
+a1.UrlName = 'faq-002-how-do-i-transfer-a-case-to-another-team-eg-partner-team-tech-team-finance';
+a1.Answer__c = '<p>To transfer a case:</p>\n\n<ol>\n<li>Open the case you want to transfer.</li>\n<li>Make sure the case status is set to <strong>"Working"</strong>. If it is not, change the status to "Working" first — the transfer option will not appear otherwise.</li>\n<li>Look for the <strong>"Case Transfer"</strong> button or component on the <strong>right-hand side</strong> of the case page.</li>\n<li>Click "Case Transfer."</li>\n<li>From the list of available teams/queues, select the team you want to transfer to (e.g., "PC L1 Email & Chat" for Partner Care, "CC KSA Tech Support" for Tech, etc.).</li>\n<li>Confirm the transfer.</li>\n</ol>\n\n<p><strong>Important:</strong></p>\n<ul>\n<li>If the case originated from a live chat, you <strong>must end the chat session first</strong> before transferring the case.</li>\n<li>If you are on a phone call, <strong>disconnect the call first</strong> before transferring.</li>\n<li>Always complete all notes and details on the case <strong>before</strong> you transfer, because you will not be able to edit the case after transfer.</li>\n</ul>';
+articles.add(a1);
+
+Knowledge__kav a2 = new Knowledge__kav();
+a2.Title = 'Why can\'t I edit a case, update its status, or send emails on it?';
+a2.Summary = '[Case Management] Why can\'t I edit a case, update its status, or send emails on it?';
+a2.UrlName = 'faq-003-why-cant-i-edit-a-case-update-its-status-or-send-emails-on-it';
+a2.Answer__c = '<p>This happens because you are <strong>not the case owner</strong>. In Salesforce, only the assigned case owner can edit a case, change its status, or send emails from it.</p>\n\n<p>Common reasons you\'re not the owner:</p>\n<ul>\n<li>The case is still sitting in a <strong>queue</strong> and hasn\'t been assigned to you yet.</li>\n<li>You <strong>escalated or transferred</strong> the case before saving your changes, which moved ownership away from you.</li>\n<li>Another agent was assigned the case.</li>\n</ul>\n\n<p><strong>To resolve:</strong></p>\n<ul>\n<li>If the case is in a queue, set your Omni-Channel status to "Online" and cases will be auto-assigned to you.</li>\n<li>If you need to edit a case that belongs to someone else, ask your team lead or an admin to reassign it to you.</li>\n</ul>';
+articles.add(a2);
+
+Knowledge__kav a3 = new Knowledge__kav();
+a3.Title = 'Why do I get the error "Oops...you don\'t have the necessary privileges to edit this record"?';
+a3.Summary = '[Case Management] Why do I get the error "Oops...you don\'t have the necessary privileges to edit this record"?';
+a3.UrlName = 'faq-004-why-do-i-get-the-error-oopsyou-dont-have-the-necessary-privileges-to-edit-this-r';
+a3.Answer__c = '<p>This error means you are <strong>not the owner</strong> of the case. Salesforce restricts editing permissions to the assigned case owner only.</p>\n\n<p><strong>Common causes:</strong></p>\n<ul>\n<li>The case was transferred to another team or agent.</li>\n<li>The case is owned by a queue, not by you individually.</li>\n<li>You escalated the case, which transferred ownership.</li>\n</ul>\n\n<p><strong>To fix:</strong> Contact your team lead or admin to have the case reassigned to you if needed.</p>';
+articles.add(a3);
+
+Knowledge__kav a4 = new Knowledge__kav();
+a4.Title = 'Why do I get the error "Claim the case from queue before editing"?';
+a4.Summary = '[Case Management] Why do I get the error "Claim the case from queue before editing"?';
+a4.UrlName = 'faq-005-why-do-i-get-the-error-claim-the-case-from-queue-before-editing';
+a4.Answer__c = '<p>This error appears when you try to edit a case that is still owned by a <strong>queue</strong> rather than assigned to you personally. You must claim (be assigned) the case before you can work on it.</p>\n\n<p><strong>To fix:</strong></p>\n<ol>\n<li>Set your Omni-Channel status to <strong>"Online."</strong></li>\n<li>Cases from the queue will be <strong>automatically assigned</strong> to you by the system.</li>\n<li>Once you are the assigned owner, you can edit the case, update its status, and close it.</li>\n</ol>\n\n<p><strong>Note:</strong> You cannot manually self-assign cases from a queue.</p>';
+articles.add(a4);
+
+Knowledge__kav a5 = new Knowledge__kav();
+a5.Title = 'How do I verify if a case has been successfully transferred to another team?';
+a5.Summary = '[Case Management] How do I verify if a case has been successfully transferred to another team?';
+a5.UrlName = 'faq-006-how-do-i-verify-if-a-case-has-been-successfully-transferred-to-another-team';
+a5.Answer__c = '<p>After transferring a case, check these two things:</p>\n\n<ol>\n<li><strong>Case Owner field:</strong> The "Case Owner" field on the case record should now show the name of the <strong>team or queue</strong> you transferred it to, instead of your name.</li>\n<li><strong>Case Events tab:</strong> Navigate to the "Case Events" or "Case History" section on the case page. This logs all changes, including transfers and ownership updates, giving you a clear audit trail.</li>\n</ol>';
+articles.add(a5);
+
+Knowledge__kav a6 = new Knowledge__kav();
+a6.Title = 'Why is the "Case Transfer" option not appearing on a case?';
+a6.Summary = '[Case Management] Why is the "Case Transfer" option not appearing on a case?';
+a6.UrlName = 'faq-007-why-is-the-case-transfer-option-not-appearing-on-a-case';
+a6.Answer__c = '<p>The "Case Transfer" button only appears when the case status is set to <strong>"Working."</strong></p>\n\n<p><strong>To fix:</strong></p>\n<ol>\n<li>Open the case.</li>\n<li>Change the case status to <strong>"Working."</strong></li>\n<li>Save the case.</li>\n<li>The "Case Transfer" option should now appear on the right side of the case page.</li>\n</ol>\n\n<p>Other statuses like "New," "Pending," or "Closed" typically hide the transfer functionality.</p>';
+articles.add(a6);
+
+Knowledge__kav a7 = new Knowledge__kav();
+a7.Title = 'How should I handle cases created from auto-reply emails or spam?';
+a7.Summary = '[Case Management] How should I handle cases created from auto-reply emails or spam?';
+a7.UrlName = 'faq-008-how-should-i-handle-cases-created-from-auto-reply-emails-or-spam';
+a7.Answer__c = '<p>For any case that comes from an auto-reply email or is clearly not related to Tamara\'s business:</p>\n\n<ol>\n<li><strong>Close the case</strong> immediately.</li>\n<li>Select <strong>"Spam"</strong> as the Issue Type.</li>\n</ol>\n\n<p>Do not leave these cases open or process them further. Using the "Spam" issue type consistently helps with accurate reporting.</p>';
+articles.add(a7);
+
+Knowledge__kav a8 = new Knowledge__kav();
+a8.Title = 'What should I do if a case I transferred to another team bounces back to me?';
+a8.Summary = '[Case Management] What should I do if a case I transferred to another team bounces back to me?';
+a8.UrlName = 'faq-009-what-should-i-do-if-a-case-i-transferred-to-another-team-bounces-back-to-me';
+a8.Answer__c = '<p>This is a known issue that can happen, especially with Tech Team transfers. Follow these steps:</p>\n\n<ol>\n<li><strong>Ensure the correct order:</strong> Always disconnect the call or end the chat <strong>first</strong>, then transfer the case. Transferring while still on a call can cause the case to bounce back.</li>\n<li><strong>Transfer after wrap-up:</strong> Complete all case notes and wrap-up actions before initiating the transfer.</li>\n<li>If the issue persists, post the <strong>case number</strong> and the <strong>team you want it transferred to</strong> in the Slack helpdesk channel. An admin will manually handle it.</li>\n</ol>';
+articles.add(a8);
+
+Knowledge__kav a9 = new Knowledge__kav();
+a9.Title = 'Can I edit a case comment after it has been submitted?';
+a9.Summary = '[Case Management] Can I edit a case comment after it has been submitted?';
+a9.UrlName = 'faq-010-can-i-edit-a-case-comment-after-it-has-been-submitted';
+a9.Answer__c = '<p><strong>No.</strong> In Salesforce, case comments <strong>cannot be edited</strong> once they are submitted. This is by design to maintain an accurate audit trail.</p>\n\n<p>If you need to correct or add information, simply <strong>add a new case comment</strong> with the updated details. Do not attempt to edit previous entries.</p>';
+articles.add(a9);
+
+insert articles;
+System.debug('Batch 1: Inserted ' + articles.size() + ' articles');

@@ -1,19 +1,18 @@
 """
 Summarizer module for the News Intelligence Agent.
 
-Uses Gemini to produce structured intelligence briefs from raw article data.
-Never reproduces verbatim article text -- only synthesizes and summarizes.
+Uses OpenAI (GPT-4o-mini) for fast, cheap article summarization.
 """
 
 from __future__ import annotations
 
-import json
+import asyncio
 import logging
 import os
 from typing import Optional
 
-import google.generativeai as genai
 from dotenv import load_dotenv
+from openai import AsyncOpenAI
 
 from .fetcher import Article
 
@@ -21,50 +20,58 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-_model: Optional[genai.GenerativeModel] = None
+_client: Optional[AsyncOpenAI] = None
+MODEL = "gpt-4o-mini"
 
 
-def _get_model() -> genai.GenerativeModel:
-    global _model
-    if _model is None:
-        api_key = os.getenv("GEMINI_API_KEY")
+def _get_client() -> AsyncOpenAI:
+    global _client
+    if _client is None:
+        api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise RuntimeError("GEMINI_API_KEY not set in environment")
-        genai.configure(api_key=api_key)
-        model_name = os.getenv("GEMINI_MODEL_NAME", "gemini-2.5-flash")
-        _model = genai.GenerativeModel(model_name)
-    return _model
+            raise RuntimeError("OPENAI_API_KEY not set in environment")
+        _client = AsyncOpenAI(api_key=api_key)
+    return _client
 
 
 ARTICLE_BRIEF_PROMPT = """\
-You are a senior financial analyst assistant. Given the following article metadata, \
-produce a concise intelligence brief. Do NOT reproduce verbatim article text. \
-Instead, synthesize the information into your own words.
+You are a senior financial analyst and business journalist. A reader wants to \
+understand what a paywalled article is about WITHOUT having a subscription. \
+Using the headline, publisher, date, and any available summary below, write a \
+comprehensive briefing.
 
 ARTICLE:
 - Title: {title}
 - Publisher: {publisher}
 - Published: {published}
-- RSS Summary: {summary}
-- Free Preview Excerpt: {preview}
+- Available summary: {summary}
+- Additional context: {preview}
 
-Produce a brief in this exact format:
+Write a full briefing covering:
 
-**Key Facts**
-- (3-5 bullet points of the essential information)
+1. **What happened** — Explain the core news event or development in 3-4 sentences. \
+Use your knowledge to fill in context beyond the headline.
 
-**Why It Matters**
-(One short paragraph explaining the significance and implications)
+2. **Background** — 2-3 sentences of essential context. What led to this? What's the \
+history?
 
-**Topic Tags**: (comma-separated relevant tags)
+3. **Key details** — 4-6 bullet points covering the most important facts, numbers, \
+names, and specifics that a reader of this article would learn.
 
-Be concise. Total response should be under 200 words.
+4. **Why it matters** — 2-3 sentences on the implications for markets, businesses, \
+or the broader economy.
+
+5. **What to watch** — 1-2 sentences on what happens next.
+
+Write 300-400 words total. Use a professional, analytical tone. Draw on your training \
+knowledge to provide real substance — don't just rephrase the headline. The reader \
+should feel they understand the story as well as if they had read the full article.
 """
 
 DAILY_BRIEFING_PROMPT = """\
 You are a senior financial analyst producing a morning intelligence briefing. \
 Below are summaries of today's top articles from major financial publications. \
-Synthesize them into a cohesive daily briefing. Do NOT reproduce any verbatim text.
+Synthesize them into a cohesive daily briefing.
 
 ARTICLES:
 {articles_block}
@@ -90,32 +97,40 @@ Keep the entire briefing under 500 words. Write in a crisp, analytical tone.
 """
 
 
+async def _generate(prompt: str, max_tokens: int = 1024) -> str:
+    client = _get_client()
+    resp = await client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=max_tokens,
+        temperature=0.3,
+    )
+    return resp.choices[0].message.content.strip()
+
+
 async def summarize_article(article: Article) -> str:
     """Generate an AI intelligence brief for a single article."""
-    model = _get_model()
-
     prompt = ARTICLE_BRIEF_PROMPT.format(
         title=article.title,
         publisher=article.publisher,
         published=article.published_display,
         summary=article.summary or "(not available)",
-        preview=article.preview_text or "(not available)",
+        preview=article.preview_text[:3000] if article.preview_text else "(not available)",
     )
 
     try:
-        response = await model.generate_content_async(prompt)
-        brief = response.text.strip()
+        brief = await _generate(prompt)
         article.ai_brief = brief
+        article.ai_status = "done"
         return brief
     except Exception as e:
         logger.error("Summarization failed for '%s': %s", article.title, e)
+        article.ai_status = "error"
         return ""
 
 
 async def generate_daily_briefing(articles: list[Article]) -> str:
     """Generate a synthesized daily briefing across all articles."""
-    model = _get_model()
-
     article_entries = []
     for i, a in enumerate(articles[:30], 1):
         entry = (
@@ -129,8 +144,7 @@ async def generate_daily_briefing(articles: list[Article]) -> str:
     prompt = DAILY_BRIEFING_PROMPT.format(articles_block=articles_block)
 
     try:
-        response = await model.generate_content_async(prompt)
-        return response.text.strip()
+        return await _generate(prompt, max_tokens=1500)
     except Exception as e:
         logger.error("Daily briefing generation failed: %s", e)
         return "Daily briefing generation failed. Please try again."
@@ -138,17 +152,15 @@ async def generate_daily_briefing(articles: list[Article]) -> str:
 
 async def summarize_batch(
     articles: list[Article],
-    requests_per_minute: int = 4,
+    concurrency: int = 10,
 ) -> list[Article]:
-    """Summarize articles sequentially, respecting the Gemini free-tier rate limit."""
-    import asyncio
+    """Summarize articles concurrently."""
+    sem = asyncio.Semaphore(concurrency)
 
-    delay = 60.0 / requests_per_minute
+    async def _do(i: int, article: Article):
+        async with sem:
+            logger.info("Summarizing %d/%d: %s", i + 1, len(articles), article.title[:60])
+            await summarize_article(article)
 
-    for i, article in enumerate(articles):
-        logger.info("Summarizing %d/%d: %s", i + 1, len(articles), article.title[:60])
-        await summarize_article(article)
-        if i < len(articles) - 1:
-            await asyncio.sleep(delay)
-
+    await asyncio.gather(*[_do(i, a) for i, a in enumerate(articles)])
     return articles

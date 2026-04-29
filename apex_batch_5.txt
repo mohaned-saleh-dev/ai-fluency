@@ -1,0 +1,75 @@
+// Batch 5: Articles 41-50
+List<Knowledge__kav> articles = new List<Knowledge__kav>();
+
+Knowledge__kav a0 = new Knowledge__kav();
+a0.Title = 'What should I do if I can\'t reply to a chat?';
+a0.Summary = '[Chat & Messaging] What should I do if I can\'t reply to a chat?';
+a0.UrlName = 'faq-041-what-should-i-do-if-i-cant-reply-to-a-chat';
+a0.Answer__c = '<p>If you suddenly cannot type or send a reply in a chat session, check the following:</p>\n\n<ol>\n<li><strong>Customer ended the chat</strong> — Look at the left side of the chat interface. If it says <strong>"Ended by type: end user"</strong>, the customer has left the conversation. You cannot reply after this.</li>\n<li><strong>Interface glitch</strong> — If the customer is still active but you can\'t type, <strong>refresh the page</strong> (F5 or Ctrl+R). This often fixes temporary display issues.</li>\n</ol>';
+articles.add(a0);
+
+Knowledge__kav a1 = new Knowledge__kav();
+a1.Title = 'How do I transfer a chat case to another team?';
+a1.Summary = '[Chat & Messaging] How do I transfer a chat case to another team?';
+a1.UrlName = 'faq-042-how-do-i-transfer-a-chat-case-to-another-team';
+a1.Answer__c = '<p><strong>Important:</strong> You must end the chat session <strong>before</strong> transferring the case.</p>\n\n<ol>\n<li>Complete your conversation with the customer.</li>\n<li>Click the <strong>"End Chat"</strong> button to formally close the chat session.</li>\n<li>Navigate to the associated <strong>Case record</strong>.</li>\n<li>Change the case status to <strong>"Working"</strong> (if it isn\'t already).</li>\n<li>Use the <strong>"Case Transfer"</strong> button on the right side of the case page.</li>\n<li>Select the target team/queue.</li>\n<li>Confirm the transfer.</li>\n</ol>\n\n<p>If you try to transfer while the chat is still active, some team options may not appear in the transfer list.</p>';
+articles.add(a1);
+
+Knowledge__kav a2 = new Knowledge__kav();
+a2.Title = 'Why do chats get stuck in "Waiting" status?';
+a2.Summary = '[Chat & Messaging] Why do chats get stuck in "Waiting" status?';
+a2.UrlName = 'faq-043-why-do-chats-get-stuck-in-waiting-status';
+a2.Answer__c = '<p>Chats can get stuck in "Waiting" if there is a <strong>connection issue</strong> at the moment an agent tries to accept the chat.</p>\n\n<p><strong>What happens:</strong></p>\n<ul>\n<li>The system will wait for the timeout period and then <strong>reassign</strong> the chat to another available agent.</li>\n<li>A case will <strong>only be created</strong> once the chat is successfully picked up by an agent.</li>\n</ul>\n\n<p><strong>What to do:</strong> If you see a stuck chat, do not worry — the system will handle the reassignment automatically. No manual action is needed.</p>';
+articles.add(a2);
+
+Knowledge__kav a3 = new Knowledge__kav();
+a3.Title = 'Is it normal to receive chats and emails at the same time?';
+a3.Summary = '[Chat & Messaging] Is it normal to receive chats and emails at the same time?';
+a3.UrlName = 'faq-044-is-it-normal-to-receive-chats-and-emails-at-the-same-time';
+a3.Answer__c = '<p><strong>Yes</strong>, this is by design. Salesforce Omni-Channel is configured to route multiple work items to you simultaneously based on your capacity settings.</p>\n\n<p><strong>Current capacity:</strong></p>\n<ul>\n<li>Up to <strong>3 chats</strong> at the same time</li>\n<li>Plus <strong>1 email</strong> at the same time</li>\n</ul>\n\n<p>So you can have up to 4 work items at once. This is the expected workload.</p>';
+articles.add(a3);
+
+Knowledge__kav a4 = new Knowledge__kav();
+a4.Title = 'Why am I getting assigned new chats immediately after ending a previous one?';
+a4.Summary = '[Chat & Messaging] Why am I getting assigned new chats immediately after ending a previous one?';
+a4.UrlName = 'faq-045-why-am-i-getting-assigned-new-chats-immediately-after-ending-a-previous-one';
+a4.Answer__c = '<p>Ending a chat session and changing the case status are <strong>two separate actions</strong> in Salesforce:</p>\n\n<ul>\n<li><strong>Ending the chat</strong> makes you available for new chats in the Omni-Channel queue.</li>\n<li><strong>Updating the case status</strong> (e.g., to "Closed") handles the case record.</li>\n</ul>\n\n<p>So when you end a chat, the system immediately considers you available and may route a new chat to you — even if you haven\'t finished updating the previous case.</p>\n\n<p><strong>Tip:</strong> If you need time to wrap up, change your Omni-Channel status to <strong>"Task"</strong> or <strong>"Offline"</strong> before ending the chat. Finish your case notes, then switch back to "Online" when ready.</p>';
+articles.add(a4);
+
+Knowledge__kav a5 = new Knowledge__kav();
+a5.Title = 'How do I see all escalation options when transferring a chat case?';
+a5.Summary = '[Chat & Messaging] How do I see all escalation options when transferring a chat case?';
+a5.UrlName = 'faq-046-how-do-i-see-all-escalation-options-when-transferring-a-chat-case';
+a5.Answer__c = '<p>The full list of escalation options (all Lines of Business teams) will <strong>only appear after you end the chat session</strong>. While the chat is still active, the transfer options are limited.</p>\n\n<p><strong>Steps:</strong></p>\n<ol>\n<li>Finish the customer conversation.</li>\n<li>Click <strong>"End Chat"</strong> to close the chat session.</li>\n<li>Go to the case record.</li>\n<li>Now click <strong>"Case Transfer"</strong> — all team options should be visible.</li>\n</ol>';
+articles.add(a5);
+
+Knowledge__kav a6 = new Knowledge__kav();
+a6.Title = 'Are customer chat surveys currently active in Salesforce?';
+a6.Summary = '[Chat & Messaging] Are customer chat surveys currently active in Salesforce?';
+a6.UrlName = 'faq-047-are-customer-chat-surveys-currently-active-in-salesforce';
+a6.Answer__c = '<p><strong>No</strong>, customer chat surveys are <strong>not live yet</strong> in Salesforce Service Cloud. Customers will not receive a survey after a chat interaction, even if the closing message mentions one. This feature is still being set up.</p>';
+articles.add(a6);
+
+Knowledge__kav a7 = new Knowledge__kav();
+a7.Title = 'Which email address should I use to reply to customers from Salesforce?';
+a7.Summary = '[Email & Communication] Which email address should I use to reply to customers from Salesforce?';
+a7.UrlName = 'faq-048-which-email-address-should-i-use-to-reply-to-customers-from-salesforce';
+a7.Answer__c = '<p>Always use the official <strong>Tamara team email address</strong> for your Line of Business (LOB):</p>\n\n<ul>\n<li><strong>Customer Care agents:</strong> Use <code>Customer.care@tamara.co</code></li>\n<li><strong>Partner Care agents:</strong> Use <code>Partner.care@tamara.co</code></li>\n</ul>\n\n<p><strong>Never</strong> use your personal corporate email address (e.g., yourname@tamara.co) to respond to customers. All customer communication must go through the official team email addresses.</p>';
+articles.add(a7);
+
+Knowledge__kav a8 = new Knowledge__kav();
+a8.Title = 'Why am I getting an error when trying to send an email from Salesforce?';
+a8.Summary = '[Email & Communication] Why am I getting an error when trying to send an email from Salesforce?';
+a8.UrlName = 'faq-049-why-am-i-getting-an-error-when-trying-to-send-an-email-from-salesforce';
+a8.Answer__c = '<p>The most common causes are:</p>\n\n<ol>\n<li><strong>Wrong sender email</strong> — You may be trying to send from your personal email instead of the official Tamara email. Always use the team email (e.g., <code>Customer.care@tamara.co</code>).</li>\n<li><strong>Email not verified</strong> — Your agent email address may not be verified in Salesforce. Contact your admin to check and verify your email configuration.</li>\n<li><strong>You\'re not the case owner</strong> — You can only send emails from cases where you are the assigned owner.</li>\n</ol>';
+articles.add(a8);
+
+Knowledge__kav a9 = new Knowledge__kav();
+a9.Title = 'After resolving a dispute, do I need to send a manual email to the customer?';
+a9.Summary = '[Email & Communication] After resolving a dispute, do I need to send a manual email to the customer?';
+a9.UrlName = 'faq-050-after-resolving-a-dispute-do-i-need-to-send-a-manual-email-to-the-customer';
+a9.Answer__c = '<p><strong>No.</strong> When a dispute is resolved, Salesforce automatically sends a resolution email to the customer. The automated email is sufficient — you do <strong>not</strong> need to send an additional manual email.</p>';
+articles.add(a9);
+
+insert articles;
+System.debug('Batch 5: Inserted ' + articles.size() + ' articles');

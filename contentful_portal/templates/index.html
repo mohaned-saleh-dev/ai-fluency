@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contentful article downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e17; --card: #121a2a; --line: #1e2a44; --text: #e6eaf2; --muted: #8b9ab5;
+      --accent: #5b8cff; --glow: rgba(91, 140, 255, 0.45);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: "DM Sans", system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(145deg, #0a0e17 0%, #0c1324 50%, #121c35 100%),
+        linear-gradient(90deg, rgba(91, 140, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(rgba(91, 140, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 48px 48px, 48px 48px;
+    }
+    .glow-orb { position: fixed; width: 60vw; height: 60vh; border-radius: 50%; background: radial-gradient(ellipse, var(--glow) 0%, transparent 70%);
+      filter: blur(80px); opacity: 0.4; top: -20%; right: -10%; z-index: 0; pointer-events: none; }
+    .glow-orb-2 { left: -15%; bottom: -15%; background: radial-gradient(ellipse, rgba(122, 95, 255, 0.3) 0%, transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 52rem; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
+    .lan-banner {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;
+      font-size: 0.8rem; color: var(--muted);
+      background: linear-gradient(135deg, #151e33, #0f1829);
+      border: 1px solid var(--line);
+      border-radius: 0.5rem; padding: 0.6rem 0.85rem; margin-bottom: 1rem; max-width: 38rem;
+    }
+    .lan-banner code { color: #a8c4ff; font-size: 0.78rem; }
+    .lan-banner button { font: inherit; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 0.35rem;
+      border: 1px solid var(--line); background: #1a2340; color: var(--text); font-size: 0.75rem; }
+    h1 { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: clamp(2rem, 5vw, 2.85rem); line-height: 1.1; margin: 0 0 0.35rem; }
+    h1 .badge { display: inline-block; font-size: 0.55rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-family: "DM Sans", sans-serif; color: var(--accent); vertical-align: top; }
+    .lede { color: var(--muted); font-size: 1.05rem; max-width: 32rem; }
+    .card { margin-top: 1.25rem; padding: 1.75rem 1.5rem; border-radius: 1rem; background: var(--card); border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); position: relative; }
+    .meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line); }
+    .meta strong { color: var(--text); font-weight: 600; }
+    .actions { display: flex; flex-direction: column; gap: 1rem; }
+    @media (min-width: 36rem) { .actions { flex-direction: row; align-items: stretch; } }
+    .btn { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; flex: 1; min-height: 5.5rem;
+      padding: 1.25rem 1.5rem; border-radius: 0.75rem; text-decoration: none; color: var(--text);
+      background: linear-gradient(145deg, #1a2340 0%, #141b30 100%); border: 1px solid var(--line);
+      font: inherit; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+    a.btn, button.btn { -webkit-tap-highlight-color: transparent; }
+    .btn:hover:not(:disabled) { border-color: rgba(91, 140, 255, 0.5); box-shadow: 0 8px 30px rgba(0,0,0,0.2), 0 0 0 1px rgba(91, 140, 255, 0.15) inset; transform: translateY(-2px); }
+    .btn:disabled, .btn.disabled { opacity: 0.4; pointer-events: none; cursor: not-allowed; }
+    .btn .label { font-size: 1.05rem; font-weight: 600; }
+    .btn .hint { margin-top: 0.4rem; font-size: 0.8rem; color: var(--muted); }
+    .btn .fmt { font-size: 0.7rem; margin-top: 0.3rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+    .btn.csv .fmt { color: #3dd5a4; } .btn.docx .fmt { color: #5b8cff; }
+    .err { margin-top: 1.25rem; padding: 1rem 1.1rem; border-radius: 0.5rem; background: rgba(220, 80, 60, 0.12);
+      border: 1px solid rgba(220, 80, 60, 0.35); color: #f3b0a0; font-size: 0.9rem; line-height: 1.45; }
+    .foot { margin-top: 2.25rem; color: var(--muted); font-size: 0.8rem; }
+
+    @keyframes boot-spin { to { transform: rotate(360deg); } }
+    .layer { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(6, 8, 14, 0.75); backdrop-filter: blur(6px); }
+    .layer[hidden] { display: none !important; }
+    .layer .panel { text-align: center; padding: 1.5rem 2rem; max-width: 20rem; }
+    .spinner { width: 2.4rem; height: 2.4rem; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 0.9rem; animation: boot-spin 0.7s linear infinite; }
+    .layer p { color: var(--text); font-size: 0.95rem; margin: 0; }
+    .layer .sub { margin-top: 0.4rem; font-size: 0.8rem; color: var(--muted); }
+    .dl-layer .spinner { border-top-color: #3dd5a4; }
+    #main-ui[aria-busy="true"] { filter: opacity(0.4); pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="glow-orb" aria-hidden="true"></div>
+  <div class="glow-orb glow-orb-2" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="lan-banner" role="note">
+      <span><strong>Reliable on office Wi‑Fi</strong> — if a public link fails, open the app from another device on the same network:</span>
+      <code id="lanUrl">{{ lan_url | e }}</code>
+      <button type="button" id="copyLan" aria-label="Copy address">Copy</button>
+    </div>
+
+    <div class="layer" id="bootLayer" role="status" aria-live="polite" aria-label="Loading">
+      <div class="panel">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="bootText">Preparing the downloader…</p>
+        <p class="sub" id="bootSub">Contacting the server. Large exports are cached after the first check.</p>
+        <p style="margin-top:0.8rem" id="dismissRow" hidden>
+          <button type="button" class="btn" id="dismissBoot" style="min-height:2.5rem;padding:0.4rem 0.8rem;max-width:12rem">Continue to page</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="layer" id="dlLayer" role="status" hidden aria-hidden="true" aria-label="Preparing download">
+      <div class="panel dl-layer">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="dlText">Preparing your file…</p>
+        <p class="sub" id="dlSub">This can take a minute the first time (all entries and formats).</p>
+      </div>
+    </div>
+
+    <div id="main-ui" aria-busy="true">
+      <p class="badge">Internal · Content</p>
+      <h1>Contentful <span class="badge">·</span> article downloader</h1>
+      <p class="lede">Export the same human-readable data as a spreadsheet (CSV) or a Word report (DOCX). A loading state runs while the server builds your file.</p>
+      <div class="card">
+        <div class="meta">
+          <span>Entries: <strong id="nEntries">{{ count if ready else "—" }}</strong></span>
+          <span>Data source: <strong>{{ bundle_hint | e }}</strong></span>
+          <span>Locales: <strong>en-US, ar</strong></span>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn csv" id="btnCsv" data-kind="csv" {{ 'disabled' if not ready }}>
+            <span class="label">Download CSV</span>
+            <span class="fmt">.csv</span>
+            <span class="hint">Fields list, all_fields per locale, and links (same as the latest export script).</span>
+          </button>
+          <button type="button" class="btn docx" id="btnDocx" data-kind="docx" {{ 'disabled' if not ready }}>
+            <span class="label">Download Word</span>
+            <span class="fmt">.docx</span>
+            <span class="hint">Structured report with English & Arabic, links section per entry.</span>
+          </button>
+        </div>
+        {% if err %}
+        <div class="err" role="status">
+          <strong>Data not available.</strong> {{ err }}<br />
+          <span style="color: #b8c0d0">Host <code>space_export.json</code> and set <code>EXPORT_JSON_URL</code> for production, or keep the file under <code>contentful-export/</code> for local use. POST <code>/api/refresh</code> reloads a remote file.</span>
+        </div>
+        {% endif %}
+      </div>
+      <p class="foot">Public tunnel links (trycloudflare, etc.) can be blocked by your network. Prefer the LAN address above, or deploy to Render / Fly (see <code>render.yaml</code> in the repo).</p>
+    </div>
+  </div>
+  <script>
+(function () {
+  const boot = document.getElementById("bootLayer");
+  const main = document.getElementById("main-ui");
+  const bootText = document.getElementById("bootText");
+  const dl = document.getElementById("dlLayer");
+  const dlText = document.getElementById("dlText");
+  const nEntries = document.getElementById("nEntries");
+  const readyServer = {{ 'true' if ready else 'false' }};
+
+  function hideBoot() {
+    boot.setAttribute("hidden", "");
+    const dr = document.getElementById("dismissRow");
+    if (dr) dr.setAttribute("hidden", "");
+    main.setAttribute("aria-busy", "false");
+  }
+
+  const _urlQ = (typeof location !== "undefined" && location.search) ? location.search : "";
+
+  async function bootCheck() {
+    try {
+      bootText.textContent = "Checking the server…";
+      const h = await fetch("/api/health" + _urlQ, { cache: "no-store" });
+      if (!h.ok) throw new Error("HTTP " + h.status);
+      const j = await h.json();
+      if (j.count != null && nEntries) nEntries.textContent = j.count;
+      if (!j.ok) {
+        bootText.textContent = "Data not ready for export.";
+        document.getElementById("bootSub").textContent = (j && j.error) ? j.error : "Check the message in the page below.";
+      }
+    } catch (e) {
+      bootText.textContent = "Can’t reach the app on this address.";
+      document.getElementById("bootSub").textContent = "On the same Wi-Fi, use the blue LAN address at the top, or ask who runs the app to start: python3 -m contentful_portal";
+      document.getElementById("dismissRow")?.removeAttribute("hidden");
+      return;
+    }
+    hideBoot();
+  }
+
+  document.getElementById("dismissBoot")?.addEventListener("click", function () { hideBoot(); });
+
+  document.getElementById("copyLan")?.addEventListener("click", function () {
+    const b = this;
+    const u = document.getElementById("lanUrl").textContent;
+    navigator.clipboard.writeText(u).then(function () {
+      b.textContent = "Copied";
+      setTimeout(function () { b.textContent = "Copy"; }, 1800);
+    });
+  });
+
+  function parseName(cd) {
+    if (!cd) return null;
+    const m = /filename\*?=(?:UTF-8'')?("?)([^";\n]+)\1?/i.exec(cd);
+    return m ? m[2].replace(/['"]/g, "") : null;
+  }
+
+  async function doDownload(kind) {
+    if (!["csv", "docx"].includes(kind)) return;
+    dl.removeAttribute("hidden");
+    dl.setAttribute("aria-hidden", "false");
+    dlText.textContent = kind === "csv" ? "Building CSV…" : "Building Word document…";
+    try {
+      const r = await fetch("/download/entries." + kind + _urlQ, { cache: "no-store" });
+      if (!r.ok) { const t = await r.text(); throw new Error(t || r.status); }
+      const blob = await r.blob();
+      const name = parseName(r.headers.get("Content-Disposition")) || ("contentful-entries." + (kind === "docx" ? "docx" : "csv"));
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      alert("Download failed: " + (e && e.message ? e.message : e));
+    } finally {
+      dl.setAttribute("hidden", "");
+      dl.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  document.getElementById("btnCsv")?.addEventListener("click", function () { if (!this.disabled) doDownload("csv"); });
+  document.getElementById("btnDocx")?.addEventListener("click", function () { if (!this.disabled) doDownload("docx"); });
+
+  if (readyServer) {
+    bootText.textContent = "Almost ready…";
+  }
+  bootCheck();
+})();
+  </script>
+</body>
+</html>

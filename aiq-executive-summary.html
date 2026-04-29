@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The AiQ Framework - Executive Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fafaf8;--surface:#fff;--border:#e8e6e1;--border-l:#f0eeea;
+  --text:#1a1a18;--ts:#4a4843;--tm:#6e6b64;
+  --blue:#2563eb;--purple:#7c3aed;--green:#059669;--amber:#d97706;
+  --rose:#e11d48;--teal:#0d9488;--orange:#ea580c;--slate:#475569;
+  --blue-bg:#eff4ff;--purple-bg:#f5f0ff;--green-bg:#ecfdf3;--amber-bg:#fffbeb;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+
+.slide{width:1120px;height:730px;margin:0 auto 4px;background:var(--surface);padding:48px 64px;position:relative;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;}
+.slide-num{position:absolute;bottom:24px;right:40px;font-size:0.6rem;color:var(--tm);letter-spacing:0.04em;}
+.slide-foot{position:absolute;bottom:24px;left:40px;font-size:0.56rem;color:var(--tm);}
+
+h1{font-family:'Lora',Georgia,serif;font-size:2.8rem;font-weight:700;letter-spacing:-0.02em;line-height:1.08;margin-bottom:14px;}
+h2{font-family:'Lora',Georgia,serif;font-size:1.6rem;font-weight:600;letter-spacing:-0.01em;margin:0 0 16px;}
+h3{font-family:'Lora',Georgia,serif;font-size:1.1rem;font-weight:600;margin:20px 0 8px;}
+h4{font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--tm);margin:20px 0 8px;}
+p{font-size:0.84rem;color:var(--ts);font-weight:400;line-height:1.75;margin-bottom:14px;}
+p strong{color:var(--text);font-weight:600;}
+blockquote{font-family:'Lora',Georgia,serif;font-size:1.15rem;font-style:italic;color:var(--text);line-height:1.5;padding:16px 0 16px 24px;border-left:3px solid var(--text);margin:16px 0 20px;}
+ul{margin:0 0 16px;padding-left:18px;}
+li{font-size:0.82rem;color:var(--ts);font-weight:400;line-height:1.65;margin-bottom:3px;}
+li strong{color:var(--text);font-weight:600;}
+
+.cover-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--purple);font-weight:600;margin-bottom:16px;}
+.cover-sub{font-size:1.1rem;color:var(--ts);font-weight:400;line-height:1.55;margin-bottom:28px;max-width:640px;}
+.cover-meta{font-size:0.72rem;color:var(--tm);}
+.cover-center{display:flex;flex-direction:column;justify-content:center;height:100%;}
+
+.scope-box{margin-top:28px;padding:14px 20px;border:1px solid var(--border);border-radius:8px;background:var(--bg);display:grid;grid-template-columns:1fr 1fr;gap:6px 32px;max-width:620px;}
+.scope-item{font-size:0.68rem;color:var(--ts);font-weight:400;display:flex;align-items:center;gap:6px;}
+.scope-item .si-icon{font-size:0.72rem;flex-shrink:0;}
+.scope-item .si-icon.yes{color:var(--green);}
+.scope-item .si-icon.no{color:var(--tm);opacity:0.5;}
+
+.trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:20px 0;}
+.trio-card{padding:22px;border:1px solid var(--border);border-radius:12px;text-align:center;}
+.trio-card .tc-label{font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;font-weight:600;margin-bottom:5px;}
+.trio-card .tc-abbr{font-family:'Lora',Georgia,serif;font-size:1.6rem;font-weight:700;margin-bottom:3px;}
+.trio-card .tc-full{font-size:0.74rem;font-weight:500;margin-bottom:6px;}
+.trio-card .tc-def{font-size:0.7rem;color:var(--ts);font-weight:400;line-height:1.45;}
+.trio-card.aiq{border-color:var(--purple);background:var(--purple-bg);}
+
+.stair{display:flex;align-items:flex-end;gap:10px;height:140px;margin:16px 0 20px;}
+.step{flex:1;border-radius:8px 8px 0 0;display:flex;flex-direction:column;justify-content:flex-end;padding:12px 10px;text-align:center;}
+.step .s-num{font-size:0.56rem;font-weight:700;letter-spacing:0.06em;opacity:0.7;}
+.step .s-name{font-size:0.78rem;font-weight:600;}
+.step .s-range{font-size:0.56rem;opacity:0.6;margin-top:2px;}
+.step .s-desc{font-size:0.6rem;opacity:0.75;margin-top:4px;line-height:1.3;}
+
+.df-block{padding:22px 28px;border:1px solid var(--border);border-radius:10px;margin-bottom:16px;border-left:4px solid var(--border);}
+.df-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+.df-num{font-size:0.76rem;font-weight:700;letter-spacing:0.04em;}
+.df-title{font-weight:600;font-size:1.05rem;}
+.df-def{font-size:0.88rem;color:var(--ts);font-weight:400;line-height:1.45;margin-bottom:12px;}
+.df-levels{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.df-lvl{font-size:0.72rem;color:var(--text);font-weight:400;line-height:1.35;padding:8px 11px;border-radius:6px;}
+.df-lvl .lvl-tag{font-weight:700;font-size:0.64rem;display:block;margin-bottom:2px;letter-spacing:0.03em;}
+
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:0.76rem;}
+thead th{text-align:left;padding:8px 10px;font-weight:600;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--tm);border-bottom:2px solid var(--text);}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--ts);font-weight:400;vertical-align:top;}
+tbody td:first-child{color:var(--text);font-weight:500;}
+tbody tr:last-child td{border-bottom:none;}
+td.top{font-weight:700;color:var(--text);background:var(--purple-bg);}
+td.high{font-weight:600;color:var(--text);background:var(--blue-bg);}
+
+.formula-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:20px 28px;margin:14px 0;text-align:center;}
+.formula-box .fb-formula{font-family:'Lora',Georgia,serif;font-size:1.15rem;font-weight:600;margin-bottom:5px;}
+.formula-box .fb-sub{font-size:0.7rem;color:var(--ts);font-weight:400;}
+
+.callout{padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--text);border-radius:0 8px 8px 0;margin:16px 0;}
+.callout p{margin-bottom:0;font-size:0.8rem;}
+
+.method-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+.m-card{padding:14px 16px;border:1px solid var(--border);border-radius:8px;border-top:3px solid var(--border);}
+.m-card .m-type{font-size:0.58rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--tm);font-weight:600;margin-bottom:3px;}
+.m-card .m-title{font-weight:600;font-size:0.78rem;margin-bottom:4px;}
+.m-card .m-desc{font-size:0.7rem;color:var(--ts);font-weight:400;line-height:1.4;}
+.m-tags{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap;}
+.m-tag{font-size:0.52rem;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;padding:2px 7px;border-radius:3px;}
+.m-tag.current{background:var(--blue-bg);color:var(--blue);}
+.m-tag.hiring{background:var(--amber-bg);color:var(--amber);}
+
+.gantt{display:grid;grid-template-columns:96px repeat(9,1fr);margin:18px 0 14px;column-gap:0;row-gap:0;}
+.gantt-corner{grid-column:1;grid-row:1;padding:0;}
+.gantt-qh{text-align:center;font-size:0.58rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--tm);padding:8px 0;border-bottom:2px solid var(--border);}
+.gantt-qh.overlap{background:rgba(217,119,6,0.06);}
+.gantt-spacer{grid-column:1;height:6px;}
+.gantt-label{grid-column:1;font-size:0.7rem;font-weight:600;padding:0 8px 0 0;display:flex;flex-direction:column;justify-content:center;line-height:1.3;}
+.gantt-label span{font-size:0.56rem;font-weight:400;color:var(--ts);margin-top:1px;}
+.gantt-seg{padding:10px 6px;font-size:0.56rem;font-weight:500;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;}
+.gantt-empty{padding:10px 0;}
+.tl-key{display:flex;align-items:center;gap:16px;margin:8px 0 16px;font-size:0.66rem;color:var(--ts);font-weight:400;}
+.tl-key-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;}
+.tl-details{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;}
+.tl-detail{padding:14px 16px;border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--border);}
+.tl-detail .td-phase{font-size:0.56rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:4px;}
+.tl-detail .td-desc{font-size:0.68rem;color:var(--ts);font-weight:400;line-height:1.5;}
+
+@page{size:297mm 210mm;margin:0;}
+@media print{
+  body{background:#fff !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important;}
+  .slide{box-shadow:none !important;page-break-after:always;page-break-inside:avoid;width:297mm !important;height:210mm !important;padding:18mm 22mm;overflow:hidden;}
+  .slide:last-child{page-break-after:avoid;}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== SLIDE 1: COVER ==================== -->
+<div class="slide" style="display:flex;align-items:center;">
+  <div class="cover-center">
+    <div class="cover-label">Executive Summary</div>
+    <h1>The AiQ Framework</h1>
+    <p class="cover-sub">A structured framework for defining, assessing, and measuring AI fluency across the workforce.</p>
+    <div class="cover-meta">April 2026 &middot; Executive Summary v1.2 (product sync: D5/D6, 6+2 flow, reflection framing) &middot; Confidential</div>
+    <div class="scope-box">
+      <div style="grid-column:1/3;font-size:0.56rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text);margin-bottom:2px;">What This Document Covers</div>
+      <div class="scope-item"><span class="si-icon yes">&#10003;</span> AiQ definition &amp; maturity model</div>
+      <div class="scope-item"><span class="si-icon no">&#10005;</span> Operational implementation plan</div>
+      <div class="scope-item"><span class="si-icon yes">&#10003;</span> Scoring &amp; assessment methodology</div>
+      <div class="scope-item"><span class="si-icon no">&#10005;</span> Survey- or form-based self/manager instruments</div>
+      <div class="scope-item"><span class="si-icon yes">&#10003;</span> Role-specific weighting</div>
+      <div class="scope-item"><span class="si-icon no">&#10005;</span> Tool-specific recommendations</div>
+    </div>
+    <p style="font-size:0.66rem;color:var(--tm);margin-top:10px;margin-bottom:0;">Full framework details available in the AiQ White Paper.</p>
+  </div>
+  <div class="slide-num">1</div>
+</div>
+
+<!-- ==================== SLIDE 2: THE THESIS ==================== -->
+<div class="slide">
+  <h2>The Thesis</h2>
+  <blockquote>"IQ is what you can do with your mind. EQ is what you can do with people. AiQ is what you can do with AI."</blockquote>
+  <p>A third capability is becoming essential alongside IQ and EQ. <strong>AiQ (AI Quotient)</strong> is a structured measure of AI fluency  - how effectively a person uses AI tools to improve the quality, speed, and impact of their work. It is not about technical expertise. It is about practical proficiency.</p>
+  <div class="trio">
+    <div class="trio-card">
+      <div class="tc-label">Cognitive</div>
+      <div class="tc-abbr">IQ</div>
+      <div class="tc-full">Intelligence Quotient</div>
+      <div class="tc-def">How well you reason, solve problems, and process information.</div>
+    </div>
+    <div class="trio-card">
+      <div class="tc-label">Emotional</div>
+      <div class="tc-abbr">EQ</div>
+      <div class="tc-full">Emotional Quotient</div>
+      <div class="tc-def">How well you navigate emotions in yourself and others.</div>
+    </div>
+    <div class="trio-card aiq">
+      <div class="tc-label">AI Fluency</div>
+      <div class="tc-abbr">AiQ</div>
+      <div class="tc-full">AI Quotient</div>
+      <div class="tc-def">How effectively you use AI to improve the quality, speed, and impact of your work.</div>
+    </div>
+  </div>
+  <div class="callout">
+    <p><strong>Key distinction:</strong> AiQ measures augmentation, not automation. High-AiQ individuals use AI to extend their existing expertise, not to substitute for skills they have not developed.</p>
+  </div>
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">2</div>
+</div>
+
+<!-- ==================== SLIDE 3: FOUR LEVELS ==================== -->
+<div class="slide">
+  <h2>Four Maturity Levels</h2>
+  <p>AiQ is assessed on a four-level scale. Each level represents a qualitative shift in how someone works with AI.</p>
+  <div class="stair">
+    <div class="step" style="height:25%;background:var(--blue-bg);color:var(--blue);">
+      <div class="s-num">AiQ 1</div>
+      <div class="s-name">Aware</div>
+      <div class="s-range">0 &ndash; 25</div>
+      <div class="s-desc">Uses AI for occasional tasks. Needs guidance.</div>
+    </div>
+    <div class="step" style="height:45%;background:var(--green-bg);color:var(--green);">
+      <div class="s-num">AiQ 2</div>
+      <div class="s-name">Proficient</div>
+      <div class="s-range">26 &ndash; 55</div>
+      <div class="s-desc">AI is part of daily work. Picks the right tool, evaluates output.</div>
+    </div>
+    <div class="step" style="height:70%;background:var(--amber-bg);color:var(--amber);">
+      <div class="s-num">AiQ 3</div>
+      <div class="s-name">Builder</div>
+      <div class="s-range">56 &ndash; 80</div>
+      <div class="s-desc">Designs AI workflows for self and team. Teaches peers.</div>
+    </div>
+    <div class="step" style="height:95%;background:var(--purple-bg);color:var(--purple);">
+      <div class="s-num">AiQ 4</div>
+      <div class="s-name">Strategist</div>
+      <div class="s-range">81 &ndash; 100</div>
+      <div class="s-desc">Drives AI strategy and adoption at organizational level.</div>
+    </div>
+  </div>
+  <div class="callout">
+    <p><strong>Design principle:</strong> The levels measure the sophistication of someone's relationship with AI, not their technical depth. A marketing lead who redesigns their team's process around AI (AiQ 3) may score higher than a developer who only uses AI for code autocomplete (AiQ 2).</p>
+  </div>
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">3</div>
+</div>
+
+<!-- ==================== SLIDE 4: DIMENSIONS D1-D3 ==================== -->
+<div class="slide">
+  <h2>Six Dimensions of AiQ <span style="font-family:'Inter';font-size:0.7rem;font-weight:400;color:var(--tm);margin-left:8px;">1 of 2</span></h2>
+  <p style="margin-bottom:16px;">AiQ is a composite of six measurable competency dimensions, each assessed at four maturity levels.</p>
+
+  <div class="df-block" style="border-left-color:var(--blue);">
+    <div class="df-head"><span class="df-num" style="color:var(--blue);">D1</span><span class="df-title">AI Awareness &amp; Opportunity Recognition</span></div>
+    <div class="df-def">Understanding what AI can and cannot do, knowing the tool landscape, and identifying where AI creates value.</div>
+    <div class="df-levels">
+      <div class="df-lvl" style="background:var(--blue-bg);"><span class="lvl-tag" style="color:var(--blue);">AiQ 1</span>Knows basic tools; uses one for most tasks</div>
+      <div class="df-lvl" style="background:var(--green-bg);"><span class="lvl-tag" style="color:var(--green);">AiQ 2</span>Understands strengths/limits; identifies new use cases</div>
+      <div class="df-lvl" style="background:var(--amber-bg);"><span class="lvl-tag" style="color:var(--amber);">AiQ 3</span>Evaluates tools; proposes team improvements; quantifies impact</div>
+      <div class="df-lvl" style="background:var(--purple-bg);"><span class="lvl-tag" style="color:var(--purple);">AiQ 4</span>Drives AI strategy; evaluates investments vs. outcomes</div>
+    </div>
+  </div>
+
+  <div class="df-block" style="border-left-color:var(--green);">
+    <div class="df-head"><span class="df-num" style="color:var(--green);">D2</span><span class="df-title">Prompt Engineering &amp; AI Communication</span></div>
+    <div class="df-def">Communicating effectively with AI systems  - providing context, constraints, and iterating for consistent output.</div>
+    <div class="df-levels">
+      <div class="df-lvl" style="background:var(--blue-bg);"><span class="lvl-tag" style="color:var(--blue);">AiQ 1</span>Basic, unstructured requests; inconsistent results</div>
+      <div class="df-lvl" style="background:var(--green-bg);"><span class="lvl-tag" style="color:var(--green);">AiQ 2</span>Provides context and constraints; iterates effectively</div>
+      <div class="df-lvl" style="background:var(--amber-bg);"><span class="lvl-tag" style="color:var(--amber);">AiQ 3</span>Designs reusable templates; manages multi-step interactions</div>
+      <div class="df-lvl" style="background:var(--purple-bg);"><span class="lvl-tag" style="color:var(--purple);">AiQ 4</span>Creates prompt standards and best practices for the org</div>
+    </div>
+  </div>
+
+  <div class="df-block" style="border-left-color:var(--amber);margin-bottom:0;">
+    <div class="df-head"><span class="df-num" style="color:var(--amber);">D3</span><span class="df-title">Output Evaluation &amp; Critical Judgment</span></div>
+    <div class="df-def">Critically assessing AI output  - catching errors, bias, and quality gaps before they reach stakeholders.</div>
+    <div class="df-levels">
+      <div class="df-lvl" style="background:var(--blue-bg);"><span class="lvl-tag" style="color:var(--blue);">AiQ 1</span>Accepts output with minimal review</div>
+      <div class="df-lvl" style="background:var(--green-bg);"><span class="lvl-tag" style="color:var(--green);">AiQ 2</span>Reviews and edits; catches factual errors</div>
+      <div class="df-lvl" style="background:var(--amber-bg);"><span class="lvl-tag" style="color:var(--amber);">AiQ 3</span>Builds systematic quality checks into workflows</div>
+      <div class="df-lvl" style="background:var(--purple-bg);"><span class="lvl-tag" style="color:var(--purple);">AiQ 4</span>Designs org-wide quality standards for AI output</div>
+    </div>
+  </div>
+
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">4</div>
+</div>
+
+<!-- ==================== SLIDE 5: DIMENSIONS D4-D6 ==================== -->
+<div class="slide">
+  <h2>Six Dimensions of AiQ <span style="font-family:'Inter';font-size:0.7rem;font-weight:400;color:var(--tm);margin-left:8px;">2 of 2</span></h2>
+  <p style="margin-bottom:16px;">Dimensions 4 through 6 capture workflow integration, creative output quality, and responsible governance.</p>
+
+  <div class="df-block" style="border-left-color:var(--teal);">
+    <div class="df-head"><span class="df-num" style="color:var(--teal);">D4</span><span class="df-title">Workflow Design &amp; Integration</span></div>
+    <div class="df-def">Embedding AI into work processes  - knowing which parts of a task benefit from AI and which require human judgment.</div>
+    <div class="df-levels">
+      <div class="df-lvl" style="background:var(--blue-bg);"><span class="lvl-tag" style="color:var(--blue);">AiQ 1</span>Uses AI for one-off tasks, separate from workflow</div>
+      <div class="df-lvl" style="background:var(--green-bg);"><span class="lvl-tag" style="color:var(--green);">AiQ 2</span>AI woven into regular work; breaks tasks into AI/human parts</div>
+      <div class="df-lvl" style="background:var(--amber-bg);"><span class="lvl-tag" style="color:var(--amber);">AiQ 3</span>Designs multi-step workflows; uses templates and automations</div>
+      <div class="df-lvl" style="background:var(--purple-bg);"><span class="lvl-tag" style="color:var(--purple);">AiQ 4</span>Redesigns org processes to be AI-native; architects cross-team systems</div>
+    </div>
+  </div>
+
+  <div class="df-block" style="border-left-color:var(--orange);">
+    <div class="df-head"><span class="df-num" style="color:var(--orange);">D5</span><span class="df-title">Clarity, craft &amp; output fit (what others see)</span></div>
+    <div class="df-def">Quality, clarity, and appropriateness of <strong>AI-supported work that others read or rely on</strong> (emails, specs, support, reviews, etc.)&mdash;not &ldquo;brand&rdquo; as marketing only. GTM roles may add external narrative; the dimension is universal in intent.</div>
+    <div class="df-levels">
+      <div class="df-lvl" style="background:var(--blue-bg);"><span class="lvl-tag" style="color:var(--blue);">AiQ 1</span>Generates drafts; accepts output with minimal personal input</div>
+      <div class="df-lvl" style="background:var(--green-bg);"><span class="lvl-tag" style="color:var(--green);">AiQ 2</span>Uses AI as collaborator; output reflects own expertise</div>
+      <div class="df-lvl" style="background:var(--amber-bg);"><span class="lvl-tag" style="color:var(--amber);">AiQ 3</span>Produces work measurably better than human or AI alone</div>
+      <div class="df-lvl" style="background:var(--purple-bg);"><span class="lvl-tag" style="color:var(--purple);">AiQ 4</span>Sets the quality standard for AI-augmented work in their function</div>
+    </div>
+  </div>
+
+  <div class="df-block" style="border-left-color:var(--purple);margin-bottom:0;">
+    <div class="df-head"><span class="df-num" style="color:var(--purple);">D6</span><span class="df-title">Risk &amp; responsible use (everyone has a floor)</span></div>
+    <div class="df-def">Data, IP, model/vendor access, and judgment. <strong>Every</strong> role has a baseline in the <em>same spirit</em> as org-wide <strong>security, data, and financial-crime</strong> training. Deeper vendor/regulator depth where the role or topic requires it (e.g. risk/legal).</div>
+    <div class="df-levels">
+      <div class="df-lvl" style="background:var(--blue-bg);"><span class="lvl-tag" style="color:var(--blue);">AiQ 1</span>Limited awareness of data risks; may share sensitive info</div>
+      <div class="df-lvl" style="background:var(--green-bg);"><span class="lvl-tag" style="color:var(--green);">AiQ 2</span>Follows usage policies; knows what data can/cannot be shared</div>
+      <div class="df-lvl" style="background:var(--amber-bg);"><span class="lvl-tag" style="color:var(--amber);">AiQ 3</span>Designs workflows with compliance built in; trains peers</div>
+      <div class="df-lvl" style="background:var(--purple-bg);"><span class="lvl-tag" style="color:var(--purple);">AiQ 4</span>Shapes organizational AI governance policies and risk frameworks</div>
+    </div>
+  </div>
+
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">5</div>
+</div>
+
+<!-- ==================== SLIDE 6: SCORING & WEIGHTING ==================== -->
+<div class="slide">
+  <h2>Scoring &amp; Role-Specific Weighting</h2>
+  <div class="formula-box">
+    <div class="fb-formula">AiQ Score = &Sigma; (D<sub>i</sub> &times; W<sub>i</sub>)</div>
+    <div class="fb-sub">Each dimension scored 0&ndash;10, multiplied by a role-specific weight, normalized to 100</div>
+  </div>
+  <p>Not every dimension matters equally for every role. The weight matrix ensures each function is measured on what matters most to their work.</p>
+  <table style="font-size:0.7rem;">
+    <thead>
+      <tr>
+        <th></th>
+        <th style="text-align:center;">D1 Awareness</th>
+        <th style="text-align:center;">D2 Prompt Eng.</th>
+        <th style="text-align:center;">D3 Evaluation</th>
+        <th style="text-align:center;">D4 Workflow</th>
+        <th style="text-align:center;">D5 Creation</th>
+        <th style="text-align:center;">D6 Responsible</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Engineering</td><td style="text-align:center;">12%</td><td class="top" style="text-align:center;">22%</td><td style="text-align:center;">12%</td><td class="top" style="text-align:center;">28%</td><td class="high" style="text-align:center;">16%</td><td style="text-align:center;">10%</td></tr>
+      <tr><td>Product</td><td class="high" style="text-align:center;">18%</td><td style="text-align:center;">14%</td><td class="high" style="text-align:center;">16%</td><td class="top" style="text-align:center;">20%</td><td style="text-align:center;">12%</td><td class="high" style="text-align:center;">20%</td></tr>
+      <tr><td>Creative / Design</td><td style="text-align:center;">12%</td><td class="high" style="text-align:center;">16%</td><td style="text-align:center;">14%</td><td style="text-align:center;">10%</td><td class="top" style="text-align:center;">30%</td><td class="high" style="text-align:center;">18%</td></tr>
+      <tr><td>Marketing</td><td style="text-align:center;">12%</td><td class="high" style="text-align:center;">18%</td><td style="text-align:center;">12%</td><td style="text-align:center;">14%</td><td class="top" style="text-align:center;">26%</td><td class="high" style="text-align:center;">18%</td></tr>
+      <tr><td>Sales</td><td class="high" style="text-align:center;">16%</td><td class="top" style="text-align:center;">24%</td><td style="text-align:center;">10%</td><td class="high" style="text-align:center;">18%</td><td class="high" style="text-align:center;">18%</td><td style="text-align:center;">14%</td></tr>
+      <tr><td>Data / Analytics</td><td class="high" style="text-align:center;">20%</td><td style="text-align:center;">14%</td><td class="top" style="text-align:center;">22%</td><td class="top" style="text-align:center;">24%</td><td style="text-align:center;">10%</td><td style="text-align:center;">10%</td></tr>
+      <tr><td>Finance / Legal</td><td style="text-align:center;">12%</td><td style="text-align:center;">12%</td><td class="top" style="text-align:center;">24%</td><td style="text-align:center;">14%</td><td style="text-align:center;">10%</td><td class="top" style="text-align:center;">28%</td></tr>
+      <tr><td>Care / Support</td><td style="text-align:center;">14%</td><td class="top" style="text-align:center;">22%</td><td class="high" style="text-align:center;">16%</td><td class="high" style="text-align:center;">18%</td><td style="text-align:center;">10%</td><td class="high" style="text-align:center;">20%</td></tr>
+      <tr><td>Operations</td><td class="high" style="text-align:center;">16%</td><td style="text-align:center;">12%</td><td style="text-align:center;">12%</td><td class="top" style="text-align:center;">30%</td><td style="text-align:center;">10%</td><td class="high" style="text-align:center;">20%</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.72rem;margin-top:0;"><strong style="background:var(--purple-bg);padding:1px 5px;border-radius:3px;">Purple</strong> = primary dimension &nbsp;&nbsp;<strong style="background:var(--blue-bg);padding:1px 5px;border-radius:3px;">Blue</strong> = secondary dimension</p>
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">6</div>
+</div>
+
+<!-- ==================== SLIDE 7: ASSESSMENT & TARGETS ==================== -->
+<div class="slide">
+  <h2>Assessment &amp; Targets</h2>
+  <h3 style="margin-top:0;">Four Assessment Methods</h3>
+  <div class="method-row">
+    <div class="m-card" style="border-top-color:var(--blue);">
+      <div class="m-type">Self-Assessment</div>
+      <div class="m-title">AiQ Self-Evaluation (AI conversation)</div>
+      <div class="m-desc">Structured AI conversation: light pass on all six dimensions, with <strong>more depth on two</strong> (from level &times; job family weights in product). ~10 min. <strong>Reflection and coaching</strong> &mdash; not a hiring decision in the pilot. One-page read; optional <strong>PDF</strong> from the tool.</div>
+      <div class="m-tags"><span class="m-tag current">Current Employees</span></div>
+    </div>
+    <div class="m-card" style="border-top-color:var(--green);">
+      <div class="m-type">Manager Assessment</div>
+      <div class="m-title">Manager Assessment (AI conversation)</div>
+      <div class="m-desc">Structured AI conversation on observed AI-related work behaviors, aligned to the same rubric as self-evaluation and cross-referenced. Not a rating form or observation checklist.</div>
+      <div class="m-tags"><span class="m-tag current">Current Employees</span></div>
+    </div>
+  </div>
+  <div class="method-row">
+    <div class="m-card" style="border-top-color:var(--amber);">
+      <div class="m-type">Practical Exercise</div>
+      <div class="m-title">Role-Specific AiQ Challenge</div>
+      <div class="m-desc">Timed, realistic work problem solved with AI tools. 30&ndash;45 minutes.</div>
+      <div class="m-tags"><span class="m-tag hiring">Hiring Candidates</span><span class="m-tag current">Current Employees</span></div>
+    </div>
+    <div class="m-card" style="border-top-color:var(--purple);">
+      <div class="m-type">Usage Analytics</div>
+      <div class="m-title">AI Tool Adoption Data</div>
+      <div class="m-desc">Quantitative usage tracking  - frequency, breadth, feature depth. Aggregate and transparent.</div>
+      <div class="m-tags"><span class="m-tag current">Current Employees</span></div>
+    </div>
+  </div>
+  <h3>Target AiQ by Role &amp; Seniority</h3>
+  <table>
+    <thead><tr><th>Seniority</th><th>Non-Technical</th><th>Technical</th><th>Leadership (Director+)</th></tr></thead>
+    <tbody>
+      <tr><td>Junior / Entry</td><td>AiQ 1 (15+)</td><td>AiQ 1-2 (25+)</td><td>&ndash;</td></tr>
+      <tr><td>Mid-Level</td><td>AiQ 1-2 (30+)</td><td>AiQ 2 (40+)</td><td>&ndash;</td></tr>
+      <tr><td>Senior / Lead</td><td>AiQ 2 (40+)</td><td>AiQ 2-3 (55+)</td><td>AiQ 2-3 (50+)</td></tr>
+      <tr><td>Director / VP</td><td>&ndash;</td><td>&ndash;</td><td>AiQ 3 (60+)</td></tr>
+      <tr><td>C-Level</td><td>&ndash;</td><td>&ndash;</td><td>AiQ 3-4 (70+)</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">7</div>
+</div>
+
+<!-- ==================== SLIDE 8: INTEGRATION ==================== -->
+<div class="slide">
+  <h2>Integration with People Systems</h2>
+  <p>AiQ integrates into existing organizational infrastructure  - not as a standalone initiative, but as a competency layer embedded across the employee lifecycle.</p>
+  <table>
+    <thead><tr><th>System</th><th>Integration Point</th></tr></thead>
+    <tbody>
+      <tr><td>Hiring / ATS</td><td>AiQ Challenge as part of the interview process; minimum threshold per role</td></tr>
+      <tr><td>Performance Management</td><td>AiQ as a formal competency in review cycles; dimension scores inform development goals</td></tr>
+      <tr><td>Learning &amp; Development</td><td>Training recommendations driven by dimension-level gaps; targeted, not generic</td></tr>
+      <tr><td>Promotion Criteria</td><td>Minimum AiQ threshold as one factor in promotion decisions</td></tr>
+      <tr><td>Workforce Planning</td><td>AiQ distribution by team informs hiring priorities and team composition</td></tr>
+    </tbody>
+  </table>
+  <h3>Measurement Cadence</h3>
+  <table>
+    <thead><tr><th>Event</th><th>What Happens</th><th>Method</th></tr></thead>
+    <tbody>
+      <tr><td>Pre-Hire</td><td>AiQ baseline established</td><td>AiQ Challenge</td></tr>
+      <tr><td>Probation</td><td>Progress assessed against target</td><td>AI conversations (self + manager) + Analytics</td></tr>
+      <tr><td>Quarterly</td><td>Score updated; tied to performance</td><td>AI conversations (self + manager) + Analytics</td></tr>
+      <tr><td>Annual</td><td>Benchmarks recalibrated for AI evolution</td><td>Full triangulation</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">8</div>
+</div>
+
+<!-- ==================== SLIDE 9: NEXT STEPS WITH TIMELINE ==================== -->
+<div class="slide">
+  <h2>Proposed Rollout Timeline</h2>
+  <p style="margin-bottom:10px;">Two parallel workstreams targeting full organizational coverage by end of Q4 2026.</p>
+
+  <div class="gantt">
+    <div class="gantt-corner"></div>
+    <div class="gantt-qh" style="grid-column:2/5;">Q2 2026</div>
+    <div class="gantt-qh overlap" style="grid-column:5/8;">Q3 2026</div>
+    <div class="gantt-qh" style="grid-column:8/11;">Q4 2026</div>
+
+    <div style="grid-column:1;height:1px;"></div>
+    <div style="grid-column:2;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;">Apr</div>
+    <div style="grid-column:3;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;">May</div>
+    <div style="grid-column:4;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;">Jun</div>
+    <div style="grid-column:5;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;background:rgba(217,119,6,0.04);">Jul</div>
+    <div style="grid-column:6;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;background:rgba(217,119,6,0.04);">Aug</div>
+    <div style="grid-column:7;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;background:rgba(217,119,6,0.04);">Sep</div>
+    <div style="grid-column:8;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;">Oct</div>
+    <div style="grid-column:9;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;">Nov</div>
+    <div style="grid-column:10;border-bottom:1px solid var(--border-l);text-align:center;font-size:0.5rem;color:var(--tm);padding:3px 0;">Dec</div>
+
+    <div class="gantt-spacer"></div><div style="grid-column:2/11;height:6px;"></div>
+
+    <div class="gantt-label"><strong>Phase 1</strong><span>Hiring</span></div>
+    <div class="gantt-seg" style="grid-column:2/4;background:#2563eb;border-radius:6px 0 0 6px;">Design Assessment</div>
+    <div class="gantt-seg" style="grid-column:4/7;background:rgba(37,99,235,0.78);">Pilot 2&ndash;3 Functions</div>
+    <div class="gantt-seg" style="grid-column:7/8;background:rgba(37,99,235,0.55);border-radius:0 6px 6px 0;">Evaluate</div>
+    <div class="gantt-empty" style="grid-column:8/11;"></div>
+
+    <div class="gantt-spacer"></div><div style="grid-column:2/11;height:6px;"></div>
+
+    <div class="gantt-label"><strong>Phase 2</strong><span>Current Employees</span></div>
+    <div class="gantt-empty" style="grid-column:2/5;"></div>
+    <div class="gantt-seg" style="grid-column:5/7;background:#059669;border-radius:6px 0 0 6px;">Baseline Assessment</div>
+    <div class="gantt-seg" style="grid-column:7/9;background:rgba(5,150,105,0.75);">Training Programs</div>
+    <div class="gantt-seg" style="grid-column:9/11;background:rgba(5,150,105,0.55);border-radius:0 6px 6px 0;">Ongoing Measurement</div>
+  </div>
+
+  <div class="tl-key">
+    <span><span class="tl-key-dot" style="background:var(--blue);"></span>Phase 1: Hiring Pipeline</span>
+    <span><span class="tl-key-dot" style="background:var(--green);"></span>Phase 2: Current Employees</span>
+    <span style="color:var(--amber);font-weight:500;">Q3: Parallel Execution</span>
+  </div>
+
+  <div class="tl-details">
+    <div class="tl-detail" style="border-left-color:var(--blue);">
+      <div class="td-phase" style="color:var(--blue);">Phase 1  - Complete by end of Q3</div>
+      <div class="td-desc">Design the AiQ Challenge assessment. Pilot with 2&ndash;3 functions across hiring pipeline. Evaluate results, iterate on scoring, and establish minimum thresholds per role before broader rollout.</div>
+    </div>
+    <div class="tl-detail" style="border-left-color:var(--green);">
+      <div class="td-phase" style="color:var(--green);">Phase 2  - Q3 through Q4</div>
+      <div class="td-desc">Extend AiQ assessment to current workforce. Establish baselines through AI conversation-based self- and manager assessment. Launch targeted training programs. Integrate with performance management by end of Q4.</div>
+    </div>
+  </div>
+
+  <div class="slide-foot">AiQ Framework &middot; Executive Summary</div><div class="slide-num">9</div>
+</div>
+
+</body>
+</html>

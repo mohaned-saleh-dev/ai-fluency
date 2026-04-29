@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contentful export</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "DM Sans", system-ui, sans-serif; background: #0f1420; color: #e8ecf4; min-height: 100%; padding: 1rem; }
+    h1 { font-size: 1rem; font-weight: 600; margin: 0 0 0.25rem; color: #fff; }
+    p.meta { font-size: 0.8rem; color: #8b9ab5; margin: 0 0 1rem; }
+    .row { display: flex; flex-direction: column; gap: 0.65rem; }
+    @media (min-width: 420px) { .row { flex-direction: row; } }
+    button {
+      flex: 1; cursor: pointer; border: 1px solid #2a3550; border-radius: 0.5rem;
+      padding: 0.7rem 1rem; font: inherit; font-weight: 600; color: #e8ecf4;
+      background: linear-gradient(160deg, #1c2740, #131b2e);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    button:hover:not(:disabled) { border-color: #3d5a9a; box-shadow: 0 0 0 1px rgba(91, 140, 255, 0.2) inset; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .csv { color: #6ee7b7; } .docx { color: #7eb4ff; }
+    .err { font-size: 0.8rem; color: #f0a8a0; background: rgba(200, 60, 50, 0.12); border: 1px solid rgba(200, 80, 60, 0.3); border-radius: 0.4rem; padding: 0.5rem; margin-top: 0.5rem; }
+    .overlay {
+      position: fixed; inset: 0; background: rgba(8, 10, 16, 0.85); display: flex; align-items: center; justify-content: center;
+      z-index: 20; color: #e8ecf4; font-size: 0.9rem;
+    }
+    .overlay[hidden] { display: none; }
+    @keyframes s { to { transform: rotate(360deg); } }
+    .sp { width: 1.4rem; height: 1.4rem; border: 2px solid #2a3550; border-top-color: #5b8cff; border-radius: 50%; animation: s 0.65s linear infinite; margin-right: 0.6rem; }
+    .hrow { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+  <h1>Contentful article export</h1>
+  <p class="meta" id="line">Preparing…</p>
+  <div class="row">
+    <button type="button" class="csv" id="bCsv" {{ 'disabled' if not ready }}>Download CSV</button>
+    <button type="button" class="docx" id="bDoc" {{ 'disabled' if not ready }}>Download Word</button>
+  </div>
+  {% if err %}
+  <div class="err" id="eBox">{{ err }}</div>
+  {% endif %}
+  <div class="overlay" id="ld" hidden><div class="hrow"><div class="sp"></div>Building file… (can take a minute)</div></div>
+  <script>
+(function() {
+  var q = (typeof location !== "undefined" && location.search) ? location.search : "";
+  var n = {{ count|default(0) }};
+  var el = document.getElementById("line");
+  function go(kind) {
+    var ld = document.getElementById("ld");
+    ld.removeAttribute("hidden");
+    fetch("/download/entries." + kind + q, { cache: "no-store" })
+      .then(function(r) { if (!r.ok) return r.text().then(function(t) { throw new Error(t || r.status); }); return r.blob(); })
+      .then(function(blob) {
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "contentful-entries." + (kind === "docx" ? "docx" : "csv");
+        a.click();
+        URL.revokeObjectURL(a.href);
+      })
+      .catch(function(e) { alert(e.message || e); })
+      .finally(function() { ld.setAttribute("hidden", ""); });
+  }
+  fetch("/api/health" + q, { cache: "no-store" })
+    .then(function(r) { return r.json(); })
+    .then(function(j) {
+      if (j.count != null) n = j.count;
+      el.textContent = j.ok ? ("Ready — " + n + " entries") : (j.error || "Not ready");
+    })
+    .catch(function() { el.textContent = n ? ("~ " + n + " entries (offline check)") : "Check connection"; });
+  document.getElementById("bCsv").addEventListener("click", function() { if (!this.disabled) go("csv"); });
+  document.getElementById("bDoc").addEventListener("click", function() { if (!this.disabled) go("docx"); });
+})();
+  </script>
+</body>
+</html>

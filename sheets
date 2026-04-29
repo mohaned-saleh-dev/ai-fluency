@@ -1,0 +1,9 @@
+#!/bin/bash
+# Optional: same CSV, but also pushes it into a Google Sheet (needs Google setup).
+# In .env add: CONTENTFUL_MANAGEMENT_TOKEN, GOOGLE_SHEET_ID, GOOGLE_SERVICE_ACCOUNT_FILE=/path/to/x.json
+cd "$(dirname "$0")" || exit 1
+set -a
+[ -f .env ] && . ./.env
+set +a
+python3 -m pip install -q gspread google-auth 2>/dev/null || true
+exec python3 scripts/contentful_sheets_sync.py "$@"

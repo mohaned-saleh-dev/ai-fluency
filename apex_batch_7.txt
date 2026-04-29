@@ -1,0 +1,19 @@
+// Batch 7: Articles 61-62
+List<Knowledge__kav> articles = new List<Knowledge__kav>();
+
+Knowledge__kav a0 = new Knowledge__kav();
+a0.Title = 'If a case escalation failed due to a system issue, do I need to re-escalate?';
+a0.Summary = '[Workflows & Processes] If a case escalation failed due to a system issue, do I need to re-escalate?';
+a0.UrlName = 'faq-061-if-a-case-escalation-failed-due-to-a-system-issue-do-i-need-to-re-escalate';
+a0.Answer__c = '<p><strong>Yes.</strong> The system will not automatically re-escalate cases that failed due to a system issue. You must manually go back to the affected cases and initiate the escalation again once the issue has been resolved.</p>';
+articles.add(a0);
+
+Knowledge__kav a1 = new Knowledge__kav();
+a1.Title = 'How do I escalate a merchant email case to the Onboarding team if "Onboarding" isn\'t in the transfer list?';
+a1.Summary = '[Workflows & Processes] How do I escalate a merchant email case to the Onboarding team if "Onboarding" isn\'t in the transfer list?';
+a1.UrlName = 'faq-062-how-do-i-escalate-a-merchant-email-case-to-the-onboarding-team-if-onboarding-isn';
+a1.Answer__c = '<p>The "Onboarding" option is not directly available for Customer Care agents. Instead:</p>\n\n<ol>\n<li>Transfer the case to the <strong>Partner Care (PC)</strong> queue.</li>\n<li>Partner Care will then route it to the Product Onboarding (PO) team.</li>\n</ol>\n\n<p>This is the correct escalation path for merchant-related onboarding issues.</p>';
+articles.add(a1);
+
+insert articles;
+System.debug('Batch 7: Inserted ' + articles.size() + ' articles');

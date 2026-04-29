@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instant Refund Sizing</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#f8f9fc;color:#1e293b;padding:40px}
+.page{max-width:1100px;margin:0 auto}
+h1{font-size:26px;font-weight:700;margin-bottom:4px}
+.sub{color:#64748b;font-size:14px;line-height:1.6;margin-bottom:32px}
+.sub b{color:#1e293b}
+
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px}
+.card-label{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;font-weight:600;margin-bottom:6px}
+.card-value{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700}
+.card-detail{font-size:12px;color:#94a3b8;margin-top:2px}
+
+.controls{display:flex;align-items:center;gap:24px;margin-bottom:24px;flex-wrap:wrap}
+.btn-group{display:flex;gap:2px;background:#e2e8f0;border-radius:8px;padding:3px}
+.btn{padding:8px 18px;border:none;background:transparent;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;color:#64748b;font-family:'Inter',sans-serif;white-space:nowrap}
+.btn.active{background:#fff;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+.matrix-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:32px;margin-bottom:24px}
+.matrix-title{font-size:13px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+
+table{width:100%;border-collapse:collapse}
+table th{font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;padding:12px 8px;text-align:center}
+table th:first-child{text-align:left}
+table td{text-align:center;padding:0;vertical-align:top}
+table td:first-child{text-align:left;font-weight:600;font-size:14px;color:#475569;padding:20px 8px;vertical-align:middle;white-space:nowrap}
+
+.cell{margin:4px;border-radius:8px;padding:16px 12px;transition:transform .15s,box-shadow .15s}
+.cell:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.cell-main{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700}
+.cell-sub{font-size:11px;color:#64748b;margin-top:3px}
+
+.footnote{color:#94a3b8;font-size:12px;line-height:1.8;border-top:1px solid #e2e8f0;padding-top:16px;margin-top:8px}
+.footnote b{color:#64748b}
+
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Instant Refund: Configuration Impact Matrix</h1>
+<p class="sub">
+  If instant refunds had been live over the <b>last 12 months</b>, how much would we have refunded?<br>
+  Based on <b>219,797 disputes</b> in SA + AE (Mar 2025 – Mar 2026). All scenarios require: order age ≤ 14 days, zero chargebacks in 180 days.
+</p>
+
+<div class="cards" id="cards"></div>
+
+<div class="controls">
+  <div>
+    <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;font-weight:600">Customer Cohort</div>
+    <div class="btn-group" id="cohortBtns"></div>
+  </div>
+  <div>
+    <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;font-weight:600">Show</div>
+    <div class="btn-group" id="metricBtns"></div>
+  </div>
+</div>
+
+<div class="matrix-wrap">
+  <div class="matrix-title" id="matrixTitle"></div>
+  <table id="matrix"></table>
+</div>
+
+<div class="footnote">
+  <b>CAP</b> = max qualifying order amount (local currency SAR/AED).
+  <b>N1</b> = max instant refunds per customer per year.<br>
+  <b>Buyer Protection</b> = Smart members OR PIF customers (3.7% of disputes).
+  <b>PIF Only</b> = Pay-in-Full only (2.1%).
+  <b>All Customers</b> = no restriction (100%).<br>
+  Values are in local currency (SAR for SA, AED for AE). Amounts would be recovered from merchants; net financial impact depends on recovery rate.
+</div>
+
+</div>
+
+<script>
+const D = {
+  'Buyer Protection': {
+    color:'59,110,255',
+    total:8112, pct:'3.7%',
+    grid:[
+      [99294,807, 121179,980, 128723,1037],
+      [397905,1713, 485563,2083, 519023,2218],
+      [714277,2161, 881414,2642, 944392,2818],
+      [2602297,2897, 3214486,3551, 3432262,3786]
+    ]
+  },
+  'PIF Only': {
+    color:'14,165,117',
+    total:4640, pct:'2.1%',
+    grid:[
+      [69135,580, 83975,701, 89190,743],
+      [251533,1138, 309072,1391, 332222,1488],
+      [384903,1328, 476108,1628, 513987,1746],
+      [1031175,1593, 1302807,1955, 1407971,2096]
+    ]
+  },
+  'All Customers': {
+    color:'204,90,20',
+    total:219797, pct:'100%',
+    grid:[
+      [1851552,15045, 2247578,18198, 2387280,19300],
+      [7824226,33086, 9600586,40394, 10223891,42949],
+      [14079850,41934, 17324875,51312, 18467186,54603],
+      [45076053,53877, 56081350,66277, 60222241,70776]
+    ]
+  }
+};
+const CAPS=['200','500','1,000','No Cap'];
+const N1S=[1,2,3];
+
+let cohort='Buyer Protection', metric='value';
+
+function fmt(n){
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return Math.round(n/1e3).toLocaleString()+'K';
+  return n.toLocaleString();
+}
+function full(n){ return n.toLocaleString('en-US'); }
+
+function val(row,col){ return D[cohort].grid[row][col*2]; }
+function cnt(row,col){ return D[cohort].grid[row][col*2+1]; }
+
+function render(){
+  const d=D[cohort], c=d.color;
+
+  // Cards
+  const presets=[[0,0,'Conservative','CAP 200, N1=1'],[1,1,'Moderate','CAP 500, N1=2'],[2,2,'Recommended','CAP 1K, N1=3']];
+  let ch=`<div class="card"><div class="card-label">Eligible Cohort</div><div class="card-value">${full(d.total)}</div><div class="card-detail">${d.pct} of all disputes</div></div>`;
+  presets.forEach(([r,ci,name,desc])=>{
+    const v=val(r,ci), n=cnt(r,ci);
+    ch+=`<div class="card"><div class="card-label">${name} <span style="font-weight:400;text-transform:none;letter-spacing:0">(${desc})</span></div><div class="card-value" style="color:rgb(${c})">${fmt(v)}</div><div class="card-detail">${full(n)} disputes</div></div>`;
+  });
+  document.getElementById('cards').innerHTML=ch;
+
+  // Cohort buttons
+  let cb='';
+  Object.keys(D).forEach(k=>{cb+=`<button class="btn${k===cohort?' active':''}" onclick="cohort='${k}';render()">${k}</button>`;});
+  document.getElementById('cohortBtns').innerHTML=cb;
+
+  // Metric buttons
+  let mb='';
+  [['value','Refund Value'],['count','Dispute Count']].forEach(([k,l])=>{
+    mb+=`<button class="btn${k===metric?' active':''}" onclick="metric='${k}';render()">${l}</button>`;
+  });
+  document.getElementById('metricBtns').innerHTML=mb;
+
+  // Matrix title
+  document.getElementById('matrixTitle').textContent=
+    metric==='value'?'Annual Refund Exposure by Configuration (SAR/AED)':'Annual Eligible Dispute Count by Configuration';
+
+  // Matrix
+  let maxV=0;
+  for(let r=0;r<4;r++) for(let ci2=0;ci2<3;ci2++){
+    const v2=metric==='value'?val(r,ci2):cnt(r,ci2);
+    if(v2>maxV)maxV=v2;
+  }
+
+  let h='<thead><tr><th style="width:140px">CAP \\ N1</th>';
+  N1S.forEach(n=>{h+=`<th>${n}× per year</th>`;});
+  h+='</tr></thead><tbody>';
+
+  for(let r=0;r<4;r++){
+    h+=`<tr><td>${CAPS[r]==='No Cap'?'∞ (No Cap)':CAPS[r]}</td>`;
+    for(let ci3=0;ci3<3;ci3++){
+      const v3=metric==='value'?val(r,ci3):cnt(r,ci3);
+      const s=metric==='value'?cnt(r,ci3):val(r,ci3);
+      const sLabel=metric==='value'?'disputes':'SAR/AED';
+      const intensity=Math.pow(v3/maxV,0.45);
+      const bg=`rgba(${c},${(0.05+intensity*0.2).toFixed(3)})`;
+      const textC=intensity>0.6?`rgba(${c},1)`:`rgb(${c.split(',').map(x=>Math.round(parseInt(x)*0.7)).join(',')})`;
+      h+=`<td><div class="cell" style="background:${bg}"><div class="cell-main" style="color:${textC}">${metric==='value'?fmt(v3):full(v3)}</div><div class="cell-sub">${full(s)} ${sLabel}</div></div></td>`;
+    }
+    h+='</tr>';
+  }
+  h+='</tbody>';
+  document.getElementById('matrix').innerHTML=h;
+}
+render();
+</script>
+</body>
+</html>

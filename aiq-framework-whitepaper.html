@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The AiQ Framework - White Paper</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fafaf8;--surface:#fff;--border:#e8e6e1;--border-l:#f0eeea;
+  --text:#1a1a18;--ts:#6b6963;--tm:#a09d96;
+  --blue:#2563eb;--purple:#7c3aed;--green:#059669;--amber:#d97706;
+  --rose:#e11d48;--teal:#0d9488;--orange:#ea580c;--slate:#475569;
+  --blue-bg:#eff4ff;--purple-bg:#f5f0ff;--green-bg:#ecfdf3;--amber-bg:#fffbeb;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+.wp{max-width:760px;margin:0 auto;padding:80px 48px 120px;background:var(--surface);min-height:100vh;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+@media(max-width:800px){.wp{padding:48px 20px 80px;border:none;}}
+
+h1{font-family:'Playfair Display',Georgia,serif;font-size:2.6rem;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:12px;}
+h2{font-family:'Playfair Display',Georgia,serif;font-size:1.5rem;font-weight:600;letter-spacing:-0.01em;margin:56px 0 8px;padding-top:32px;border-top:1px solid var(--border);}
+h2:first-of-type{border-top:none;padding-top:0;}
+h3{font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;font-weight:600;margin:32px 0 8px;}
+h4{font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--ts);margin:24px 0 10px;}
+p{font-size:0.88rem;color:var(--ts);font-weight:300;line-height:1.8;margin-bottom:16px;}
+p strong{color:var(--text);font-weight:600;}
+p em{font-style:italic;}
+blockquote{font-family:'Playfair Display',Georgia,serif;font-size:1.05rem;font-style:italic;color:var(--text);line-height:1.6;padding:20px 0 20px 24px;border-left:3px solid var(--text);margin:20px 0 24px;}
+ul,ol{margin:0 0 20px;padding-left:20px;}
+li{font-size:0.86rem;color:var(--ts);font-weight:300;line-height:1.7;margin-bottom:4px;}
+li strong{color:var(--text);font-weight:600;}
+hr{border:none;height:1px;background:var(--border);margin:40px 0;}
+sup{font-size:0.6em;color:var(--blue);cursor:default;}
+
+.cover{margin-bottom:56px;padding-bottom:40px;border-bottom:2px solid var(--text);}
+.cover .label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--purple);font-weight:600;margin-bottom:16px;}
+.cover .subtitle{font-size:1.05rem;color:var(--ts);font-weight:300;line-height:1.6;margin-bottom:24px;max-width:580px;}
+.cover-meta{font-size:0.72rem;color:var(--tm);}
+
+.disclaimer{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:32px;font-size:0.72rem;color:var(--tm);line-height:1.6;}
+
+.trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:24px 0;}
+@media(max-width:600px){.trio{grid-template-columns:1fr;}}
+.trio-card{padding:24px;border:1px solid var(--border);border-radius:12px;text-align:center;}
+.trio-card .tc-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;font-weight:600;margin-bottom:6px;}
+.trio-card .tc-abbr{font-family:'Playfair Display',Georgia,serif;font-size:1.8rem;font-weight:700;margin-bottom:4px;}
+.trio-card .tc-full{font-size:0.78rem;font-weight:500;margin-bottom:8px;}
+.trio-card .tc-def{font-size:0.76rem;color:var(--ts);font-weight:300;line-height:1.5;}
+.trio-card.aiq{border-color:var(--purple);background:var(--purple-bg);}
+
+.dim-card{margin-bottom:20px;padding:24px;border:1px solid var(--border);border-radius:12px;border-left:4px solid var(--border);}
+.dim-card .dm-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px;}
+.dim-card .dm-num{font-size:0.62rem;font-weight:700;color:var(--tm);letter-spacing:0.04em;margin-top:2px;flex-shrink:0;width:20px;}
+.dim-card .dm-title{font-weight:600;font-size:0.92rem;}
+.dim-card .dm-def{font-size:0.82rem;color:var(--ts);font-weight:300;line-height:1.6;margin-bottom:12px;}
+.dm-levels{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+@media(max-width:600px){.dm-levels{grid-template-columns:1fr 1fr;}}
+.dm-lvl{padding:10px 12px;border-radius:8px;font-size:0.72rem;line-height:1.4;}
+.dm-lvl .lvl-label{font-weight:700;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;}
+.dm-lvl.l1{background:var(--blue-bg);color:var(--blue);}
+.dm-lvl.l2{background:var(--green-bg);color:var(--green);}
+.dm-lvl.l3{background:var(--amber-bg);color:var(--amber);}
+.dm-lvl.l4{background:var(--purple-bg);color:var(--purple);}
+
+table{width:100%;border-collapse:collapse;margin:12px 0 24px;font-size:0.8rem;}
+thead th{text-align:left;padding:10px 12px;font-weight:600;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--tm);border-bottom:2px solid var(--text);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--ts);font-weight:300;vertical-align:top;}
+tbody td:first-child{color:var(--text);font-weight:500;}
+tbody tr:last-child td{border-bottom:none;}
+td.hi{font-weight:600;color:var(--text);}
+
+.formula-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:28px 32px;margin:20px 0;text-align:center;}
+.formula-box .fb-formula{font-family:'Playfair Display',Georgia,serif;font-size:1.3rem;font-weight:600;margin-bottom:8px;letter-spacing:0.02em;}
+.formula-box .fb-sub{font-size:0.76rem;color:var(--ts);font-weight:300;}
+
+.method-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+@media(max-width:600px){.method-grid{grid-template-columns:1fr;}}
+.method-card{padding:20px;border:1px solid var(--border);border-radius:10px;border-top:3px solid var(--border);}
+.method-card .mc-title{font-weight:600;font-size:0.84rem;margin-bottom:4px;}
+.method-card .mc-type{font-size:0.64rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--tm);font-weight:600;margin-bottom:8px;}
+.method-card .mc-desc{font-size:0.78rem;color:var(--ts);font-weight:300;line-height:1.5;}
+.method-card .mc-scope{display:inline-block;margin-top:8px;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;padding:3px 8px;border-radius:4px;background:var(--border-l);color:var(--ts);}
+.method-card .mc-scope.hiring{background:var(--amber-bg);color:var(--amber);}
+
+.callout{padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--text);border-radius:0 10px 10px 0;margin:20px 0;}
+.callout p{margin-bottom:0;}
+
+.mini-stair{display:flex;align-items:flex-end;gap:8px;height:120px;margin:16px 0 24px;}
+.mini-step{flex:1;border-radius:6px 6px 0 0;display:flex;flex-direction:column;justify-content:flex-end;padding:10px 8px;text-align:center;}
+.mini-step .ms-num{font-size:0.58rem;font-weight:700;letter-spacing:0.06em;opacity:0.7;}
+.mini-step .ms-name{font-size:0.72rem;font-weight:600;}
+.mini-step .ms-range{font-size:0.58rem;opacity:0.65;margin-top:2px;}
+
+.eval-card{border:1px solid var(--border);border-radius:12px;padding:24px;margin:20px 0;}
+.eval-card .ec-title{font-weight:600;font-size:0.9rem;margin-bottom:4px;}
+.eval-card .ec-sub{font-size:0.74rem;color:var(--tm);margin-bottom:16px;}
+.eval-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:0.78rem;}
+.eval-row .er-dim{width:220px;flex-shrink:0;font-weight:400;color:var(--ts);font-size:0.74rem;}
+.eval-row .er-dim strong{color:var(--text);}
+.eval-bar-bg{flex:1;height:18px;background:var(--border-l);border-radius:4px;overflow:hidden;position:relative;}
+.eval-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;}
+.eval-bar-fill span{font-size:0.6rem;font-weight:700;color:white;}
+.eval-score{width:36px;text-align:right;font-weight:600;font-size:0.76rem;flex-shrink:0;}
+.eval-total{margin-top:14px;padding-top:12px;border-top:1px solid var(--border-l);font-size:0.78rem;color:var(--ts);display:flex;justify-content:space-between;}
+.eval-total strong{color:var(--text);}
+
+.ref-section{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);}
+.ref-section h3{margin-top:0;margin-bottom:16px;}
+.ref-item{font-size:0.74rem;color:var(--ts);font-weight:300;line-height:1.6;margin-bottom:8px;padding-left:24px;text-indent:-24px;}
+.ref-item strong{color:var(--text);font-weight:500;}
+
+.wp-footer{text-align:center;margin-top:64px;padding-top:24px;border-top:1px solid var(--border);font-size:0.66rem;color:var(--tm);}
+
+.wt-table{font-size:0.72rem;margin:16px 0 24px;}
+.wt-table th{font-size:0.58rem;padding:8px 6px;text-align:center;}
+.wt-table th:first-child{text-align:left;}
+.wt-table td{text-align:center;padding:7px 6px;font-size:0.72rem;font-weight:300;}
+.wt-table td:first-child{text-align:left;font-weight:500;color:var(--text);}
+.wt-table td.top{font-weight:700;color:var(--text);background:var(--purple-bg);}
+.wt-table td.high{font-weight:600;color:var(--text);background:var(--blue-bg);}
+
+.impact-table{font-size:0.74rem;}
+.impact-table td{font-size:0.74rem;line-height:1.5;}
+.impact-table td:first-child{width:100px;}
+
+@page{size:A4;margin:28mm 20mm 28mm 20mm;}
+@media print{
+  body{background:#fff !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important;}
+  .wp{border:none !important;padding:0 !important;max-width:100% !important;min-height:auto !important;}
+  .cover{page-break-after:always;}
+  h2{page-break-before:always;border-top:none !important;padding-top:0 !important;margin-top:0 !important;}
+  h2:first-of-type{page-break-before:avoid;}
+  h3,h4{page-break-after:avoid;}
+  .trio,.trio-card,.dim-card,.callout,.formula-box,.method-grid,.method-card,.mini-stair,.eval-card{page-break-inside:avoid;}
+  table{page-break-inside:avoid;}
+  blockquote{page-break-inside:avoid;}
+  p{orphans:3;widows:3;}
+  ol,ul{page-break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+<div class="wp">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="label">White Paper</div>
+  <h1>The AiQ Framework</h1>
+  <p class="subtitle">A practical framework for defining, assessing, and measuring AI fluency across the workforce - designed for organizational adoption.</p>
+  <div class="cover-meta">April 2026 &middot; Confidential &middot; v3.0</div>
+</div>
+
+<div class="disclaimer">
+  <strong>Disclosure:</strong> This document was researched, drafted, and formatted with the assistance of AI (Claude 4, Anthropic - April 2026). All strategic decisions, frameworks, and editorial judgments are the author's own. Content has been reviewed for originality and accuracy.
+</div>
+
+<div class="disclaimer" style="font-size:0.7rem;line-height:1.7;">
+  <strong>Scope:</strong> This document is the conceptual and methodological foundation of AiQ - the <em>what</em> and the <em>why</em>. Implementation planning is covered in companion documents.<br>
+  &#10003; Definition, maturity model, dimensions, scoring &nbsp;&middot;&nbsp; &#10003; Assessment methods &nbsp;&middot;&nbsp; &#10003; Role targets &nbsp;&middot;&nbsp; &#10003; Impact measurement &nbsp;&middot;&nbsp; &#10003; Limitations & risks<br>
+  &#10007; Rollout timelines & change management &nbsp;&middot;&nbsp; &#10007; Tool selection & infrastructure &nbsp;&middot;&nbsp; &#10007; Training curriculum &nbsp;&middot;&nbsp; &#10007; Budget & business case
+</div>
+
+<!-- 1. THE THESIS -->
+<h2>1. The Thesis</h2>
+
+<blockquote>"IQ is what you can do with your mind. EQ is what you can do with people. AiQ is what you can do with AI."</blockquote>
+
+<p>For over a century, organizations have relied on cognitive ability (IQ) as a predictor of individual performance.<sup>[1]</sup> Over the past three decades, emotional intelligence (EQ) has earned its place alongside it - particularly in leadership and collaboration.<sup>[2]</sup> A third capability is now becoming equally important, though most organizations have not yet developed a systematic way to measure it.</p>
+
+<p><strong>AiQ (AI Quotient)</strong> is a structured measure of AI fluency - how effectively a person uses AI tools to improve the quality, speed, and impact of their work. It's not about technical expertise in machine learning or data science. It's about practical proficiency: can you pick the right tool, communicate with it clearly, evaluate what comes back, and weave it into how you actually work?<sup>[3]</sup></p>
+
+<p>Someone with high AiQ does not simply reach for AI when they are stuck. They have developed an instinct for <strong>when</strong> AI will add value, <strong>which</strong> tool fits the problem, and <strong>how</strong> to evaluate whether the output meets professional standards. The result is work that is measurably better than what either the person or the machine would produce independently.<sup>[4]</sup></p>
+
+<div class="trio">
+  <div class="trio-card">
+    <div class="tc-label">Cognitive</div>
+    <div class="tc-abbr">IQ</div>
+    <div class="tc-full">Intelligence Quotient</div>
+    <div class="tc-def">How well you reason, solve problems, and process information. Raw intellectual capacity.<sup>[1]</sup></div>
+  </div>
+  <div class="trio-card">
+    <div class="tc-label">Emotional</div>
+    <div class="tc-abbr">EQ</div>
+    <div class="tc-full">Emotional Quotient</div>
+    <div class="tc-def">How well you understand, manage, and navigate emotions in yourself and others. Interpersonal effectiveness.<sup>[2]</sup></div>
+  </div>
+  <div class="trio-card aiq">
+    <div class="tc-label">AI Fluency</div>
+    <div class="tc-abbr">AiQ</div>
+    <div class="tc-full">AI Quotient</div>
+    <div class="tc-def">How effectively you use AI to improve the quality, speed, and impact of your work.<sup>[3]</sup></div>
+  </div>
+</div>
+
+<div class="callout">
+  <p><strong>A key distinction:</strong> AiQ measures augmentation, not automation. High-AiQ individuals use AI to extend their existing expertise, not to substitute for skills they have not developed. This matters - over-reliance on AI without domain knowledge can produce worse outcomes than not using AI at all.</p>
+</div>
+
+<h3>Why not just track tool usage?</h3>
+
+<p>The simplest approach would be to measure how often people use AI tools and stop there. Some organizations are already doing this - tracking login frequency, number of queries, feature adoption rates. Usage data is part of the picture, but only part.</p>
+
+<p>But usage alone is insufficient. Someone who submits the same basic query fifty times a day is not more fluent than someone who uses AI twice but produces significantly better work each time. Frequency without quality is a misleading signal. AiQ is designed as a multi-dimensional measure precisely for this reason - it captures <em>how well</em> someone uses AI, not just <em>how often</em>.<sup>[5]</sup></p>
+
+<!-- 2. AiQ MATURITY LEVELS -->
+<h2>2. The Four AiQ Levels</h2>
+
+<p>AiQ is assessed on a four-level maturity scale. Each level represents a real shift in how someone works with AI - not just doing more of the same thing.</p>
+
+<div class="mini-stair">
+  <div class="mini-step" style="height:28%;background:var(--blue-bg);color:var(--blue);">
+    <div class="ms-num">AiQ 1</div>
+    <div class="ms-name">Aware</div>
+    <div class="ms-range">0-25</div>
+  </div>
+  <div class="mini-step" style="height:48%;background:var(--green-bg);color:var(--green);">
+    <div class="ms-num">AiQ 2</div>
+    <div class="ms-name">Proficient</div>
+    <div class="ms-range">26-55</div>
+  </div>
+  <div class="mini-step" style="height:72%;background:var(--amber-bg);color:var(--amber);">
+    <div class="ms-num">AiQ 3</div>
+    <div class="ms-name">Builder</div>
+    <div class="ms-range">56-80</div>
+  </div>
+  <div class="mini-step" style="height:96%;background:var(--purple-bg);color:var(--purple);">
+    <div class="ms-num">AiQ 4</div>
+    <div class="ms-name">Strategist</div>
+    <div class="ms-range">81-100</div>
+  </div>
+</div>
+
+<table>
+  <thead><tr><th>Level</th><th>Name</th><th>Mindset</th><th>Defining Behavior</th></tr></thead>
+  <tbody>
+    <tr>
+      <td style="color:var(--blue);font-weight:700;">AiQ 1</td>
+      <td>AI Aware</td>
+      <td>"AI can help me with some tasks"</td>
+      <td>Uses AI for occasional, discrete tasks - drafting, summarizing, looking things up. Typically needs someone to point them toward the right tool.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--green);font-weight:700;">AiQ 2</td>
+      <td>AI Proficient</td>
+      <td>"AI is part of how I work"</td>
+      <td>AI is a regular part of their workflow. They can pick the right tool for the task, communicate clearly with it, and catch errors in the output. It's become habitual, not a special occasion.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--amber);font-weight:700;">AiQ 3</td>
+      <td>AI Builder</td>
+      <td>"I design better workflows using AI"</td>
+      <td>Creates AI-enhanced processes for their own work and their immediate team. Connects multiple tools. Teaches peers. Actively looks for new ways to apply AI within their scope.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--purple);font-weight:700;">AiQ 4</td>
+      <td>AI Strategist</td>
+      <td>"I drive how my org adopts AI"</td>
+      <td>Identifies AI opportunities at the organizational level. Evaluates investments and trade-offs. Drives cultural change. Redesigns operating models around AI capabilities.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>An important nuance:</strong> the levels measure the sophistication of someone's relationship with AI, not their technical depth. A marketing lead who restructures their team's content process around AI (AiQ 3) may score higher than a developer who only uses AI for code autocomplete (AiQ 2), even though the developer is more technical. This distinction is deliberate and should be communicated early in any rollout.<sup>[5]</sup></p>
+
+<!-- 3. THE SIX DIMENSIONS -->
+<h2>3. The Six Dimensions of AiQ</h2>
+
+<p>AiQ is a composite of six competency dimensions, consolidated from an initial set of ten after practical testing revealed significant overlap between certain dimensions and limited applicability of others beyond senior leadership. Each dimension is measurable independently, and together they provide a complete picture of an individual's AI fluency.<sup>[6]</sup></p>
+
+<p>A deliberate design choice: deep technical AI knowledge is excluded from the dimensions. A data scientist who understands transformer architectures but cannot communicate effectively with an AI tool has lower AiQ than an account manager who uses AI to cut their proposal turnaround in half. This may create tension with technical teams, but the rationale is straightforward - AiQ measures practical fluency, not theoretical knowledge. The two are different competencies and should be assessed separately.</p>
+
+<div class="dim-card" style="border-left-color:var(--blue);">
+  <div class="dm-head">
+    <div class="dm-num">D1</div>
+    <div class="dm-title">AI Awareness & Opportunity Recognition</div>
+  </div>
+  <div class="dm-def">Understanding what AI can and cannot do, knowing the available tool landscape, and identifying where AI could create measurable value in one's own work and team. At lower levels this is about basic awareness; at higher levels it is about proactively identifying use cases and quantifying their potential impact.</div>
+  <div class="dm-levels">
+    <div class="dm-lvl l1"><div class="lvl-label">AiQ 1</div>Knows AI exists and has tried basic tools; uses one tool for most tasks</div>
+    <div class="dm-lvl l2"><div class="lvl-label">AiQ 2</div>Understands AI strengths and limits; identifies new use cases in their own role</div>
+    <div class="dm-lvl l3"><div class="lvl-label">AiQ 3</div>Evaluates new tools; proposes AI improvements for their team; quantifies time saved</div>
+    <div class="dm-lvl l4"><div class="lvl-label">AiQ 4</div>Drives AI strategy at org level; evaluates investments against business outcomes</div>
+  </div>
+</div>
+
+<div class="dim-card" style="border-left-color:var(--green);">
+  <div class="dm-head">
+    <div class="dm-num">D2</div>
+    <div class="dm-title">Prompt Engineering & AI Communication</div>
+  </div>
+  <div class="dm-def">The ability to communicate effectively with AI systems - from basic instructions through to designing reusable prompt templates for a team. The core question: can someone consistently produce useful output, or are results unpredictable?</div>
+  <div class="dm-levels">
+    <div class="dm-lvl l1"><div class="lvl-label">AiQ 1</div>Basic, unstructured requests; results are inconsistent</div>
+    <div class="dm-lvl l2"><div class="lvl-label">AiQ 2</div>Provides context and constraints; iterates effectively to get to a good result</div>
+    <div class="dm-lvl l3"><div class="lvl-label">AiQ 3</div>Designs reusable templates; manages complex multi-step interactions</div>
+    <div class="dm-lvl l4"><div class="lvl-label">AiQ 4</div>Creates prompt standards and best practices for the organization</div>
+  </div>
+</div>
+
+<div class="dim-card" style="border-left-color:var(--amber);">
+  <div class="dm-head">
+    <div class="dm-num">D3</div>
+    <div class="dm-title">Output Evaluation & Critical Judgment</div>
+  </div>
+  <div class="dm-def">The ability to critically assess AI-generated output - identifying errors, bias, quality gaps, and appropriateness. This is arguably the highest-stakes dimension in the framework, as it is the primary safeguard between an organization and costly AI-generated mistakes.</div>
+  <div class="dm-levels">
+    <div class="dm-lvl l1"><div class="lvl-label">AiQ 1</div>Accepts AI output with minimal review; limited error-catching</div>
+    <div class="dm-lvl l2"><div class="lvl-label">AiQ 2</div>Reviews and edits output; catches factual errors and quality issues</div>
+    <div class="dm-lvl l3"><div class="lvl-label">AiQ 3</div>Builds systematic quality checks into workflows; validates against domain expertise</div>
+    <div class="dm-lvl l4"><div class="lvl-label">AiQ 4</div>Designs quality standards and review processes for AI-generated output across the org</div>
+  </div>
+</div>
+
+<div class="dim-card" style="border-left-color:var(--teal);">
+  <div class="dm-head">
+    <div class="dm-num">D4</div>
+    <div class="dm-title">Workflow Design & Integration</div>
+  </div>
+  <div class="dm-def">The ability to embed AI into existing work processes - not as a separate step, but as an integrated part of how work gets done. This includes knowing which components of a task benefit from AI and which require human judgment. At senior levels, it extends to designing automated workflows and team-level processes.</div>
+  <div class="dm-levels">
+    <div class="dm-lvl l1"><div class="lvl-label">AiQ 1</div>Uses AI for one-off tasks, separate from their main workflow</div>
+    <div class="dm-lvl l2"><div class="lvl-label">AiQ 2</div>AI is woven into regular work; breaks tasks into AI and human parts</div>
+    <div class="dm-lvl l3"><div class="lvl-label">AiQ 3</div>Designs multi-step AI workflows for self and team; uses templates and automations</div>
+    <div class="dm-lvl l4"><div class="lvl-label">AiQ 4</div>Redesigns organizational processes to be AI-native; architects cross-team systems</div>
+  </div>
+</div>
+
+<div class="dim-card" style="border-left-color:var(--orange);">
+  <div class="dm-head">
+    <div class="dm-num">D5</div>
+    <div class="dm-title">AI-Augmented Creation</div>
+  </div>
+  <div class="dm-def">The ability to produce work that is genuinely better because of AI, not merely faster. The distinguishing question: does the output reflect the individual's professional expertise and judgment, with AI as an accelerator - or is it generic AI-generated content with a human name attached? The difference is significant, and currently, most professionals fall on the wrong side of it.</div>
+  <div class="dm-levels">
+    <div class="dm-lvl l1"><div class="lvl-label">AiQ 1</div>Uses AI to generate drafts; accepts output with minimal personal input</div>
+    <div class="dm-lvl l2"><div class="lvl-label">AiQ 2</div>Uses AI as a collaborator; output clearly reflects their own expertise</div>
+    <div class="dm-lvl l3"><div class="lvl-label">AiQ 3</div>Produces work that is measurably better than either human or AI alone</div>
+    <div class="dm-lvl l4"><div class="lvl-label">AiQ 4</div>Sets the quality standard for AI-augmented work in their function</div>
+  </div>
+</div>
+
+<div class="dim-card" style="border-left-color:var(--purple);">
+  <div class="dm-head">
+    <div class="dm-num">D6</div>
+    <div class="dm-title">Responsible AI Use</div>
+  </div>
+  <div class="dm-def">Understanding the practical risks of using AI at work - data privacy, accuracy, intellectual property, and compliance. Every employee touches data. This dimension makes sure they don't accidentally feed sensitive customer information into a public AI tool, or publish AI-generated content that violates copyright. It's less glamorous than the other dimensions, but arguably the one with the highest downside risk.</div>
+  <div class="dm-levels">
+    <div class="dm-lvl l1"><div class="lvl-label">AiQ 1</div>Limited awareness of data risks; may share sensitive info with AI tools</div>
+    <div class="dm-lvl l2"><div class="lvl-label">AiQ 2</div>Follows usage policies; understands what data can and cannot be shared</div>
+    <div class="dm-lvl l3"><div class="lvl-label">AiQ 3</div>Designs workflows with compliance built in; trains peers on responsible use</div>
+    <div class="dm-lvl l4"><div class="lvl-label">AiQ 4</div>Shapes organizational AI governance policies and risk frameworks</div>
+  </div>
+</div>
+
+<!-- 4. SCORING -->
+<h2>4. Scoring Methodology</h2>
+
+<p>Each dimension is scored 0-10. The total is weighted by role and normalized to a 0-100 scale.</p>
+
+<div class="formula-box">
+  <div class="fb-formula">AiQ Score = &Sigma; (D<sub>i</sub> &times; W<sub>i</sub>)</div>
+  <div class="fb-sub">Where D<sub>i</sub> = dimension score (0-10) and W<sub>i</sub> = role-specific weight, normalized to 100</div>
+</div>
+
+<h4>Score-to-Level Mapping</h4>
+<table>
+  <thead><tr><th>AiQ Score</th><th>Level</th><th>Label</th><th>Interpretation</th></tr></thead>
+  <tbody>
+    <tr><td>0 - 25</td><td>AiQ 1</td><td>AI Aware</td><td>Foundational awareness; needs structured onboarding to AI tools</td></tr>
+    <tr><td>26 - 55</td><td>AiQ 2</td><td>AI Proficient</td><td>Working fluency; uses AI effectively in daily work</td></tr>
+    <tr><td>56 - 80</td><td>AiQ 3</td><td>AI Builder</td><td>Advanced fluency; designs AI-enhanced workflows and processes</td></tr>
+    <tr><td>81 - 100</td><td>AiQ 4</td><td>AI Strategist</td><td>Organizational fluency; drives AI strategy and adoption</td></tr>
+  </tbody>
+</table>
+
+<h3>Role-Specific Weighting</h3>
+
+<p>Not every dimension matters equally for every role - and pretending otherwise would undermine the whole framework. A salesperson's AiQ should lean heavily on communication and creation, while a legal analyst's should weight critical judgment and responsible use. The table below shows the percentage weight each dimension carries per function.<sup>[7]</sup></p>
+
+<p>Cells highlighted in <strong style="background:var(--purple-bg);padding:1px 4px;border-radius:3px;">purple</strong> are the primary dimensions for that role. Cells in <strong style="background:var(--blue-bg);padding:1px 4px;border-radius:3px;">blue</strong> are secondary. The rest are baseline.</p>
+
+<table class="wt-table">
+  <thead>
+    <tr>
+      <th></th>
+      <th>D1<br>Awareness &<br>Opportunity</th>
+      <th>D2<br>Prompt<br>Engineering</th>
+      <th>D3<br>Output<br>Evaluation</th>
+      <th>D4<br>Workflow<br>Design</th>
+      <th>D5<br>AI-Augmented<br>Creation</th>
+      <th>D6<br>Responsible<br>Use</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Engineering</td><td>12%</td><td class="top">22%</td><td>12%</td><td class="top">28%</td><td class="high">16%</td><td>10%</td></tr>
+    <tr><td>Product</td><td class="high">18%</td><td>14%</td><td class="high">16%</td><td class="top">20%</td><td>12%</td><td class="high">20%</td></tr>
+    <tr><td>Creative / Design</td><td>12%</td><td class="high">16%</td><td>14%</td><td>10%</td><td class="top">30%</td><td class="high">18%</td></tr>
+    <tr><td>Marketing</td><td>12%</td><td class="high">18%</td><td>12%</td><td>14%</td><td class="top">26%</td><td class="high">18%</td></tr>
+    <tr><td>Sales</td><td class="high">16%</td><td class="top">24%</td><td>10%</td><td class="high">18%</td><td class="high">18%</td><td>14%</td></tr>
+    <tr><td>Data / Analytics</td><td class="high">20%</td><td>14%</td><td class="top">22%</td><td class="top">24%</td><td>10%</td><td>10%</td></tr>
+    <tr><td>Finance / Legal</td><td>12%</td><td>12%</td><td class="top">24%</td><td>14%</td><td>10%</td><td class="top">28%</td></tr>
+    <tr><td>Care / Support</td><td>14%</td><td class="top">22%</td><td class="high">16%</td><td class="high">18%</td><td>10%</td><td class="high">20%</td></tr>
+    <tr><td>Operations</td><td class="high">16%</td><td>12%</td><td>12%</td><td class="top">30%</td><td>10%</td><td class="high">20%</td></tr>
+  </tbody>
+</table>
+
+<p><strong>How to read this:</strong> For Engineering, Workflow Design (28%) and Prompt Engineering (22%) carry the most weight - integrating AI into the development process matters more than content creation. For Creative and Marketing, AI-Augmented Creation dominates (30% and 26%) because the quality of creative output is the primary value driver. For Finance and Legal, Output Evaluation (24%) and Responsible Use (28%) are weighted highest, reflecting the disproportionate cost of AI errors in regulated functions.</p>
+
+<!-- 5. SAMPLE SELF-EVALUATION -->
+<h2>5. Sample Self-Evaluation</h2>
+
+<p>Below is what an individual AiQ self-evaluation looks like in practice. Each dimension is scored on a scale of 1 (lowest) to 10 (highest). The pattern of scores matters more than the total - it tells you where to focus development.</p>
+
+<div class="eval-card">
+  <div class="ec-title">Sample: Marketing Manager, Mid-Level</div>
+  <div class="ec-sub">Scale: 1 (no proficiency) to 10 (expert-level proficiency)</div>
+  <div class="eval-row">
+    <div class="er-dim"><strong>D1</strong> Awareness & Opportunity</div>
+    <div class="eval-bar-bg"><div class="eval-bar-fill" style="width:70%;background:var(--blue);"><span>7</span></div></div>
+    <div class="eval-score">7 / 10</div>
+  </div>
+  <div class="eval-row">
+    <div class="er-dim"><strong>D2</strong> Prompt Engineering</div>
+    <div class="eval-bar-bg"><div class="eval-bar-fill" style="width:80%;background:var(--green);"><span>8</span></div></div>
+    <div class="eval-score">8 / 10</div>
+  </div>
+  <div class="eval-row">
+    <div class="er-dim"><strong>D3</strong> Output Evaluation</div>
+    <div class="eval-bar-bg"><div class="eval-bar-fill" style="width:60%;background:var(--amber);"><span>6</span></div></div>
+    <div class="eval-score">6 / 10</div>
+  </div>
+  <div class="eval-row">
+    <div class="er-dim"><strong>D4</strong> Workflow Design</div>
+    <div class="eval-bar-bg"><div class="eval-bar-fill" style="width:40%;background:var(--rose);"><span>4</span></div></div>
+    <div class="eval-score">4 / 10</div>
+  </div>
+  <div class="eval-row">
+    <div class="er-dim"><strong>D5</strong> AI-Augmented Creation</div>
+    <div class="eval-bar-bg"><div class="eval-bar-fill" style="width:80%;background:var(--orange);"><span>8</span></div></div>
+    <div class="eval-score">8 / 10</div>
+  </div>
+  <div class="eval-row">
+    <div class="er-dim"><strong>D6</strong> Responsible Use</div>
+    <div class="eval-bar-bg"><div class="eval-bar-fill" style="width:50%;background:var(--purple);"><span>5</span></div></div>
+    <div class="eval-score">5 / 10</div>
+  </div>
+  <div class="eval-total">
+    <span>Raw total: <strong>38 / 60</strong></span>
+    <span>Weighted (Marketing): <strong>68 / 100</strong></span>
+    <span>Level: <strong>AiQ 3 (Builder)</strong></span>
+  </div>
+</div>
+
+<p><strong>What this tells us:</strong> This marketing manager scores highly on Prompt Engineering (D2) and AI-Augmented Creation (D5) - expected for a content-focused role. However, Workflow Design (D4) at 4/10 is a clear gap, indicating they use AI for individual tasks but have not yet integrated it into team-level processes. Responsible Use (D6) at 5/10 also warrants attention, particularly for someone handling campaign data and customer segments. The development plan should prioritize D4 and D6.</p>
+
+<p>Notice the weighted score (68) is higher than a simple average would suggest, because the Marketing weight profile emphasizes D2 and D5 where this person scores well. If this same person worked in Finance, their weighted score would be lower - the dimension profile would penalize their weak D6.</p>
+
+<!-- 6. ASSESSMENT METHODS -->
+<h2>6. Assessment Methods</h2>
+
+<p>A single method is insufficient to measure AiQ reliably. Self-assessments tend to overestimate capability, and manager ratings are limited to directly observed behavior. The framework therefore combines three data sources: what the employee reports, what the manager observes, and what the usage data shows.<sup>[8]</sup></p>
+
+<div class="method-grid">
+  <div class="method-card" style="border-top-color:var(--blue);">
+    <div class="mc-type">Self-Assessment</div>
+    <div class="mc-title">AiQ Self-Evaluation Survey</div>
+    <div class="mc-desc">24-question survey covering all 6 dimensions. Each question uses a behavioral scale - not "how good are you at X" but "how often do you do X, and what happens when you do." Calibrated against organizational benchmarks. Takes about 10-12 minutes.</div>
+    <div class="mc-scope">All employees</div>
+  </div>
+  <div class="method-card" style="border-top-color:var(--green);">
+    <div class="mc-type">Manager Assessment</div>
+    <div class="mc-title">Manager AiQ Observation Rating</div>
+    <div class="mc-desc">Manager rates direct reports on observed AI behaviors using a standardized rubric. Cross-referenced with self-assessment to surface blind spots - particularly useful when someone rates themselves high on D3 (evaluation) but their manager keeps catching errors.</div>
+    <div class="mc-scope">All employees</div>
+  </div>
+  <div class="method-card" style="border-top-color:var(--amber);">
+    <div class="mc-type">Practical Exercise</div>
+    <div class="mc-title">Role-Specific AiQ Challenge</div>
+    <div class="mc-desc">A timed, realistic work problem the person has to solve using AI tools. Not a test about AI knowledge - a test of whether they can actually use it effectively under realistic conditions. Evaluators score tool selection, communication quality, output evaluation, and workflow. 30-45 minutes.</div>
+    <div class="mc-scope">All employees</div> <div class="mc-scope hiring">Also used for hiring</div>
+  </div>
+  <div class="method-card" style="border-top-color:var(--purple);">
+    <div class="mc-type">Usage Analytics</div>
+    <div class="mc-title">AI Tool Adoption Data</div>
+    <div class="mc-desc">Quantitative tracking of AI tool usage: frequency, breadth of tools, feature depth, and engagement patterns. Aggregate-level, transparent to the employee, and never used in isolation. This is the "are they actually using it" check, not a surveillance system.</div>
+    <div class="mc-scope">All employees</div>
+  </div>
+</div>
+
+<h4>Assessment Triangulation</h4>
+<table>
+  <thead><tr><th>Population</th><th>Methods</th><th>Weight Split</th></tr></thead>
+  <tbody>
+    <tr><td>Candidates (Hiring)</td><td>AiQ Challenge (practical exercise)</td><td>Single method - pass/fail threshold per role</td></tr>
+    <tr><td>New Hires (Probation)</td><td>Manager Observation + Usage Analytics + Self-Assessment</td><td>40 / 35 / 25</td></tr>
+    <tr><td>Existing (Baseline)</td><td>Self-Assessment + Manager Observation + Usage Analytics</td><td>30 / 35 / 35</td></tr>
+    <tr><td>Existing (Ongoing)</td><td>Usage Analytics + Manager Observation + Self-Assessment</td><td>40 / 35 / 25</td></tr>
+  </tbody>
+</table>
+
+<p><strong>For hiring specifically:</strong> The AiQ Challenge is the only assessment applied to candidates. It's a practical, role-specific exercise - not a knowledge test. For a sales candidate, it might be: "Here's a prospect brief. Use any AI tools available to prepare a personalized outreach plan in 20 minutes." The evaluation is on the process and the output quality, not on which specific tool they used.</p>
+
+<!-- 7. TARGET MAPPING -->
+<h2>7. Target AiQ by Role & Seniority</h2>
+
+<p>Every role has a target AiQ - the minimum level expected within 6 months of the framework going live. We set these conservatively for v1. They'll be reviewed and adjusted annually as the baseline shifts.</p>
+
+<table>
+  <thead><tr><th>Seniority</th><th>Non-Technical Roles</th><th>Technical Roles</th><th>Leadership (Director+)</th></tr></thead>
+  <tbody>
+    <tr><td>Junior / Entry</td><td>AiQ 1 (target: 15+)</td><td>AiQ 1-2 (target: 25+)</td><td>-</td></tr>
+    <tr><td>Mid-Level</td><td>AiQ 1-2 (target: 30+)</td><td>AiQ 2 (target: 40+)</td><td>-</td></tr>
+    <tr><td>Senior / Lead</td><td>AiQ 2 (target: 40+)</td><td>AiQ 2-3 (target: 55+)</td><td>AiQ 2-3 (target: 50+)</td></tr>
+    <tr><td>Director / VP</td><td>-</td><td>-</td><td>AiQ 3 (target: 60+)</td></tr>
+    <tr><td>C-Level</td><td>-</td><td>-</td><td>AiQ 3-4 (target: 70+)</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p><strong>The seniority principle:</strong> More senior employees should demonstrate higher AiQ - particularly on D1 (Opportunity Recognition) and D4 (Workflow Design). This mirrors how EQ expectations increase with leadership scope.<sup>[9]</sup> An individual contributor can be effective at AiQ 2. A Director who's still at AiQ 1 is a bottleneck.</p>
+</div>
+
+<!-- 8. MEASUREMENT CADENCE -->
+<h2>8. Measurement Cadence</h2>
+
+<p>AiQ is not a one-time score. It requires continuous tracking - both because individuals develop over time and because the AI landscape evolves rapidly enough that the benchmarks themselves require regular updating.</p>
+
+<table>
+  <thead><tr><th>Event</th><th>What Happens</th><th>Method</th></tr></thead>
+  <tbody>
+    <tr><td>Pre-Hire</td><td>AiQ baseline established as part of interview process</td><td>AiQ Challenge (practical exercise)</td></tr>
+    <tr><td>Probation Review</td><td>AiQ progress assessed against role target</td><td>Manager Observation + Usage Analytics</td></tr>
+    <tr><td>Quarterly Review</td><td>AiQ score updated; tied to performance discussion</td><td>Usage Analytics + Manager Observation + Self-Assessment</td></tr>
+    <tr><td>Annual Recalibration</td><td>Org-wide benchmarks recalibrated; scoring standards updated</td><td>Full triangulation + benchmark review</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Why annual recalibration is distinct from quarterly reviews:</strong> Quarterly reviews measure individuals against fixed benchmarks. Annual recalibration updates the benchmarks themselves. AI capabilities evolve rapidly - what qualifies as AiQ 3 today may represent baseline AiQ 2 behavior in twelve months. Without recalibration, score inflation erodes the framework's credibility.</p>
+
+<!-- 9. MEASURING IMPACT -->
+<h2>9. Measuring Impact</h2>
+
+<p>This is where most AI fluency programs lose credibility. They measure adoption - how many people logged in, how many completed training - but fail to connect it to business outcomes. AiQ is only worth the investment if it moves metrics that matter to the organization.</p>
+
+<p>The analytics dashboard should answer two questions: <strong>"Where are we on adoption?"</strong> and <strong>"Is it showing up in business results?"</strong></p>
+
+<h4>Adoption Metrics</h4>
+<ul>
+  <li><strong>AiQ Distribution by Function:</strong> What percentage of each department is at each level? Where are the gaps?</li>
+  <li><strong>AiQ by Seniority:</strong> Are leaders demonstrating the AI fluency they expect from their teams? A significant gap here undermines the entire initiative.</li>
+  <li><strong>Dimension Heat Map:</strong> Across the org, which of the 6 dimensions are strongest and weakest? This directly informs where to invest in training.</li>
+  <li><strong>AiQ Velocity:</strong> How long does it take, on average, for someone to move from one level to the next? Which interventions speed that up?</li>
+</ul>
+
+<h4>Business Impact by Function</h4>
+
+<p>This is the harder part, and the more important one. Below is a function-by-function breakdown of which KPIs to track and what "AI impact" actually looks like in practice. These are starting hypotheses - they'll need to be validated and calibrated for each organization.</p>
+
+<table class="impact-table">
+  <thead><tr><th>Function</th><th>KPIs to Monitor</th><th>What AiQ Impact Looks Like</th><th>How to Measure</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Sales</td>
+      <td>Deal cycle duration, win rate, pipeline velocity, proposal turnaround</td>
+      <td>Shorter qualification cycles through AI-assisted prospect research. Faster, more personalized proposals. Better lead scoring and prioritization.</td>
+      <td>Compare cycle metrics and win rates for reps at AiQ 2+ vs. AiQ 1 over a 90-day rolling window. Track proposal turnaround time before and after AI tool adoption.</td>
+    </tr>
+    <tr>
+      <td>Marketing</td>
+      <td>Content output volume, campaign lead quality, time-to-publish, cost per lead</td>
+      <td>Higher content throughput per marketer without proportional headcount increase. Faster campaign iteration. More targeted messaging driven by AI-assisted audience analysis.</td>
+      <td>Track pieces published per marketer per month. A/B test AI-augmented campaigns against traditional ones on conversion and CPL. Measure time from brief to published asset.</td>
+    </tr>
+    <tr>
+      <td>Engineering</td>
+      <td>Sprint velocity, code review turnaround, bug density, deployment frequency</td>
+      <td>More code shipped per engineer per sprint. Faster code reviews through AI-assisted analysis. Lower defect rates from AI-caught issues during development.</td>
+      <td>Velocity comparison across teams with different average AiQ scores. Track bug density per release for AI-assisted vs. traditional development workflows.</td>
+    </tr>
+    <tr>
+      <td>Creative / Design</td>
+      <td>Concept-to-final time, stakeholder revision rounds, asset output per designer</td>
+      <td>Faster ideation and concept generation. Fewer revision cycles because first drafts are stronger. More creative variations produced per brief.</td>
+      <td>Track average number of revisions per project. Measure time from brief to final approved asset. Compare output volume per designer pre/post adoption.</td>
+    </tr>
+    <tr>
+      <td>Care / Support</td>
+      <td>First response time, resolution rate, CSAT, cost per ticket</td>
+      <td>Faster and more accurate initial responses. Better knowledge retrieval for complex issues. Higher first-contact resolution rates.</td>
+      <td>Compare response time and resolution rate for agents using AI-assisted tools vs. those without. Track CSAT scores by agent AiQ level.</td>
+    </tr>
+    <tr>
+      <td>Data / Analytics</td>
+      <td>Report turnaround, query complexity, insight-to-decision time</td>
+      <td>Faster analysis cycles. Ability to handle more complex analytical questions. Shorter time from data request to actionable insight delivered to stakeholders.</td>
+      <td>Track average time from analysis request to delivery. Compare complexity of questions handled (measured by number of data sources, joins, transformations).</td>
+    </tr>
+    <tr>
+      <td>Finance / Legal</td>
+      <td>Contract review time, compliance check completion, reporting accuracy, audit prep time</td>
+      <td>Faster document review and extraction. More thorough compliance screening with AI-assisted checks. Quicker financial close and reporting cycles - but accuracy is non-negotiable here.</td>
+      <td>Track processing time per contract/document. Measure error rates in AI-assisted vs. manual reviews. Monitor audit finding rates pre/post adoption (should stay flat or improve).</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p><strong>The measurement principle:</strong> AiQ is only worth tracking if it correlates with outcomes that matter to each function. Every team's dashboard should include at least one metric linking AiQ scores to core KPIs. If the correlation does not emerge after a reasonable pilot period, either the assessment is not measuring the right behaviors, or the AI tools are not adding value to that function's work. Both are important findings.</p>
+</div>
+
+<!-- 10. INTEGRATION -->
+<h2>10. Integration with People Systems</h2>
+
+<table>
+  <thead><tr><th>System</th><th>Integration Point</th></tr></thead>
+  <tbody>
+    <tr><td>Hiring / ATS</td><td>AiQ Challenge as part of the interview process; minimum threshold per role and seniority level</td></tr>
+    <tr><td>Performance Management</td><td>AiQ as a formal competency in review cycles; dimension scores inform development goals</td></tr>
+    <tr><td>Learning & Development</td><td>Training recommendations driven by dimension-level gaps; targeted interventions rather than one-size-fits-all programs</td></tr>
+    <tr><td>Promotion Criteria</td><td>Minimum AiQ threshold as one factor in promotion decisions (alongside existing criteria, not replacing them)</td></tr>
+    <tr><td>Workforce Planning</td><td>AiQ distribution by team informs hiring priorities and team composition decisions</td></tr>
+  </tbody>
+</table>
+
+<!-- 11. LIMITATIONS -->
+<h2>11. Limitations & Open Questions</h2>
+
+<p>No framework is complete in its first version, and this one is no exception. The following limitations and open questions are documented here intentionally - they represent areas where the framework will need to evolve.</p>
+
+<p><strong>What AiQ does not measure:</strong></p>
+<ul>
+  <li><strong>Deep technical AI expertise.</strong> AiQ does not assess whether someone can build a machine learning model, fine-tune a language model, or design an AI system architecture. These are separate competencies requiring a separate assessment. The decision to exclude them was deliberate: AiQ is designed for the entire workforce, the majority of whom do not require that technical depth.</li>
+  <li><strong>Creativity or domain expertise.</strong> AiQ measures how effectively someone uses AI tools, not their underlying professional competence. AiQ functions as a multiplier - it amplifies existing capability, but does not replace it. An employee with high AiQ but weak domain expertise will produce faster output of the same quality. The two must be developed in parallel.</li>
+  <li><strong>AI tool quality.</strong> If the tools an organization provides are poor, everyone's AiQ scores will be suppressed. The framework assumes baseline tooling is in place.</li>
+</ul>
+
+<p><strong>Open questions we're still working through:</strong></p>
+<ul>
+  <li><strong>Cross-cultural calibration.</strong> Is an AiQ 3 in one market truly equivalent to an AiQ 3 in another? Cultural attitudes toward AI adoption vary significantly, and this has not been fully accounted for in the current version.</li>
+  <li><strong>Speed of obsolescence.</strong> How quickly do the dimension descriptors become outdated as AI tools evolve? Our best guess is the levels stay stable but the behavioral descriptors need refreshing every 6-12 months.</li>
+  <li><strong>Correlation vs. causation.</strong> When we see higher AiQ teams outperforming lower-AiQ teams, is it the AI fluency driving the results, or are high-performing teams simply more likely to adopt new tools? Disentangling this will take time and controlled experiments.</li>
+  <li><strong>The incentive problem.</strong> If AiQ is tied to performance reviews and promotions, some individuals will optimize for the score rather than genuine fluency. This is a known limitation of any competency framework, and AiQ is not exempt. The multi-method assessment approach reduces the risk but does not eliminate it.</li>
+</ul>
+
+<h3>Second-Order Effects</h3>
+
+<p>Beyond the direct limitations of the framework itself, there are several second-order effects that organizations should anticipate and plan for. These are not reasons to avoid implementing AiQ - they are risks that emerge precisely because the implementation is working, which makes them easy to miss until they have already caused damage.</p>
+
+<p><strong>1. Organizational Distortion</strong></p>
+<p>The incentive problem described above deserves further attention because its consequences extend beyond individual score-gaming. When AiQ becomes a visible organizational metric - discussed in leadership meetings, embedded in dashboards, tied to team goals - there is a real risk that the organization begins optimizing for the score rather than the outcomes the score was designed to predict. Managers may prioritize AI adoption activities that improve their team's AiQ profile over activities that actually improve business results. The metric becomes the goal, and the original purpose recedes. This is Goodhart's Law applied to AI fluency: once AiQ becomes a target, it ceases to be a reliable measure of what it was intended to capture. The mitigation is to always present AiQ alongside business impact metrics (Section 9), never in isolation. If AiQ scores are rising but KPIs are flat, something is wrong - and the problem is more likely the measurement than the people.</p>
+
+<p><strong>2. Seniority-AiQ Inversion</strong></p>
+<p>There is a meaningful probability that junior employees will, in some cases, outscore senior employees on AiQ assessments. Newer entrants to the workforce have grown up with AI tools in a way that mid-career and senior professionals have not. A 24-year-old analyst who has used AI throughout university may demonstrate higher fluency across D1 through D5 than a 45-year-old Director who built their career in a pre-AI environment. This creates tension in two directions. First, it can undermine the credibility of the framework in the eyes of senior leaders who feel they are being measured against a standard that favors digital natives. Second, it can create confusion in team dynamics when a junior team member demonstrably outperforms their manager on a competency that the organization has declared important. Neither outcome is inherently negative - in fact, it may surface legitimate development needs at senior levels - but it must be anticipated and managed through communication. The framework's seniority targets (Section 7) are calibrated to account for this, with lower absolute thresholds for non-technical senior roles. However, the optics of the inversion remain a change management challenge that should not be underestimated.</p>
+
+<p><strong>3. Skill Atrophy</strong></p>
+<p>As AI fluency increases across the organization, there is a corresponding risk that foundational professional skills begin to erode. A copywriter who delegates first-draft creation to AI for twelve consecutive months may find their ability to write from scratch has deteriorated. An analyst who relies on AI to generate SQL queries may lose the ability to construct complex queries independently. This effect is unlikely to be visible in the short or medium term - in fact, it will initially be masked by productivity gains. The risk materializes when AI tools are unavailable, when a task falls outside the tool's capabilities, or when the professional changes roles to a context where AI assistance is limited. AiQ should not be pursued at the expense of core professional competence. Organizations would be well-served to periodically assess whether high-AiQ individuals are maintaining their underlying skills, not just their AI-augmented performance. This is an area where the framework's current design does not provide an answer, and it is likely the most important long-term risk on this list.</p>
+
+<p><strong>4. Loss of Creative Differentiation</strong></p>
+<p>For creative-leaning functions - marketing, design, brand, content - excessive reliance on AI-generated output carries a specific strategic risk. AI models are trained on broadly similar datasets and tend to produce output that converges toward a mean. When multiple companies in the same industry use the same tools to generate campaign concepts, visual assets, or brand messaging, the output begins to resemble itself. The result is not plagiarism in the legal sense, but a kind of aesthetic and strategic homogenization that erodes brand distinctiveness. Two competing companies using the same AI tools with similar prompts will, over time, produce material that feels interchangeable. This creates an imitation perception risk: even if neither company copied the other, customers may perceive the similarity as unoriginal or derivative. The mitigation is to weight D5 (AI-Augmented Creation) heavily in these functions - as the weight table already does - and to reinforce that AI should accelerate the expression of a distinctive creative vision, not substitute for having one.</p>
+
+<p><strong>5. Cognitive Disengagement</strong></p>
+<p>One of the less-discussed consequences of successful AI integration is the potential erosion of intellectual stimulation in daily work. When AI handles the challenging components of a task - the analysis, the drafting, the problem decomposition - what remains for the human is often review, approval, and coordination. For many knowledge workers, the difficult parts of their job are also the engaging parts. The sense of accomplishment that comes from solving a hard problem, crafting a compelling argument from scratch, or working through an analytical puzzle is a significant driver of job satisfaction and retention. If AI fluency initiatives succeed in automating the cognitively demanding portions of work, they may inadvertently reduce the intrinsic motivation that keeps talented people engaged. This is not an argument against AI adoption - it is an argument for being intentional about which tasks are delegated to AI and which are preserved as human challenges. The goal should be to automate the tedious, not the stimulating.</p>
+
+<p><strong>6. Third-Party Exposure Risk</strong></p>
+<p>A mature AiQ program will, by design, involve a substantial number of third-party AI tools and integrations. The 3-layer AI stack - foundation models, specialized function tools, and application-layer integrations - means that a single team's workflow may touch four or five different external services, each with its own data processing policies, API security posture, and terms of service. At the organizational level, this compounds quickly. If nine functions each adopt three to five AI tools, the organization may find itself managing thirty or more third-party integrations, many of which have access to proprietary data, customer information, or internal communications. Each integration represents a potential surface for data leakage, a dependency on a vendor's uptime, and a contractual relationship that needs governance. IT and security teams must be involved from the beginning - not as a bottleneck, but as an enabling function that ensures the organization's AI tool ecosystem does not outpace its ability to manage the associated risk. This consideration reinforces the importance of D6 (Responsible Use) as a standalone dimension rather than a subset of another competency.</p>
+
+<!-- 12. GUIDING PRINCIPLES -->
+<h2>12. Guiding Principles</h2>
+
+<ol>
+  <li><strong>Augmentation, not automation.</strong> The goal is human expertise amplified by AI, not replaced by it.</li>
+  <li><strong>Context over score.</strong> An AiQ number without context is meaningless. Always interpret relative to role, seniority, and function.</li>
+  <li><strong>Growth over judgment.</strong> AiQ is a development tool first, an evaluation tool second. If people fear it, it will fail.</li>
+  <li><strong>Behavior over knowledge.</strong> Knowing about AI is not AiQ. Using AI effectively in real work is AiQ. We've intentionally designed every assessment around observed behavior, not self-reported knowledge.</li>
+  <li><strong>Continuous recalibration.</strong> The framework must evolve as fast as the technology does. A static AiQ model is a dead one.</li>
+  <li><strong>Privacy by design.</strong> Usage analytics must be aggregate, transparent, and clearly communicated. The moment it feels like surveillance, adoption will collapse.</li>
+  <li><strong>Culturally aware.</strong> Assessment design has to account for regional and cultural differences. What's considered proactive AI adoption in one market may not translate directly to another.</li>
+  <li><strong>Impact-linked.</strong> Every metric has to connect to a business outcome eventually. Measurement without impact linkage is just overhead.</li>
+</ol>
+
+<!-- APPENDIX -->
+<h2>Appendix: Dimension Weight Justification by Job Family</h2>
+
+<p>The weight assigned to each dimension per job family reflects the relative importance of that competency to the function's core value creation. Below is the rationale for each.</p>
+
+<h3>Engineering</h3>
+<p><strong>Primary: D4 Workflow Design (28%), D2 Prompt Engineering (22%)</strong></p>
+<p>Engineering teams derive the most value from AI when it is embedded directly into the development lifecycle - code generation, debugging, test creation, documentation, and code review. This makes workflow integration the single most important dimension. Prompt engineering ranks second because the quality of AI-assisted code depends heavily on how precisely the engineer communicates intent, constraints, and context to the tool. Output evaluation (12%) is weighted lower not because it is unimportant, but because engineers typically have strong verification habits (tests, reviews, CI/CD) that serve as built-in quality checks. Responsible use is baseline (10%) as engineering teams generally operate within controlled environments with established data handling protocols.</p>
+
+<h3>Product</h3>
+<p><strong>Primary: D4 Workflow Design (20%), D1 Awareness & Opportunity (18%), D6 Responsible Use (20%)</strong></p>
+<p>Product managers sit at the intersection of business, technology, and customer needs - making AI awareness and opportunity recognition essential. They need to identify where AI can enhance the product, the user experience, or the team's own processes. Workflow design is critical because PMs orchestrate cross-functional work and are uniquely positioned to embed AI into product development workflows. Responsible use is weighted heavily (20%) because product decisions around AI features directly affect customers, data privacy, and regulatory compliance. The product manager who ships an AI feature without considering these implications creates organizational risk disproportionate to their seniority.</p>
+
+<h3>Creative / Design</h3>
+<p><strong>Primary: D5 AI-Augmented Creation (30%), D6 Responsible Use (18%)</strong></p>
+<p>For creative professionals, the quality of the output is the job. AI-Augmented Creation carries the highest weight of any dimension in any function (30%) because the core question for a designer or creative director is whether AI makes their work better or makes it generic. Prompt engineering (16%) is secondary but important - the ability to communicate a creative vision to an AI tool requires specificity that goes beyond basic instructions. Responsible use (18%) is elevated because creative work frequently involves intellectual property considerations, brand consistency, and the risk of AI-generated content that infringes on existing work.</p>
+
+<h3>Marketing</h3>
+<p><strong>Primary: D5 AI-Augmented Creation (26%), D2 Prompt Engineering (18%), D6 Responsible Use (18%)</strong></p>
+<p>Marketing is a content-intensive function where AI can dramatically accelerate output - but only if the output maintains brand voice, accuracy, and originality. AI-Augmented Creation is dominant because marketers are judged by the quality and impact of what they produce. Prompt engineering is weighted higher than in most non-technical functions because marketing requires nuanced communication with AI tools - tone, audience specificity, format requirements, and brand guidelines all need to be conveyed effectively. Responsible use (18%) reflects the sensitivity of customer data in marketing operations and the reputational risk of publishing AI-generated content that is inaccurate or inappropriately sourced.</p>
+
+<h3>Sales</h3>
+<p><strong>Primary: D2 Prompt Engineering (24%), D4 Workflow Design (18%), D5 AI-Augmented Creation (18%)</strong></p>
+<p>Sales professionals interact with AI primarily through communication - researching prospects, generating personalized outreach, preparing proposals, and summarizing meeting notes. This makes prompt engineering the dominant dimension: the difference between a generic AI-drafted email and a precisely targeted one is often the difference between a response and silence. Workflow design (18%) matters because the highest-performing sales teams build AI into their pipeline management - from lead qualification through to proposal generation. AI-Augmented Creation (18%) is weighted equally because the quality of sales collateral directly affects conversion. Awareness & Opportunity (16%) is elevated relative to other non-technical functions because top salespeople actively identify new ways to use AI in their process rather than waiting to be told.</p>
+
+<h3>Data / Analytics</h3>
+<p><strong>Primary: D4 Workflow Design (24%), D3 Output Evaluation (22%), D1 Awareness & Opportunity (20%)</strong></p>
+<p>Data teams operate at the intersection of AI tools and analytical rigor. Workflow design is primary because the value of AI in analytics lies in automating repetitive data preparation, transformation, and reporting tasks - this requires thoughtful process design. Output evaluation is weighted second-highest (22%) because data professionals must verify AI-generated analyses, queries, and visualizations against ground truth. The cost of an undetected error in a data pipeline or an executive report is substantial. Awareness & Opportunity (20%) is elevated because data teams are often the first to identify where AI can unlock new analytical capabilities or automate manual processes across the organization.</p>
+
+<h3>Finance / Legal</h3>
+<p><strong>Primary: D6 Responsible Use (28%), D3 Output Evaluation (24%)</strong></p>
+<p>Finance and Legal are high-stakes functions where accuracy and compliance are non-negotiable. Responsible use carries the highest weight of any dimension for any function (28%) because these teams routinely handle confidential financial data, privileged legal communications, and regulated information. A single instance of sensitive data being processed through an unauthorized AI tool can create legal liability and regulatory exposure. Output evaluation (24%) is the second-highest priority because AI-generated financial analyses, contract summaries, and compliance reviews must be verified with the same rigor applied to human-produced work. The asymmetry of risk - where one undetected error can have outsized consequences - justifies this weighting. AI-Augmented Creation (10%) is intentionally low: in these functions, thoroughness and accuracy are more valuable than creative output.</p>
+
+<h3>Care / Support</h3>
+<p><strong>Primary: D2 Prompt Engineering (22%), D6 Responsible Use (20%), D4 Workflow Design (18%)</strong></p>
+<p>Customer-facing support teams interact with AI constantly - drafting responses, retrieving knowledge base articles, summarizing case histories, and triaging requests. Prompt engineering is dominant because the speed and accuracy of AI-assisted responses directly affects customer experience. A support agent who can communicate effectively with AI tools resolves issues faster and with greater consistency. Responsible use (20%) is critical because support interactions frequently involve personal customer data, payment information, and account details - all of which must be handled within strict data privacy boundaries. Workflow design (18%) matters because AI-integrated support workflows (automated triage, suggested responses, escalation rules) can transform team-level efficiency, but only if designed thoughtfully.</p>
+
+<h3>Operations</h3>
+<p><strong>Primary: D4 Workflow Design (30%), D6 Responsible Use (20%), D1 Awareness & Opportunity (16%)</strong></p>
+<p>Operations is fundamentally a process discipline, making workflow design the most important dimension by a significant margin (30%). Operations professionals who can identify manual process steps, automate them with AI, and design exception-handling workflows create compounding efficiency gains. Responsible use (20%) is elevated because operational processes often touch cross-functional data - procurement records, vendor information, employee data, and financial transactions - requiring careful attention to data governance. Awareness & Opportunity (16%) is weighted higher than in most functions because operations teams are uniquely positioned to identify process inefficiencies across the organization that AI could address.</p>
+
+<!-- REFERENCES -->
+<div class="ref-section">
+  <h3>References</h3>
+  <div class="ref-item"><strong>[1]</strong> Gottfredson, L.S. (1997). "Mainstream Science on Intelligence." <em>Intelligence</em>, 24(1), 13-23. See also: Deary, I.J. (2012). "Intelligence." <em>Annual Review of Psychology</em>, 63, 453-482.</div>
+  <div class="ref-item"><strong>[2]</strong> Goleman, D. (1995). <em>Emotional Intelligence: Why It Can Matter More Than IQ</em>. Bantam Books. See also: Salovey, P. & Mayer, J.D. (1990). "Emotional Intelligence." <em>Imagination, Cognition and Personality</em>, 9(3), 185-211.</div>
+  <div class="ref-item"><strong>[3]</strong> World Economic Forum (2025). <em>Future of Jobs Report 2025</em>. Geneva: WEF. Identifies AI literacy as a top-10 emerging skill across industries globally.</div>
+  <div class="ref-item"><strong>[4]</strong> Brynjolfsson, E. & McAfee, A. (2014). <em>The Second Machine Age</em>. W.W. Norton. Foundational work on human-AI complementarity and the augmentation thesis.</div>
+  <div class="ref-item"><strong>[5]</strong> Davenport, T.H. & Kirby, J. (2016). <em>Only Humans Need Apply: Winners and Losers in the Age of Smart Machines</em>. Harper Business.</div>
+  <div class="ref-item"><strong>[6]</strong> McKinsey & Company (2025). "The State of AI: How Organizations Are Rewiring to Capture Value." <em>McKinsey Global Survey on AI</em>.</div>
+  <div class="ref-item"><strong>[7]</strong> Deloitte (2024). <em>Global Human Capital Trends</em>. Deloitte Insights. Discusses the shift from job-based to skills-based talent models and role-specific capability frameworks.</div>
+  <div class="ref-item"><strong>[8]</strong> Spencer, L.M. & Spencer, S.M. (1993). <em>Competence at Work: Models for Superior Performance</em>. Wiley. Foundational methodology for multi-method competency assessment.</div>
+  <div class="ref-item"><strong>[9]</strong> Bersin, J. (2024). "The AI-Powered Organization." <em>The Josh Bersin Company</em>. Analysis of how AI fluency expectations scale with organizational seniority.</div>
+</div>
+
+<div class="wp-footer">AiQ Framework White Paper - Confidential - v3.0 - April 2026</div>
+
+</div>
+</body>
+</html>

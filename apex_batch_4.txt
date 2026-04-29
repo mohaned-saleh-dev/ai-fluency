@@ -1,0 +1,75 @@
+// Batch 4: Articles 31-40
+List<Knowledge__kav> articles = new List<Knowledge__kav>();
+
+Knowledge__kav a0 = new Knowledge__kav();
+a0.Title = 'What should I do if I\'m online but not receiving any calls?';
+a0.Summary = '[Phone & Calls] What should I do if I\'m online but not receiving any calls?';
+a0.UrlName = 'faq-031-what-should-i-do-if-im-online-but-not-receiving-any-calls';
+a0.Answer__c = '<p>Follow these troubleshooting steps in order:</p>\n\n<ol>\n<li><strong>Check your Omni-Channel status</strong> — Make sure it is set to "Online" (not "Outbound & Transfer Calls" or any other status).</li>\n<li><strong>Toggle your status</strong> — Switch to "Offline," wait 10 seconds, then switch back to "Online."</li>\n<li><strong>Check browser permissions:</strong></li>\n</ol>\n<ul>\n<li>Microphone must be <strong>allowed</strong> for Salesforce.</li>\n<li>Pop-ups must be <strong>allowed</strong> for Salesforce.</li>\n<li>Try toggling both off and back on again, then hard refresh.</li>\n</ul>\n<ol>\n<li><strong>Hard refresh</strong> — Press Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac).</li>\n<li><strong>Check Genesys</strong> — Make sure the Genesys pop-up window is open and you are logged in.</li>\n<li><strong>Close any extra Salesforce tabs</strong> — Only keep one Salesforce tab open.</li>\n<li><strong>Clear cache and restart browser</strong> — If nothing else works, clear everything and start fresh.</li>\n</ol>';
+articles.add(a0);
+
+Knowledge__kav a1 = new Knowledge__kav();
+a1.Title = 'What should I do if I can\'t make outbound calls?';
+a1.Summary = '[Phone & Calls] What should I do if I can\'t make outbound calls?';
+a1.UrlName = 'faq-032-what-should-i-do-if-i-cant-make-outbound-calls';
+a1.Answer__c = '<p>If you are unable to make outbound calls:</p>\n\n<ol>\n<li><strong>Hard refresh</strong> the page — Press Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac).</li>\n<li><strong>Check your microphone</strong> — Ensure your mic is connected and browser permissions allow microphone access.</li>\n<li><strong>Allow pop-ups</strong> — The Genesys softphone often uses a pop-up window.</li>\n<li><strong>Verify Genesys login</strong> — Make sure you are logged into the Genesys pop-up that appears.</li>\n<li><strong>Clear cache and restart</strong> — If the above steps don\'t work, clear your browser cache, close and reopen the browser, and log back in.</li>\n</ol>';
+articles.add(a1);
+
+Knowledge__kav a2 = new Knowledge__kav();
+a2.Title = 'How do I transfer a customer to a survey after a phone call?';
+a2.Summary = '[Phone & Calls] How do I transfer a customer to a survey after a phone call?';
+a2.UrlName = 'faq-033-how-do-i-transfer-a-customer-to-a-survey-after-a-phone-call';
+a2.Answer__c = '<p>The method depends on the call type:</p>\n\n<p><strong>For callback calls (outbound):</strong></p>\n<ol>\n<li>After finishing the conversation, locate the <strong>"VC" (Voice Call)</strong> component on the case page — it is usually highlighted in green.</li>\n<li>Click on the VC component.</li>\n<li>Find the <strong>"Transfer to Survey"</strong> option on the right side.</li>\n<li>Click it. The customer will be transferred to the survey, and the call will close automatically.</li>\n</ol>\n\n<p><strong>For outbound calls (manual dial):</strong></p>\n<ol>\n<li>Before dialing, go to <strong>Phone Wrap-up & Outbound</strong> in Salesforce.</li>\n<li>In the "Search Queues" field, select <strong>"CC - Phone - Outbound"</strong> queue.</li>\n<li>Dial the customer\'s number on behalf of this queue.</li>\n<li>When the call ends, the survey transfer buttons will appear correctly.</li>\n<li>If you dialed without selecting a queue first, use the <strong>"Blind Transfer"</strong> button and select the survey queue.</li>\n</ol>\n\n<p><strong>For inbound calls:</strong></p>\n<ul>\n<li>Close the call from the <strong>Omni-Channel</strong> widget. The system handles post-call surveys automatically.</li>\n</ul>\n\n<p><strong>Note:</strong> If the customer hangs up before you transfer to the survey, the survey will not be sent. This is normal behavior.</p>';
+articles.add(a2);
+
+Knowledge__kav a3 = new Knowledge__kav();
+a3.Title = 'Why did my call disconnect when I opened another case from the CS Panel?';
+a3.Summary = '[Phone & Calls] Why did my call disconnect when I opened another case from the CS Panel?';
+a3.UrlName = 'faq-034-why-did-my-call-disconnect-when-i-opened-another-case-from-the-cs-panel';
+a3.Answer__c = '<p>Clicking a case link in the CS Panel opens a <strong>new Salesforce browser tab</strong>. Having multiple Salesforce tabs open breaks your Omni-Channel connection and can drop your active call.</p>\n\n<p><strong>To avoid this:</strong></p>\n<ol>\n<li><strong>Do not click</strong> the case link directly in the CS Panel.</li>\n<li>Instead, <strong>copy the case number</strong> from the CS Panel.</li>\n<li>Go to your <strong>existing Salesforce tab</strong> and paste the case number into the global search bar.</li>\n<li>This keeps your Omni-Channel session active in a single tab.</li>\n</ol>\n\n<p>*A system update is being implemented to replace the clickable link with a copy icon to prevent this issue.*</p>';
+articles.add(a3);
+
+Knowledge__kav a4 = new Knowledge__kav();
+a4.Title = 'Why wasn\'t a new case created when I made an outbound call?';
+a4.Summary = '[Phone & Calls] Why wasn\'t a new case created when I made an outbound call?';
+a4.UrlName = 'faq-035-why-wasnt-a-new-case-created-when-i-made-an-outbound-call';
+a4.Answer__c = '<p>Salesforce tries to avoid creating duplicate cases. A new case will <strong>not</strong> be created if:</p>\n\n<ul>\n<li>The customer or merchant <strong>already has an open case</strong> linked to their phone number.</li>\n<li>The system found a match and linked your call to the <strong>existing open case</strong> instead.</li>\n</ul>\n\n<p><strong>What to do:</strong> Log your call details as a <strong>case comment</strong> on the existing case rather than expecting a new case.</p>';
+articles.add(a4);
+
+Knowledge__kav a5 = new Knowledge__kav();
+a5.Title = 'What should I do if Genesys says "Cannot communicate with Genesys Cloud"?';
+a5.Summary = '[Phone & Calls] What should I do if Genesys says "Cannot communicate with Genesys Cloud"?';
+a5.UrlName = 'faq-036-what-should-i-do-if-genesys-says-cannot-communicate-with-genesys-cloud';
+a5.Answer__c = '<p>This error is usually caused by browser or connection issues:</p>\n\n<ol>\n<li><strong>Clear your browser cache and cookies.</strong></li>\n<li><strong>Hard refresh</strong> the Salesforce page — Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac).</li>\n<li><strong>Check microphone permissions</strong> — Click the padlock in the address bar and ensure microphone is set to "Allow."</li>\n<li><strong>Check pop-ups</strong> — Ensure pop-ups are allowed for Salesforce.</li>\n<li><strong>Log out and log back in</strong> — Close browser, reopen, and log in through JumpCloud.</li>\n</ol>';
+articles.add(a5);
+
+Knowledge__kav a6 = new Knowledge__kav();
+a6.Title = 'How do I make an outbound call without receiving incoming calls at the same time?';
+a6.Summary = '[Phone & Calls] How do I make an outbound call without receiving incoming calls at the same time?';
+a6.UrlName = 'faq-037-how-do-i-make-an-outbound-call-without-receiving-incoming-calls-at-the-same-time';
+a6.Answer__c = '<p>If you are making a manual outbound call and want to prevent new inbound calls or callbacks from being routed to you:</p>\n\n<ol>\n<li><strong>Before dialing</strong>, change your Omni-Channel status to <strong>"Outbound & Transfer Calls."</strong></li>\n<li>Make your outbound call.</li>\n<li>When you are done and ready to receive inbound calls again, switch your status back to <strong>"Online."</strong></li>\n</ol>\n\n<p>If your status is "Online" while making an outbound call, the system will continue routing new calls to you — this is expected behavior.</p>';
+articles.add(a6);
+
+Knowledge__kav a7 = new Knowledge__kav();
+a7.Title = 'How do I end a call if the standard "End Call" button isn\'t working?';
+a7.Summary = '[Phone & Calls] How do I end a call if the standard "End Call" button isn\'t working?';
+a7.UrlName = 'faq-038-how-do-i-end-a-call-if-the-standard-end-call-button-isnt-working';
+a7.Answer__c = '<p>If you cannot end a call from the usual interface:</p>\n\n<ol>\n<li>Navigate to the <strong>"Phone Callback"</strong> tab in Salesforce.</li>\n<li>Try to end the call from there.</li>\n<li>If that also doesn\'t work, try a hard refresh (Ctrl+Shift+R) — but note this may drop the call.</li>\n</ol>';
+articles.add(a7);
+
+Knowledge__kav a8 = new Knowledge__kav();
+a8.Title = 'Why are cases not being created when I answer calls from the Genesys tab?';
+a8.Summary = '[Phone & Calls] Why are cases not being created when I answer calls from the Genesys tab?';
+a8.UrlName = 'faq-039-why-are-cases-not-being-created-when-i-answer-calls-from-the-genesys-tab';
+a8.Answer__c = '<p>If you have the <strong>Genesys tab open separately</strong> in your browser and answer calls from there instead of from within Salesforce, cases will <strong>not</strong> be automatically created.</p>\n\n<p><strong>Fix:</strong></p>\n<ol>\n<li><strong>Close the Genesys tab</strong> — Do not open Genesys in a separate browser tab.</li>\n<li><strong>Only keep Salesforce open</strong> — The Genesys integration works within Salesforce; you do not need a separate Genesys tab.</li>\n<li><strong>Refresh your Salesforce tab</strong> after closing Genesys.</li>\n</ol>\n\n<p>Calls answered within Salesforce will automatically trigger case creation.</p>';
+articles.add(a8);
+
+Knowledge__kav a9 = new Knowledge__kav();
+a9.Title = 'Why did my chat session end automatically while I was working on it?';
+a9.Summary = '[Chat & Messaging] Why did my chat session end automatically while I was working on it?';
+a9.UrlName = 'faq-040-why-did-my-chat-session-end-automatically-while-i-was-working-on-it';
+a9.Answer__c = '<p>Chat sessions are subject to an <strong>inactivity timeout</strong>. If you do not send any messages to the customer within the timeout period (approximately 4 minutes 30 seconds), the system will automatically end your participation in the chat.</p>\n\n<p><strong>What happens next:</strong></p>\n<ul>\n<li>If another agent is available, the chat will be transferred to them.</li>\n<li>If no agents are available, the chat will be routed back to the chatbot.</li>\n</ul>\n\n<p><strong>How to prevent this:</strong></p>\n<ul>\n<li>Always respond to the customer promptly — aim for responses within 2 minutes.</li>\n<li>If you need more time to research, send a quick message like "Please allow me a moment to look into this" to keep the session active.</li>\n</ul>';
+articles.add(a9);
+
+insert articles;
+System.debug('Batch 4: Inserted ' + articles.size() + ' articles');

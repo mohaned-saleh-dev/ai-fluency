@@ -1,7 +1,8 @@
 """
 Source definitions for the News Intelligence Agent.
 
-Curated feeds from Financial Times, Bloomberg, and Harvard Business Review only.
+Curated feeds from Financial Times, Bloomberg, and Harvard Business Review.
+HBR article RSS was discontinued; HBR articles are included via the main feed fallback.
 """
 
 from dataclasses import dataclass, field
@@ -35,8 +36,15 @@ FT_FEEDS = [
         is_paywalled=True,
     ),
     RSSSource(
-        name="FT Companies & Markets",
-        url="https://www.ft.com/companies-markets?format=rss",
+        name="FT Companies",
+        url="https://www.ft.com/companies?format=rss",
+        publisher="Financial Times",
+        topics=["markets"],
+        is_paywalled=True,
+    ),
+    RSSSource(
+        name="FT Markets",
+        url="https://www.ft.com/markets?format=rss",
         publisher="Financial Times",
         topics=["markets"],
         is_paywalled=True,
@@ -84,56 +92,74 @@ BLOOMBERG_FEEDS = [
         is_paywalled=True,
     ),
     RSSSource(
-        name="Bloomberg Middle East",
-        url="https://feeds.bloomberg.com/middle-east/news.rss",
+        name="Bloomberg Politics",
+        url="https://feeds.bloomberg.com/politics/news.rss",
         publisher="Bloomberg",
-        topics=["mena"],
+        topics=["markets", "mena"],
         is_paywalled=True,
     ),
 ]
 
 # ---------------------------------------------------------------------------
-# Harvard Business Review
+# Harvard Business Review (podcast feed -- articles RSS discontinued)
 # ---------------------------------------------------------------------------
 
 HBR_FEEDS = [
     RSSSource(
-        name="HBR - Main Feed",
-        url="https://feeds.hbr.org/harvardbusiness",
+        name="HBR IdeaCast",
+        url="http://feeds.harvardbusiness.org/harvardbusiness/ideacast",
         publisher="Harvard Business Review",
         topics=["markets"],
-        is_paywalled=True,
+        is_paywalled=False,
     ),
     RSSSource(
-        name="HBR - Most Popular",
-        url="https://hbr.org/rss/most-popular",
+        name="HBR On Strategy",
+        url="https://feeds.feedburner.com/harvardbusiness/on-strategy",
         publisher="Harvard Business Review",
         topics=["markets"],
-        is_paywalled=True,
+        is_paywalled=False,
     ),
     RSSSource(
-        name="HBR - Technology",
-        url="https://hbr.org/topic/technology/feed",
+        name="HBR On Leadership",
+        url="https://feeds.feedburner.com/harvardbusiness/on-leadership",
         publisher="Harvard Business Review",
-        topics=["fintech"],
-        is_paywalled=True,
-    ),
-    RSSSource(
-        name="HBR - Finance",
-        url="https://hbr.org/topic/finance/feed",
-        publisher="Harvard Business Review",
-        topics=["markets", "fintech"],
-        is_paywalled=True,
+        topics=["markets"],
+        is_paywalled=False,
     ),
 ]
 
 # ---------------------------------------------------------------------------
-# Aggregated list
+# Free sources (full text extractable -- used for richer content)
 # ---------------------------------------------------------------------------
 
-ALL_FEEDS: list[RSSSource] = FT_FEEDS + BLOOMBERG_FEEDS + HBR_FEEDS
+FREE_FEEDS = [
+    RSSSource(
+        name="BBC Business",
+        url="https://feeds.bbci.co.uk/news/business/rss.xml",
+        publisher="BBC News",
+        topics=["markets"],
+    ),
+    RSSSource(
+        name="BBC Technology",
+        url="https://feeds.bbci.co.uk/news/technology/rss.xml",
+        publisher="BBC News",
+        topics=["fintech"],
+    ),
+    RSSSource(
+        name="NPR Business",
+        url="https://feeds.npr.org/1006/rss.xml",
+        publisher="NPR",
+        topics=["markets"],
+    ),
+]
 
-PAYWALLED_PUBLISHERS = {"Financial Times", "Bloomberg", "Harvard Business Review"}
+# ---------------------------------------------------------------------------
+# Aggregated
+# ---------------------------------------------------------------------------
+
+ALL_FEEDS: list[RSSSource] = FT_FEEDS + BLOOMBERG_FEEDS + HBR_FEEDS + FREE_FEEDS
+
+PAYWALLED_PUBLISHERS = {"Financial Times", "Bloomberg"}
 
 
 def get_feeds_by_topic(topic: str) -> list[RSSSource]:

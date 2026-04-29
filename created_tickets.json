@@ -1,0 +1,37 @@
+{
+  "[FE - Partner Portal]": {
+    "key": "CSSV-2120",
+    "summary": "Integrate Salesforce Chat Widget - Partner Portal (Authenticated)",
+    "description": "Integrate Salesforce Chat widget on the Partner Portal for authenticated users (live merchants).\n\nRequirements:\n- Identify users as live merchants\n- Route them through the AI chatbot experience that currently exists on Zendesk\n- Ensure seamless integration with existing authentication system\n- Maintain user context and session information"
+  },
+  "[FE - Partner Onboarding Portal]": {
+    "key": "CSSV-2122",
+    "summary": "Integrate Salesforce Chat Widget - Partner Onboarding Portal (Authenticated)",
+    "description": "Integrate Salesforce Chat widget on the Partner Onboarding Portal for authenticated users (onboarding merchants).\n\nRequirements:\n- Identify users as onboarding users\n- Direct hand-off to Partner Onboarding team (no chatbot, direct transfer)\n- Ensure proper routing based on user status\n- Maintain user context during handoff"
+  },
+  "[FE - Support Website Partner]": {
+    "key": "CSSV-2123",
+    "summary": "Integrate Salesforce Chat Widget - Support Website Partner Section (Non-authenticated)",
+    "description": "Integrate Salesforce Chat widget on support.tamara.co Partner section for non-authenticated users.\n\nRequirements:\n- Chat widget should open on Partner section\n- Present segmentation prompt: \"Tell us whether you're a\" with options:\n  * \"New merchant in the signup process\" \u2192 Direct handoff to Onboarding Support\n  * \"An existing merchant\" \u2192 Enter Partner AI Chatbot (non-authenticated mode)\n- For existing merchants: Only allow handoff for Login/Access issues or Fraud reports\n- Support both English and Arabic languages\n- Implement routing logic as per detailed flow diagrams"
+  },
+  "[FE - Partner Portal Pre-login]": {
+    "key": "CSSV-2124",
+    "summary": "Integrate Salesforce Chat Widget - Partner Portal Pre-login (Non-authenticated)",
+    "description": "Integrate Salesforce Chat widget on partners.tamara.co pre-login page for non-authenticated users.\n\nRequirements:\n- Chat widget available before login\n- Present segmentation prompt: \"Tell us whether you're a\" with options:\n  * \"New merchant in the signup process\" \u2192 Direct handoff to Onboarding Support\n  * \"An existing merchant\" \u2192 Enter Partner AI Chatbot (non-authenticated mode)\n- For existing merchants: Only allow handoff for Login/Access issues or Fraud reports\n- Support both English and Arabic languages\n- Implement routing logic as per detailed flow diagrams"
+  },
+  "[FE - Web App Elisa]": {
+    "key": "CSSV-2125",
+    "summary": "Integrate Salesforce Chat Widget - Web App Elisa (Non-authenticated)",
+    "description": "Integrate Salesforce Chat widget on the web app (Elisa) for non-authenticated customer experience.\n\nRequirements:\n- Chat widget available for non-logged-in users\n- Proper integration with existing Elisa chatbot infrastructure\n- Maintain consistent user experience\n- Support customer-facing chat functionality"
+  },
+  "[FE - Mobile App]": {
+    "key": "CSSV-2126",
+    "summary": "Integrate Salesforce Chat Widget - Mobile App (Non-authenticated)",
+    "description": "Integrate Salesforce Chat widget on mobile apps for non-authenticated customer experience.\n\nRequirements:\n- Chat widget available for non-logged-in mobile users\n- Support both iOS and Android platforms\n- Proper integration with mobile app architecture\n- Maintain consistent user experience across platforms"
+  },
+  "[FE - Support Website Customer]": {
+    "key": "CSSV-2127",
+    "summary": "Integrate Salesforce Chat Widget - Support Website Customer Section (Non-authenticated)",
+    "description": "Integrate Salesforce Chat widget on support.tamara.co Customer section for non-authenticated users.\n\nRequirements:\n- Chat widget available on customer support section\n- Proper routing and user experience\n- Support customer-facing chat functionality\n- Maintain consistency with other support channels"
+  }
+}

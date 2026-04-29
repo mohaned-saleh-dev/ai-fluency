@@ -1,0 +1,34 @@
+#!/bin/bash
+# Launcher script for PRD Ticket Agent GUI
+
+# Get the directory where this script is located
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONTENTS_DIR="$(cd "$APP_DIR/.." && pwd)"
+APP_ROOT="$(cd "$CONTENTS_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$APP_ROOT/.." && pwd)"
+
+# Change to project root
+cd "$PROJECT_ROOT"
+
+# Add project root to Python path
+export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
+
+# Activate Python environment if it exists, or use system Python
+if [ -d "$PROJECT_ROOT/venv" ]; then
+    source "$PROJECT_ROOT/venv/bin/activate"
+elif [ -d "$PROJECT_ROOT/.venv" ]; then
+    source "$PROJECT_ROOT/.venv/bin/activate"
+fi
+
+# Try to load .env file if it exists
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    export $(cat "$PROJECT_ROOT/.env" | grep -v '^#' | xargs)
+fi
+
+# Create log file for debugging
+LOG_FILE="$HOME/Library/Logs/PRD_Ticket_Agent.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+
+# Run the GUI application and log output
+exec python3 "$PROJECT_ROOT/prd_agent_gui.py" >> "$LOG_FILE" 2>&1
+

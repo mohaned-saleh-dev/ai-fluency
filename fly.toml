@@ -1,0 +1,31 @@
+# Fly.io: install flyctl, then `fly launch` in this directory (or `fly deploy`).
+# Set secret: `fly secrets set EXPORT_JSON_URL='https://...'`
+
+app = "contentful-article-downloader"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[http_service.checks]]
+  path = "/api/health"
+  interval = "30s"
+  timeout = "5s"
+  method = "GET"
+  [http_service.checks.http_service_headers]
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  PORT = "8080"

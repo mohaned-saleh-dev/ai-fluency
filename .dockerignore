@@ -1,0 +1,13 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.DS_Store
+.env
+.env.*
+contentful-export/*.json
+!contentful-export/.gitkeep
+*.md
+news_agent
+keyword-alert-*

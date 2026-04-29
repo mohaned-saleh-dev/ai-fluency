@@ -1,0 +1,22 @@
+#!/bin/bash
+# One thing: get entries_readable.csv from Contentful. Put your token in .env:
+#   CONTENTFUL_MANAGEMENT_TOKEN=...
+cd "$(dirname "$0")" || exit 1
+set -a
+[ -f .env ] && . ./.env
+set +a
+if [ -z "$CONTENTFUL_MANAGEMENT_TOKEN" ]; then
+  echo "Add to .env:  CONTENTFUL_MANAGEMENT_TOKEN=your_token" >&2
+  exit 1
+fi
+set -e
+python3 -m pip install -q -r requirements.txt 2>/dev/null || true
+python3 scripts/contentful_mapi_export.py
+python3 scripts/contentful_entries_readable_csv.py
+F="$(pwd)/contentful-export/entries_readable.csv"
+echo
+echo "Done. File:"
+echo "  $F"
+open "$(dirname "$F")" 2>/dev/null || true
+echo
+echo "Drop that into Google Drive / email it / whatever you use."

@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Keyword Alert</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #16161f;
+      --text: #f0f0f5;
+      --muted: #8888a0;
+      --accent: #6ee7b7;
+      --danger: #f87171;
+      --flash: #fffef5;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      min-height: 100dvh;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hint {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 0 0 1rem;
+      line-height: 1.45;
+    }
+
+    .keywords {
+      font-size: 0.8125rem;
+      color: var(--accent);
+      margin: 0 0 1rem;
+    }
+
+    .mode-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .mode-row label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      line-height: 1.35;
+    }
+
+    .mode-row input { margin-top: 0.2rem; }
+
+    .mode-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin: 0 0 1rem;
+      line-height: 1.4;
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .dot.listening {
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+
+    .status-text { font-size: 0.9375rem; }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 0.875rem;
+      padding: 1rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:active { transform: scale(0.98); }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(145deg, #34d399, #059669);
+      color: #052e26;
+    }
+
+    .btn-stop {
+      background: linear-gradient(145deg, #fca5a5, #dc2626);
+      color: #1f0a0a;
+      margin-top: 0.75rem;
+    }
+
+    .last-heard {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-bottom: 0.65rem;
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.5rem;
+      background: rgba(110, 231, 183, 0.06);
+      border: 1px solid rgba(110, 231, 183, 0.12);
+      word-break: break-word;
+      min-height: 2.5rem;
+    }
+
+    .last-heard strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .transcript {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      line-height: 1.5;
+      max-height: 30vh;
+      overflow-y: auto;
+      word-break: break-word;
+    }
+
+    .transcript strong { color: var(--accent); font-weight: 600; }
+
+    .warn {
+      font-size: 0.75rem;
+      color: var(--danger);
+      margin-top: 1rem;
+      line-height: 1.4;
+    }
+
+    #flash-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+      background: radial-gradient(circle at 50% 40%, var(--flash) 0%, #fff 45%, #fef3c7 100%);
+      transition: opacity 0.04s ease-out;
+    }
+
+    #flash-overlay.on {
+      opacity: 1;
+      transition: opacity 0.02s ease-in;
+    }
+
+    /* Five quick pulses — short total time so the next hit isn’t “behind” a long animation */
+    #flash-overlay.burst {
+      animation: flashBurst 0.52s linear 1 both;
+    }
+
+    @keyframes flashBurst {
+      0%,
+      100% {
+        opacity: 0;
+      }
+      3%,
+      4% {
+        opacity: 1;
+      }
+      7% {
+        opacity: 0;
+      }
+      14%,
+      15% {
+        opacity: 1;
+      }
+      18% {
+        opacity: 0;
+      }
+      25%,
+      26% {
+        opacity: 1;
+      }
+      29% {
+        opacity: 0;
+      }
+      36%,
+      37% {
+        opacity: 1;
+      }
+      40% {
+        opacity: 0;
+      }
+      47%,
+      48% {
+        opacity: 1;
+      }
+      51% {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="flash-overlay" aria-hidden="true"></div>
+
+  <h1>Keyword Alert</h1>
+  <p class="hint">
+    Tap start, then speak. When triggers match, the phone vibrates in five pulses and the screen flashes five times.
+    Mic access needs HTTPS or localhost.
+    <span style="display: block; margin-top: 0.6rem">
+      <strong>Better than “Browser” mode:</strong> run <code>uvicorn stt_server</code> with an OpenAI key (Whisper) — it locks output to English and usually beats Chrome’s cloud STT.
+      Using a <strong>PC window on the side</strong> is fine, but desktop Chrome can still pick the wrong language; Whisper is the reliable fix on phone or PC.
+    </span>
+  </p>
+  <p class="keywords">
+    Triggers: <strong>Bot</strong> · <strong>chatbot</strong>
+    <span style="display: block; margin-top: 0.35rem; font-size: 0.75rem; color: var(--muted)">
+      <strong>Browser mode</strong> uses grammar hints + fuzzy keyword matching in Chrome; interim captions update live for faster feedback.
+    </span>
+  </p>
+
+  <div class="mode-row panel" style="margin-bottom: 0; padding: 1rem 1.25rem">
+    <strong style="font-size: 0.8125rem">Transcription</strong>
+    <label>
+      <input type="radio" name="stt-mode" id="mode-whisper" value="whisper" />
+      <span
+        ><strong>Whisper (recommended)</strong> — same family of model as “good” apps: run <code>uvicorn stt_server</code> on your Mac. Use a paid <code>OPENAI_API_KEY</code> <em>or</em> install free on-device Whisper
+        (<code>pip install -r requirements-local.txt</code>) — no API billing, runs on CPU/GPU.</span
+      >
+    </label>
+    <label>
+      <input type="radio" name="stt-mode" id="mode-browser" value="browser" checked />
+      <span><strong>Browser</strong> — free, no key; quality and delay depend on Chrome’s engine (often slow / wrong).</span>
+    </label>
+  </div>
+  <p class="mode-note" id="mode-status">Checking server…</p>
+
+  <div class="panel" id="browser-lang-wrap">
+    <label for="browser-lang" style="font-size: 0.8125rem; display: block; margin-bottom: 0.35rem"
+      >Browser STT language (Chrome / Android)</label
+    >
+    <select id="browser-lang" style="width: 100%; font-size: 1rem; padding: 0.55rem 0.5rem; border-radius: 0.5rem; background: #1a1a24; color: var(--text); border: 1px solid #333">
+      <option value="auto" selected>English (auto — follow device locale)</option>
+      <option value="en-US">English (United States)</option>
+      <option value="en-GB">English (United Kingdom)</option>
+      <option value="en-AU">English (Australia)</option>
+      <option value="en-IN">English (India)</option>
+      <option value="en-SG">English (Singapore)</option>
+    </select>
+    <p style="font-size: 0.72rem; color: var(--muted); margin: 0.5rem 0 0; line-height: 1.35">
+      If you still see Hindi / wrong script, set Android: <em>Settings → Languages → Speech / Voice typing → English</em>, or switch to Whisper mode.
+    </p>
+  </div>
+
+  <div class="panel">
+    <div class="status">
+      <span class="dot" id="status-dot" aria-hidden="true"></span>
+      <span class="status-text" id="status-text">Idle — tap Start listening</span>
+    </div>
+    <button type="button" class="btn-primary" id="btn-start">Start listening</button>
+    <button type="button" class="btn-stop" id="btn-stop" disabled>Stop</button>
+    <p class="warn" id="compat-warn" hidden></p>
+  </div>
+
+  <div class="panel">
+    <div class="last-heard" id="last-heard" aria-live="polite">
+      <strong>Activity:</strong> nothing yet — after you tap Start, the last thing the mic/STT heard shows here so you know it is working. Triggers still log below only on a match.
+    </div>
+    <div class="transcript" id="transcript">Trigger lines will appear here.</div>
+  </div>
+
+  <script>
+    (function () {
+      var KEYWORDS = [/\bbot\b/i, /\bchatbot\b/i];
+
+      /**
+       * ~100 whole-word confusions that often show up when STT mishears “bot” / “chatbot”.
+       * Skips ultra-common 3-letter words (not, hot, got, lot, dot, …) to limit accidental triggers.
+       */
+      var PHONETIC_WORDS = (
+        "abbot ballot bark bart bat bats bath baths belt berth bert beth bigot blot boat boats bolt bolts " +
+        "bot bota botal boto bots bott bought bout buck bust butt cabot cache cadet cast chart chatbot " +
+        "chatbots chatbox chatboxes chatpot chadbot chartbot chip clot coat colt cult dart doubt duct " +
+        "fought gloat grunt jackpot jolt jot joust knelt malt mascot molt mount pilot plot punt robot " +
+        "rot sabot salt scot scout shot slot snot soft sort spot squat stalk stomp stunt swat talbot " +
+        "tarot thought throb trot vault valet volt walt wart watt welt wilt yacht yarn yeet zloty " +
+        "boss both bass bock bork bash batch botch brat bouts buff bulb bump caught chalk chat cheap " +
+        "cheat chide chock chop clutch cob crypt dart dealt debt debut dolt droplet exploit faint fault " +
+        "fiat filth flit float flout font fort fourth fraught gambit goblin gloat graft hobbit hotpot " +
+        "insult jabot kelp kiosk knit knob knot leapt licit lobster loot lout merit naught nought " +
+        "obtuse orbit parchment pilot pivot plod pouch punt racket ratchet rattan reboot rebut refit " +
+        "remit repot reshot revolt rocket rotund roust rust sachet satchel scoff shaft shatbot sheet " +
+        "shock shoot shunt silt skit slat slit sloth smelt smut snout sought spilt splat split sport " +
+        "sprout spurt squib stalk stamp stilt stomp strut swath swish swot tact tart taught taut theft " +
+        "thrift throat thrust thwart ticktock tint toast tort tout tract trite trust tumult tweak " +
+        "twirl twist uncut unfit unmet unset upset vaunt velvet vouch waded waft warp wasp wheat whelp " +
+        "whirl whist width wisp wretch yelp hatbox fatbot batbot shadbot sandbot chatboat crabot"
+      )
+        .trim()
+        .split(/\s+/)
+        .filter(function (w, i, a) {
+          return w && a.indexOf(w) === i;
+        });
+
+      /** One giant RegExp often breaks on mobile Safari/Chrome (pattern too long). Use a word set. */
+      var PHONETIC_SET = null;
+      function getPhoneticSet() {
+        if (!PHONETIC_SET) {
+          PHONETIC_SET = {};
+          for (var i = 0; i < PHONETIC_WORDS.length; i++) {
+            var w = PHONETIC_WORDS[i].toLowerCase();
+            if (w) PHONETIC_SET[w] = true;
+          }
+        }
+        return PHONETIC_SET;
+      }
+
+      function normalizeStt(s) {
+        if (!s) return s;
+        return s
+          .replace(/\bboss\b/gi, "bot")
+          .replace(/\bboth\b/gi, "bot")
+          .replace(/\bbought\b/gi, "bot")
+          .replace(/\bbout\b/gi, "bot")
+          .replace(/\bbots\b/gi, "bot")
+          .replace(/\bchatbox\b/gi, "chatbot")
+          .replace(/\bchat box\b/gi, "chatbot")
+          .replace(/\bchatbots\b/gi, "chatbot")
+          .replace(/\bchart\s*bot\b/gi, "chatbot")
+          .replace(/\bchad\s*bot\b/gi, "chatbot")
+          .replace(/\bchat\s*pot\b/gi, "chatbot")
+          .replace(/\bbatal\b/gi, "bot")
+          .replace(/\bbotal\b/gi, "bot")
+          .replace(/\bboto\b/gi, "bot");
+      }
+
+      var COOLDOWN_MS = 90;
+      var lastTrigger = 0;
+      var lastAlertFingerprint = "";
+      var lastAlertFingerprintAt = 0;
+
+      var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      var recognition = null;
+      var listening = false;
+      var wakeLock = null;
+      var audioCtx = null;
+
+      var mediaStream = null;
+      var mediaRecorder = null;
+      /** Whisper via Web Audio → WAV (MediaRecorder WebM fragments break FFmpeg on server) */
+      var whisperCtx = null;
+      var whisperSourceNode = null;
+      var whisperProcessor = null;
+      var whisperMute = null;
+      var whisperPcmPending = null;
+      var whisperErrShown = 0;
+      var whisperQueue = Promise.resolve();
+      var whisperBusy = false;
+      /** iOS / some browsers: ScriptProcessor never delivers audio; use chained MediaRecorder blobs instead */
+      var whisperUseMediaRecorderChain = false;
+      var whisperChainRec = null;
+      var whisperChainStopTimer = null;
+      var useWhisper = false;
+      var whisperAvailable = false;
+      /** "openai" | "local" | "none" — from /api/capabilities */
+      var whisperSource = "none";
+      /** Short chunks = faster keyword detection; more API calls when using Whisper */
+      var CHUNK_MS = 700;
+
+      function getBrowserSttLang() {
+        var sel = document.getElementById("browser-lang");
+        var v = sel && sel.value;
+        if (v === "auto") {
+          var l = navigator.language || "en-US";
+          return l.indexOf("en") === 0 ? l : "en-US";
+        }
+        return v || "en-US";
+      }
+
+      var el = {
+        flash: document.getElementById("flash-overlay"),
+        dot: document.getElementById("status-dot"),
+        status: document.getElementById("status-text"),
+        start: document.getElementById("btn-start"),
+        stop: document.getElementById("btn-stop"),
+        transcript: document.getElementById("transcript"),
+        lastHeard: document.getElementById("last-heard"),
+        warn: document.getElementById("compat-warn"),
+        modeWhisper: document.getElementById("mode-whisper"),
+        modeBrowser: document.getElementById("mode-browser"),
+        modeStatus: document.getElementById("mode-status"),
+        browserLang: document.getElementById("browser-lang"),
+        browserLangWrap: document.getElementById("browser-lang-wrap")
+      };
+
+      function setLastHeard(text) {
+        if (!el.lastHeard) return;
+        var s = text == null ? "" : String(text).trim();
+        if (!s) return;
+        if (s.length > 300) s = s.slice(0, 297) + "…";
+        el.lastHeard.textContent = "";
+        var lab = document.createElement("strong");
+        lab.textContent = "Last heard: ";
+        el.lastHeard.appendChild(lab);
+        el.lastHeard.appendChild(document.createTextNode(s));
+      }
+
+      function resetLastHeardPanel() {
+        if (!el.lastHeard) return;
+        el.lastHeard.innerHTML =
+          "<strong>Activity:</strong> Idle — tap Start to see live mic/STT text here.";
+      }
+
+      try {
+        var savedLang = localStorage.getItem("keyword-alert-browser-lang");
+        if (savedLang && el.browserLang && el.browserLang.querySelector('option[value="' + savedLang + '"]')) {
+          el.browserLang.value = savedLang;
+        }
+      } catch (e) {}
+
+      if (el.browserLang) {
+        el.browserLang.addEventListener("change", function () {
+          try {
+            localStorage.setItem("keyword-alert-browser-lang", el.browserLang.value);
+          } catch (e) {}
+        });
+      }
+
+      /**
+       * Chrome’s STT often emits Hindi (Devanagari) etc. despite lang=en — OS / account locale wins.
+       * Do not fire keyword alerts on these lines (garbage in = false triggers).
+       */
+      function isUnreliableScript(text) {
+        if (!text) return false;
+        if (/[\u0900-\u097F]/.test(text)) return true;
+        if (/[\u0600-\u06FF\u0750-\u077F]/.test(text)) return true;
+        return false;
+      }
+
+      function updateBrowserLangVisibility() {
+        if (!el.browserLangWrap) return;
+        var showBrowserControls = !whisperAvailable || el.modeBrowser.checked;
+        el.browserLangWrap.hidden = !showBrowserControls;
+      }
+
+      function pickMime() {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
+          var c = [
+            "audio/webm;codecs=opus",
+            "audio/webm",
+            "audio/mp4",
+            "audio/ogg;codecs=opus"
+          ];
+          for (var i = 0; i < c.length; i++) {
+            if (MediaRecorder.isTypeSupported(c[i])) return c[i];
+          }
+        }
+        return "";
+      }
+
+      function encodeWavFromFloat32(samples, sampleRate) {
+        var n = samples.length;
+        var buf = new ArrayBuffer(44 + n * 2);
+        var view = new DataView(buf);
+        var o = 0;
+        function writeStr(s) {
+          for (var i = 0; i < s.length; i++) view.setUint8(o++, s.charCodeAt(i));
+        }
+        writeStr("RIFF");
+        view.setUint32(o, 36 + n * 2, true);
+        o += 4;
+        writeStr("WAVE");
+        writeStr("fmt ");
+        view.setUint32(o, 16, true);
+        o += 4;
+        view.setUint16(o, 1, true);
+        o += 2;
+        view.setUint16(o, 1, true);
+        o += 2;
+        view.setUint32(o, sampleRate, true);
+        o += 4;
+        view.setUint32(o, sampleRate * 2, true);
+        o += 4;
+        view.setUint16(o, 2, true);
+        o += 2;
+        view.setUint16(o, 16, true);
+        o += 2;
+        writeStr("data");
+        view.setUint32(o, n * 2, true);
+        o += 4;
+        for (var j = 0; j < n; j++) {
+          var x = samples[j];
+          var s = Math.max(-1, Math.min(1, x));
+          var i16 = s < 0 ? s * 32768 : s * 32767;
+          view.setInt16(o, i16, true);
+          o += 2;
+        }
+        return new Blob([buf], { type: "audio/wav" });
+      }
+
+      function flushWhisperTail() {
+        if (!whisperCtx || !whisperPcmPending || whisperPcmPending.length === 0) return;
+        var sr = whisperCtx.sampleRate;
+        if (whisperPcmPending.length < sr * 0.25) {
+          whisperPcmPending = new Float32Array(0);
+          return;
+        }
+        var wav = encodeWavFromFloat32(whisperPcmPending, sr);
+        whisperPcmPending = new Float32Array(0);
+        processWhisperChunk(wav);
+      }
+
+      function pushWhisperPcm(monoFloat32) {
+        if (!whisperCtx) return;
+        var sr = whisperCtx.sampleRate;
+        var chunkSamples = Math.max(256, Math.floor(sr * (CHUNK_MS / 1000)));
+        var maxKeep = sr * 20;
+        var a = whisperPcmPending && whisperPcmPending.length ? whisperPcmPending : new Float32Array(0);
+        var b = monoFloat32;
+        var merged = new Float32Array(a.length + b.length);
+        merged.set(a, 0);
+        merged.set(b, a.length);
+        whisperPcmPending = merged;
+        while (whisperPcmPending.length >= chunkSamples) {
+          var slice = whisperPcmPending.subarray(0, chunkSamples);
+          var copy = new Float32Array(slice.length);
+          copy.set(slice);
+          whisperPcmPending = whisperPcmPending.length > chunkSamples
+            ? whisperPcmPending.slice(chunkSamples)
+            : new Float32Array(0);
+          processWhisperChunk(encodeWavFromFloat32(copy, sr));
+        }
+        if (whisperPcmPending.length > maxKeep) {
+          whisperPcmPending = whisperPcmPending.slice(-maxKeep);
+        }
+      }
+
+      function getAudioContext() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return audioCtx;
+      }
+
+      function playBuzzSound() {
+        try {
+          var ctx = getAudioContext();
+          if (ctx.state === "suspended") ctx.resume();
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(180, ctx.currentTime);
+          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.22);
+        } catch (e) {}
+      }
+
+      function vibrateFivePulses() {
+        if (typeof navigator.vibrate === "function") {
+          try {
+            navigator.vibrate(0);
+          } catch (e0) {}
+          for (var k = 0; k < 5; k++) {
+            (function (idx) {
+              setTimeout(function () {
+                try {
+                  navigator.vibrate(42);
+                } catch (e1) {}
+              }, idx * 78);
+            })(k);
+          }
+          return;
+        }
+        for (var i = 0; i < 5; i++) {
+          (function (idx) {
+            setTimeout(function () {
+              playBuzzSound();
+            }, idx * 78);
+          })(i);
+        }
+      }
+
+      function flashScreenFiveTimes() {
+        el.flash.classList.remove("on");
+        el.flash.classList.remove("burst");
+        void el.flash.offsetWidth;
+        el.flash.classList.add("burst");
+        setTimeout(function () {
+          el.flash.classList.remove("burst");
+        }, 600);
+      }
+
+      function triggerAlert(hearText) {
+        var now = Date.now();
+        var line = hearText != null ? String(hearText).trim() : "";
+        var fp = line.toLowerCase().replace(/\s+/g, " ").slice(0, 200);
+        if (fp && fp === lastAlertFingerprint && now - lastAlertFingerprintAt < 160) {
+          return;
+        }
+        if (now - lastTrigger < COOLDOWN_MS) return;
+        lastTrigger = now;
+        if (fp) {
+          lastAlertFingerprint = fp;
+          lastAlertFingerprintAt = now;
+        }
+        if (line) {
+          appendTranscript("Trigger: " + line, true);
+        }
+        vibrateFivePulses();
+        flashScreenFiveTimes();
+      }
+
+      function tokenizeForKeywords(lower) {
+        if (!lower) return [];
+        try {
+          var m = lower.match(/[\p{L}\p{N}']+/gu);
+          if (m && m.length) {
+            for (var i = 0; i < m.length; i++) m[i] = m[i].toLowerCase();
+            return m;
+          }
+        } catch (eU) {}
+        var fallback = lower.match(/[a-z0-9\u00C0-\u024F]+/gi);
+        if (!fallback) return [];
+        for (var j = 0; j < fallback.length; j++) fallback[j] = fallback[j].toLowerCase();
+        return fallback;
+      }
+
+      function textHasKeyword(text) {
+        if (!text || !text.trim()) return false;
+        if (isUnreliableScript(text)) return false;
+        var normalized = normalizeStt(text);
+        for (var i = 0; i < KEYWORDS.length; i++) {
+          if (KEYWORDS[i].test(normalized)) return true;
+        }
+        var lower = normalized.toLowerCase();
+        var tokens = tokenizeForKeywords(lower);
+        if (!tokens || !tokens.length) return false;
+        var set = getPhoneticSet();
+        for (var j = 0; j < tokens.length; j++) {
+          var w = tokens[j];
+          if (set[w]) return true;
+          if (w.length >= 4 && /bot$/i.test(w)) return true;
+        }
+        return false;
+      }
+
+      /** Prefer higher-confidence alternatives (Chrome often exposes confidence). */
+      function keywordInSpeechResult(result) {
+        var n = result.length || 1;
+        var alts = [];
+        for (var a = 0; a < n; a++) {
+          var alt = result[a];
+          if (!alt || alt.transcript == null) continue;
+          var c = alt.confidence;
+          alts.push({
+            t: alt.transcript,
+            c: c == null ? -1 : c
+          });
+        }
+        alts.sort(function (x, y) {
+          return y.c - x.c;
+        });
+        for (var j = 0; j < alts.length; j++) {
+          if (textHasKeyword(alts[j].t)) return true;
+        }
+        return false;
+      }
+
+      function pickBestTranscript(result) {
+        var n = result.length || 1;
+        var bestT = "";
+        var bestC = -Infinity;
+        var nullConfBest = "";
+        for (var a = 0; a < n; a++) {
+          var alt = result[a];
+          if (!alt || alt.transcript == null) continue;
+          var t = alt.transcript;
+          var c = alt.confidence;
+          if (c == null) {
+            if (t && (!nullConfBest || t.length > nullConfBest.length)) nullConfBest = t;
+            continue;
+          }
+          if (c > bestC) {
+            bestC = c;
+            bestT = t;
+          }
+        }
+        if (bestC > -Infinity) return bestT;
+        return nullConfBest || bestT || (result[0] && result[0].transcript) || "";
+      }
+
+      function appendTranscript(text, isFinal) {
+        var line = document.createElement("div");
+        line.textContent = text;
+        if (!isFinal) line.style.opacity = "0.65";
+        el.transcript.appendChild(line);
+        el.transcript.scrollTop = el.transcript.scrollHeight;
+        while (el.transcript.children.length > 80) {
+          el.transcript.removeChild(el.transcript.firstChild);
+        }
+      }
+
+      function setListening(on) {
+        listening = on;
+        el.dot.classList.toggle("listening", on);
+        el.start.disabled = on;
+        el.stop.disabled = !on;
+        var modeLabel = "Browser";
+        if (useWhisper) {
+          modeLabel =
+            whisperSource === "local"
+              ? "Whisper (local)"
+              : whisperSource === "openai"
+                ? "Whisper (OpenAI)"
+                : "Whisper";
+        }
+        el.status.textContent = on
+          ? "Listening (" + modeLabel + ") — say “bot” or “chatbot”"
+          : "Idle — tap Start listening";
+      }
+
+      function releaseWakeLock() {
+        if (wakeLock) {
+          wakeLock.release().catch(function () {});
+          wakeLock = null;
+        }
+      }
+
+      function stopWhisperAudio() {
+        if (whisperChainStopTimer) {
+          clearTimeout(whisperChainStopTimer);
+          whisperChainStopTimer = null;
+        }
+        if (whisperChainRec) {
+          try {
+            if (whisperChainRec.state !== "inactive") whisperChainRec.stop();
+          } catch (eC) {}
+          whisperChainRec = null;
+        }
+        whisperUseMediaRecorderChain = false;
+        try {
+          flushWhisperTail();
+        } catch (e) {}
+        if (whisperProcessor) {
+          try {
+            whisperProcessor.disconnect();
+          } catch (e) {}
+          whisperProcessor.onaudioprocess = null;
+          whisperProcessor = null;
+        }
+        if (whisperMute) {
+          try {
+            whisperMute.disconnect();
+          } catch (e) {}
+          whisperMute = null;
+        }
+        if (whisperSourceNode) {
+          try {
+            whisperSourceNode.disconnect();
+          } catch (e) {}
+          whisperSourceNode = null;
+        }
+        if (whisperCtx) {
+          whisperCtx.close().catch(function () {});
+          whisperCtx = null;
+        }
+        whisperPcmPending = null;
+      }
+
+      function stopMedia() {
+        stopWhisperAudio();
+        if (mediaRecorder) {
+          try {
+            if (mediaRecorder.state !== "inactive") mediaRecorder.stop();
+          } catch (e) {}
+          mediaRecorder = null;
+        }
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(function (t) {
+            t.stop();
+          });
+          mediaStream = null;
+        }
+      }
+
+      function stopBrowserRecognition() {
+        if (recognition) {
+          try {
+            recognition.stop();
+          } catch (e) {}
+          recognition = null;
+        }
+      }
+
+      function transcribeBlob(blob) {
+        var fd = new FormData();
+        var ext = "webm";
+        if (blob.type && blob.type.indexOf("wav") !== -1) ext = "wav";
+        else if (blob.type && blob.type.indexOf("mp4") !== -1) ext = "m4a";
+        fd.append("audio", blob, "chunk." + ext);
+        return fetch("/api/transcribe", {
+          method: "POST",
+          body: fd
+        }).then(function (r) {
+          if (!r.ok) return r.text().then(function (t) {
+            throw new Error(t || r.statusText);
+          });
+          return r.json();
+        });
+      }
+
+      function processWhisperChunk(blob) {
+        if (!blob || blob.size < 200) return;
+        whisperQueue = whisperQueue.then(function () {
+          whisperBusy = true;
+          return transcribeBlob(blob)
+            .then(function (data) {
+              var t = (data && data.text) ? String(data.text).trim() : "";
+              if (t) setLastHeard(t);
+              if (t && textHasKeyword(t)) {
+                triggerAlert(t);
+              }
+            })
+            .catch(function (err) {
+              whisperErrShown++;
+              if (whisperErrShown <= 1) {
+                el.status.textContent = "Whisper error — see console / server.";
+              }
+            })
+            .then(function () {
+              whisperBusy = false;
+            });
+        });
+      }
+
+      /** ScriptProcessor is unreliable on iPhone/iPad Safari; chained MediaRecorder yields valid files for the server. */
+      function preferWhisperMediaRecorder() {
+        var ua = navigator.userAgent || "";
+        if (/iPhone|iPad|iPod/i.test(ua)) return true;
+        return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      }
+
+      function chainWhisperRecord() {
+        if (!listening || !useWhisper || !whisperUseMediaRecorderChain || !mediaStream) return;
+        if (whisperChainRec && whisperChainRec.state !== "inactive") return;
+        var mime = pickMime();
+        var opts = {};
+        if (mime) opts.mimeType = mime;
+        var mr;
+        try {
+          mr = new MediaRecorder(mediaStream, opts);
+        } catch (e0) {
+          try {
+            mr = new MediaRecorder(mediaStream);
+          } catch (e1) {
+            el.status.textContent = "Whisper capture failed — try Browser STT mode.";
+            setListening(false);
+            return;
+          }
+        }
+        var chunks = [];
+        mr.ondataavailable = function (e) {
+          if (e.data && e.data.size) chunks.push(e.data);
+        };
+        mr.onstop = function () {
+          whisperChainRec = null;
+          if (whisperChainStopTimer) {
+            clearTimeout(whisperChainStopTimer);
+            whisperChainStopTimer = null;
+          }
+          var typ = mr.mimeType || mime || "audio/webm";
+          var blob = new Blob(chunks, {type: typ});
+          if (blob.size > 200) processWhisperChunk(blob);
+          if (listening && useWhisper && whisperUseMediaRecorderChain) {
+            setTimeout(chainWhisperRecord, 35);
+          }
+        };
+        whisperChainRec = mr;
+        try {
+          mr.start();
+        } catch (e2) {
+          if (listening && useWhisper && whisperUseMediaRecorderChain) {
+            setTimeout(chainWhisperRecord, 150);
+          }
+          return;
+        }
+        whisperChainStopTimer = setTimeout(function () {
+          try {
+            if (mr.state !== "inactive") mr.stop();
+          } catch (e3) {}
+        }, CHUNK_MS);
+      }
+
+      function startWhisper() {
+        whisperErrShown = 0;
+        return navigator.mediaDevices
+          .getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              channelCount: 1
+            }
+          })
+          .then(function (stream) {
+            mediaStream = stream;
+            whisperPcmPending = new Float32Array(0);
+            if (preferWhisperMediaRecorder() && typeof MediaRecorder !== "undefined") {
+              whisperUseMediaRecorderChain = true;
+              setLastHeard("(Whisper: capturing audio — transcriptions appear here.)");
+              setListening(true);
+              el.transcript.innerHTML =
+                '<div style="opacity:0.55;font-size:0.8rem">Whisper — watch <strong>Last heard</strong> above; triggers below on match.</div>';
+              if ("wakeLock" in navigator) {
+                navigator.wakeLock
+                  .request("screen")
+                  .then(function (lock) {
+                    wakeLock = lock;
+                  })
+                  .catch(function () {});
+              }
+              chainWhisperRecord();
+              return;
+            }
+            whisperUseMediaRecorderChain = false;
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) {
+              el.status.textContent = "Web Audio API missing on this device.";
+              setListening(false);
+              return;
+            }
+            whisperCtx = new AC();
+            if (whisperCtx.state === "suspended") {
+              return whisperCtx.resume().then(function () {
+                return wireWhisperGraph(stream);
+              });
+            }
+            return wireWhisperGraph(stream);
+          })
+          .catch(function () {
+            el.status.textContent = "Microphone blocked or unavailable.";
+            setListening(false);
+          });
+
+        function wireWhisperGraph(stream) {
+          whisperSourceNode = whisperCtx.createMediaStreamSource(stream);
+          var procIn = 2;
+          try {
+            var tr0 = stream.getAudioTracks()[0];
+            if (tr0 && tr0.getSettings && tr0.getSettings().channelCount === 1) procIn = 1;
+          } catch (e2) {}
+          whisperProcessor = whisperCtx.createScriptProcessor(4096, procIn, 1);
+          whisperProcessor.onaudioprocess = function (e) {
+            var input = e.inputBuffer;
+            var ch = input.numberOfChannels;
+            var len = input.length;
+            var mono = new Float32Array(len);
+            if (ch === 1) {
+              mono.set(input.getChannelData(0));
+            } else {
+              for (var i = 0; i < len; i++) {
+                var sum = 0;
+                for (var c = 0; c < ch; c++) sum += input.getChannelData(c)[i];
+                mono[i] = sum / ch;
+              }
+            }
+            pushWhisperPcm(mono);
+          };
+          whisperMute = whisperCtx.createGain();
+          whisperMute.gain.value = 0;
+          whisperSourceNode.connect(whisperProcessor);
+          whisperProcessor.connect(whisperMute);
+          whisperMute.connect(whisperCtx.destination);
+          setListening(true);
+          setLastHeard("(Whisper: listening to PCM — transcriptions appear here.)");
+          el.transcript.innerHTML =
+            '<div style="opacity:0.55;font-size:0.8rem">Whisper — watch <strong>Last heard</strong> above; triggers below on match.</div>';
+          if ("wakeLock" in navigator) {
+            navigator.wakeLock
+              .request("screen")
+              .then(function (lock) {
+                wakeLock = lock;
+              })
+              .catch(function () {});
+          }
+        }
+      }
+
+      function startBrowserRecognition() {
+        if (!SpeechRecognition) return;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 8;
+        recognition.lang = getBrowserSttLang();
+        /* Do not set recognition.grammars — JSGF breaks or silences recognition on many mobile browsers. */
+
+        recognition.onstart = function () {
+          setLastHeard("(Browser STT started — speak; text appears here as it is recognized.)");
+        };
+        recognition.onspeechstart = function () {
+          setLastHeard("(Speech detected…)");
+        };
+
+        recognition.onresult = function (event) {
+          var caption = "";
+          for (var r = 0; r < event.results.length; r++) {
+            var alt0 = event.results[r] && event.results[r][0];
+            if (alt0 && alt0.transcript != null) caption += alt0.transcript;
+          }
+          if (caption.trim()) setLastHeard(caption.trim());
+
+          for (var i = event.resultIndex; i < event.results.length; i++) {
+            var result = event.results[i];
+            if (keywordInSpeechResult(result)) {
+              triggerAlert(pickBestTranscript(result));
+            }
+          }
+        };
+
+        recognition.onerror = function (event) {
+          if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+            el.status.textContent = "Microphone blocked — allow access in browser settings.";
+            setListening(false);
+            return;
+          }
+          if (event.error === "no-speech" || event.error === "aborted") {
+            return;
+          }
+          if (event.error === "network") {
+            el.status.textContent = "Speech network error — check connection and retry.";
+            return;
+          }
+          el.status.textContent = "Error: " + event.error;
+        };
+
+        recognition.onend = function () {
+          if (!listening) return;
+          var attempts = 0;
+          function restartSession() {
+            if (!listening || !recognition) return;
+            try {
+              recognition.start();
+            } catch (e) {
+              attempts++;
+              if (attempts < 12) {
+                setTimeout(restartSession, 40 + attempts * 35);
+              }
+            }
+          }
+          setTimeout(restartSession, 25);
+        };
+
+        try {
+          recognition.start();
+          setListening(true);
+          el.transcript.innerHTML =
+            '<div style="opacity:0.55;font-size:0.8rem">Listening… only trigger lines are logged below.</div>';
+          if ("wakeLock" in navigator) {
+            navigator.wakeLock
+              .request("screen")
+              .then(function (lock) {
+                wakeLock = lock;
+              })
+              .catch(function () {});
+          }
+        } catch (e) {
+          el.status.textContent = "Could not start speech recognition.";
+        }
+      }
+
+      function stopAll() {
+        setListening(false);
+        releaseWakeLock();
+        stopMedia();
+        stopBrowserRecognition();
+        resetLastHeardPanel();
+      }
+
+      function refreshCompat() {
+        el.warn.hidden = true;
+        el.warn.textContent = "";
+        if (location.protocol !== "https:" && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+          if (location.hostname.indexOf("trycloudflare.com") === -1) {
+            el.warn.hidden = false;
+            el.warn.textContent =
+              "Open over HTTPS (or localhost) or the microphone may be blocked.";
+          }
+        }
+      }
+
+      function syncModeRadios() {
+        el.modeWhisper.disabled = !whisperAvailable;
+        var pref = "browser";
+        try {
+          pref = localStorage.getItem("keyword-alert-stt-mode") || "browser";
+        } catch (e) {}
+        if (!whisperAvailable) {
+          el.modeBrowser.checked = true;
+          useWhisper = false;
+        } else if (pref === "whisper") {
+          el.modeWhisper.checked = true;
+          useWhisper = true;
+        } else {
+          el.modeBrowser.checked = true;
+          useWhisper = false;
+        }
+        updateBrowserLangVisibility();
+      }
+
+      fetch("/api/capabilities", { method: "GET" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("no api");
+          return r.json();
+        })
+        .then(function (data) {
+          whisperAvailable = !!(data && data.whisper);
+          whisperSource = (data && data.source) || "none";
+          if (whisperAvailable) {
+            if (whisperSource === "local") {
+              el.modeStatus.textContent =
+                "Whisper (local, free) — first run downloads the model; CPU can be slow.";
+            } else if (whisperSource === "openai") {
+              el.modeStatus.textContent =
+                "Whisper via OpenAI — usage is billed to your API key.";
+            } else {
+              el.modeStatus.textContent = "Whisper is available — selected by default.";
+            }
+          } else {
+            el.modeStatus.textContent =
+              "Whisper unavailable. Run uvicorn stt_server and set OPENAI_API_KEY and/or pip install -r requirements-local.txt";
+          }
+          syncModeRadios();
+        })
+        .catch(function () {
+          whisperAvailable = false;
+          whisperSource = "none";
+          el.modeStatus.textContent =
+            "Static hosting only — no /api. Run uvicorn stt_server for Whisper (OpenAI or local), or use Browser mode.";
+          el.modeBrowser.checked = true;
+          useWhisper = false;
+          el.modeWhisper.disabled = true;
+          updateBrowserLangVisibility();
+        })
+        .then(function () {
+          if (!whisperAvailable && !SpeechRecognition) {
+            el.warn.hidden = false;
+            el.warn.textContent =
+              "Speech recognition is not available. Use Chrome / Safari or run the Whisper server.";
+            el.start.disabled = true;
+          }
+          updateBrowserLangVisibility();
+        });
+
+      el.modeWhisper.addEventListener("change", function () {
+        useWhisper = el.modeWhisper.checked && whisperAvailable;
+        try {
+          localStorage.setItem("keyword-alert-stt-mode", useWhisper ? "whisper" : "browser");
+        } catch (e) {}
+        updateBrowserLangVisibility();
+      });
+      el.modeBrowser.addEventListener("change", function () {
+        useWhisper = false;
+        try {
+          localStorage.setItem("keyword-alert-stt-mode", "browser");
+        } catch (e) {}
+        updateBrowserLangVisibility();
+      });
+
+      el.start.addEventListener("click", function () {
+        refreshCompat();
+        setLastHeard("(Starting — allow the microphone if prompted.)");
+        useWhisper = el.modeWhisper.checked && whisperAvailable;
+        if (useWhisper) {
+          startWhisper();
+          return;
+        }
+        if (!SpeechRecognition) {
+          el.warn.hidden = false;
+          el.warn.textContent =
+            "Browser STT not supported here. Run stt_server with OPENAI_API_KEY or install local Whisper (requirements-local.txt).";
+          return;
+        }
+        startBrowserRecognition();
+      });
+
+      el.stop.addEventListener("click", stopAll);
+
+      refreshCompat();
+      updateBrowserLangVisibility();
+    })();
+  </script>
+</body>
+</html>

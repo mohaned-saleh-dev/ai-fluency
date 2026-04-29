@@ -1,0 +1,4 @@
+# Optional: free on-device transcription (no OpenAI key). Large download on first use.
+# Install: pip install -r requirements.txt -r requirements-local.txt
+# macOS: brew install ffmpeg  (recommended for WebM decode)
+faster-whisper>=1.0.3

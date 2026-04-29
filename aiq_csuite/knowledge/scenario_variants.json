@@ -1,0 +1,44 @@
+{
+  "D1": [
+    "Where GenAI is most and least defensible in your P&L over 24 months",
+    "A board request to 'double down on AI' without a budget line",
+    "Picking 2 org-wide use cases: speed vs. risk vs. quality",
+    "Saying no to a glossy AI initiative that will not clear ROI or risk bar",
+    "Comparing vendor hype to what your teams can actually deploy safely"
+  ],
+  "D2": [
+    "What you would put in a 6-line internal brief to get a good model output (policy)",
+    "How you coach a product leader whose AI deliverables are shallow",
+    "Constrained vendor demo: what success looks like in the room",
+    "Reusable guardrails and evaluation criteria you expect from leaders",
+    "What you personally correct first when a draft feels 'off'"
+  ],
+  "D3": [
+    "A number in a board deck that the model 'hallucinated' three steps ago",
+    "A confident AI summary of customer complaints that is wrong in the aggregate",
+    "A marketing claim that is legally fine but brand-risky",
+    "Red-team review: where your org is over-trusting the model",
+    "Metrics you watch to know quality is not decaying as AI use scales"
+  ],
+  "D4": [
+    "Reworking a quarterly planning cadence with AI in the middle",
+    "Hiring, performance review, and AI: where you will not automate",
+    "A workflow that is 80% faster but 20% more fragile: what you do",
+    "Cross-functional ownership when 'the AI' breaks in production",
+    "Standard tools vs. best-in-breed: how you decide and govern"
+  ],
+  "D5": [
+    "A doc, spec, or reply that others will rely on: where you would not let default AI quality ship",
+    "A market or external narrative you would not let default AI voice ship, when that is in your remit",
+    "Internal comms (email, Slack, wikis): how you keep AI help from reading generic to your org",
+    "A creative or customer-facing asset that is fast but not good enough: what you fix first",
+    "What 'good enough to send' means when a model did the first pass"
+  ],
+  "D6": [
+    "A third-party AI with access to customer or partner data: minimum controls",
+    "Data residency, retention, and deletion: what you ask in the room",
+    "An incident: model output sent externally by mistake. First 3 moves",
+    "IP and training data: the line you draw for a regulated business",
+    "Regulatory or partner audit in 18 months: what evidence you need now"
+  ]
+}

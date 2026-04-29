@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIQ — Executive Document</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#fafaf8; --surface:#fff; --border:#e8e6e1;
+  --text:#1a1a18; --ts:#6b6963; --tm:#a09d96;
+  --blue:#2563eb; --purple:#7c3aed; --green:#059669;
+  --amber:#d97706; --rose:#e11d48; --slate:#475569;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+
+.doc{max-width:760px;margin:0 auto;padding:80px 48px 120px;background:var(--surface);min-height:100vh;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+@media(max-width:800px){.doc{padding:48px 24px 80px;border:none;}}
+
+/* Cover */
+.cover{margin-bottom:64px;padding-bottom:48px;border-bottom:2px solid var(--text);}
+.cover .label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--purple);font-weight:600;margin-bottom:12px;}
+.cover h1{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:12px;}
+.cover .subtitle{font-size:1.05rem;color:var(--ts);font-weight:300;line-height:1.6;margin-bottom:24px;}
+.cover-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;font-size:0.78rem;}
+.cover-meta dt{color:var(--tm);font-weight:500;text-transform:uppercase;font-size:0.65rem;letter-spacing:0.08em;}
+.cover-meta dd{color:var(--text);font-weight:400;margin-bottom:12px;}
+
+/* Part divider */
+.part{margin:64px 0 40px;padding:16px 0;border-top:2px solid var(--text);border-bottom:1px solid var(--border);}
+.part h2{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
+.part .part-sub{font-size:0.78rem;color:var(--ts);font-weight:300;margin-top:4px;}
+
+/* Page marker */
+.page-marker{margin:48px 0 28px;display:flex;align-items:center;gap:12px;}
+.page-marker .pm-line{flex:1;height:1px;background:var(--border);}
+.page-marker .pm-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--tm);font-weight:600;flex-shrink:0;}
+
+/* Section headings */
+h3{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:600;margin:32px 0 12px;letter-spacing:-0.01em;}
+h4{font-size:0.82rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--ts);margin:24px 0 10px;}
+
+/* Body text */
+p{font-size:0.88rem;color:var(--ts);font-weight:300;line-height:1.75;margin-bottom:16px;}
+p strong{color:var(--text);font-weight:600;}
+p em{font-style:italic;}
+
+/* Opening quote */
+.opening{font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;color:var(--text);line-height:1.6;padding:24px 0 24px 24px;border-left:3px solid var(--text);margin:8px 0 28px;}
+
+/* Lists */
+ul,ol{margin:0 0 20px 0;padding-left:20px;}
+li{font-size:0.86rem;color:var(--ts);font-weight:300;line-height:1.7;margin-bottom:4px;}
+li strong{color:var(--text);font-weight:600;}
+li em{color:var(--purple);font-style:italic;}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:12px 0 24px;font-size:0.82rem;}
+thead th{text-align:left;padding:10px 14px;font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--tm);border-bottom:2px solid var(--text);}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--ts);font-weight:300;vertical-align:top;}
+tbody td:first-child{color:var(--text);font-weight:500;}
+tbody tr:last-child td{border-bottom:none;}
+
+/* The Ask box */
+.ask-box{background:#fdf4ff;border:1px solid #e9d5ff;border-radius:10px;padding:24px 28px;margin:24px 0;}
+.ask-box h4{color:var(--purple);margin-top:0;}
+.ask-box ol{padding-left:20px;}
+.ask-box li{color:var(--text);font-weight:400;}
+
+/* Appendix items */
+.appendix-item{margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.appendix-item:last-child{border-bottom:none;}
+.appendix-item h4{color:var(--text);margin-top:0;font-size:0.86rem;text-transform:none;letter-spacing:0;}
+.appendix-item .app-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--purple);font-weight:600;margin-bottom:4px;}
+.appendix-item ul{margin-bottom:0;}
+
+/* Next steps */
+.next-steps{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:24px 28px;margin:32px 0;}
+.next-steps h4{color:var(--text);margin-top:0;}
+
+/* HR */
+hr{border:none;height:1px;background:var(--border);margin:40px 0;}
+
+/* Footer */
+.doc-footer{text-align:center;margin-top:64px;padding-top:24px;border-top:1px solid var(--border);font-size:0.66rem;color:var(--tm);}
+
+/* Print */
+@media print{
+  body{background:#fff;}
+  .doc{border:none;padding:40px 48px;max-width:none;}
+  .page-marker{page-break-before:always;}
+}
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="label">AI Quotient</div>
+    <h1>AIQ Initiative</h1>
+    <p class="subtitle">Enterprise-wide framework for assessing, building, and embedding AI fluency — the people &amp; capability arm of the AI Transformation.</p>
+    <dl class="cover-meta">
+      <dt>Format</dt>
+      <dd>Executive memo (3 pages) + detailed appendix</dd>
+      <dt>Audience</dt>
+      <dd>CEO, COO, CHRO, CTO, all C-level</dd>
+      <dt>Purpose</dt>
+      <dd>Secure alignment, budget approval, and launch authorization</dd>
+      <dt>Timeline</dt>
+      <dd>~2 weeks (post-Friday partner call)</dd>
+    </dl>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PART 1 -->
+  <!-- ============================================================ -->
+  <div class="part">
+    <h2>Part 1 — Executive Memo</h2>
+    <div class="part-sub">3-page read-ahead for C-level leadership</div>
+  </div>
+
+  <!-- PAGE 1 -->
+  <div class="page-marker"><span class="pm-label">Page 1 — The Opportunity</span><span class="pm-line"></span></div>
+
+  <div class="opening">"[Company] has committed to becoming an AI-first organization by end of year. The AI Transformation Taskforce is building the tools and workflows. AIQ is the missing piece — ensuring our people can actually drive the transformation."</div>
+
+  <h4>The Problem</h4>
+  <ul>
+    <li>AI tools are available but adoption is <strong>unstructured and ad hoc</strong></li>
+    <li>No framework to assess AI readiness — for candidates or existing employees</li>
+    <li>No standardized expectations by role, seniority, or function</li>
+    <li>Risk: investing in AI infrastructure that <strong>nobody uses effectively</strong></li>
+  </ul>
+
+  <h4>The Opportunity</h4>
+  <ul>
+    <li><strong>Talent Density:</strong> Every hire arrives AI-fluent. Every employee levels up.</li>
+    <li><strong>Competitive Edge:</strong> First company in the region with a formalized AI fluency program</li>
+    <li><strong>Brand Aspiration:</strong> "AI-native" becomes reality, not aspiration</li>
+    <li><strong>Multiplier Effect:</strong> AIQ makes every other AI investment (Taskforce, tools, agents) more effective</li>
+  </ul>
+
+  <h4>Benchmarks</h4>
+  <ul>
+    <li><strong>Meta:</strong> 70%+ AI tool adoption target, "Level Up" gamification, "AI Builder" roles</li>
+    <li><strong>Google:</strong> 50%+ code AI-written, AI use factored into performance reviews</li>
+    <li><strong>Microsoft:</strong> AI tied to performance evaluations</li>
+    <li><em>"No comparable solution exists globally — we're building from scratch"</em> (per COO)</li>
+  </ul>
+
+  <!-- PAGE 2 -->
+  <div class="page-marker"><span class="pm-label">Page 2 — The Framework</span><span class="pm-line"></span></div>
+
+  <h3>What is AIQ?</h3>
+  <p>AIQ (AI Quotient) is a 4-level maturity model that defines what AI fluency looks like at every level of the organization:</p>
+
+  <table>
+    <thead><tr><th>Level</th><th>Name</th><th>Definition</th><th>Target Roles</th></tr></thead>
+    <tbody>
+      <tr><td>AIQ 1</td><td>AI Aware</td><td>Can use AI for basic tasks</td><td>Junior staff</td></tr>
+      <tr><td>AIQ 2</td><td>AI Proficient</td><td>Integrates AI into daily workflows</td><td>Mid-level staff</td></tr>
+      <tr><td>AIQ 3</td><td>AI Builder</td><td>Builds AI-powered solutions</td><td>Senior/Lead + technical</td></tr>
+      <tr><td>AIQ 4</td><td>AI Strategist</td><td>Drives AI transformation</td><td>Directors+</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Two Populations, One Framework</h4>
+
+  <p><strong>Candidates (Pre-Hire):</strong></p>
+  <ul>
+    <li>Multi-touch assessment across the hiring funnel</li>
+    <li>Role-specific criteria: different tests for engineers vs. PMs vs. marketers</li>
+    <li>AI-augmented case studies, tool proficiency tests, portfolio reviews</li>
+    <li>Target: every new hire has a <strong>verified AIQ score</strong> before joining</li>
+  </ul>
+
+  <p><strong>Existing Employees:</strong></p>
+  <ul>
+    <li>Baseline assessment: map the entire org to AIQ 1–4</li>
+    <li>Continuous cycle: Baseline → Train → Measure → Embed</li>
+    <li>AIQ becomes a <strong>formal competency</strong> in performance reviews</li>
+    <li>Training paths, hackathons, gamification, AI Champions network</li>
+  </ul>
+
+  <h4>The AI Stack (3-Layer Model)</h4>
+  <table>
+    <thead><tr><th>Layer</th><th>What</th><th>Governance</th></tr></thead>
+    <tbody>
+      <tr><td>Foundation LLMs</td><td>ChatGPT, Claude, Gemini</td><td>Standardized (2-3 approved)</td></tr>
+      <tr><td>Specialized Tools</td><td>Function-specific AI tools</td><td>Per-vertical evaluation</td></tr>
+      <tr><td>Application Layer</td><td>Cursor, workflow tools</td><td>Role-based access</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PAGE 3 -->
+  <div class="page-marker"><span class="pm-label">Page 3 — The Plan</span><span class="pm-line"></span></div>
+
+  <h3>Phased Rollout</h3>
+  <table>
+    <thead><tr><th>Phase</th><th>Timeline</th><th>Key Deliverables</th></tr></thead>
+    <tbody>
+      <tr><td>Phase 0 — Foundation</td><td>Weeks 1-4</td><td>Framework design, baseline assessment, executive alignment, partner evaluation</td></tr>
+      <tr><td>Phase 1 — Pilot</td><td>Months 2-3</td><td>Pilot 2-3 job families, deploy AIQ assessment, launch training, deliver quick win</td></tr>
+      <tr><td>Phase 2 — Scale</td><td>Months 4-6</td><td>All functions, performance integration, candidate AIQ live, agent builder pipeline</td></tr>
+      <tr><td>Phase 3 — Embed</td><td>Months 7-12</td><td>Cultural embedding, ROI measurement, continuous optimization, brand amplification</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Quick Win (Weeks 4-6)</h4>
+  <p>A working AIQ assessment deployed for <strong>one job family</strong> — demonstrating the model works.</p>
+
+  <h4>Pilot Functions</h4>
+  <ul>
+    <li><strong>Engineering</strong> as reference model (already ahead — extract patterns)</li>
+    <li><strong>Product, Design, Marketing, Operations, Sales, Finance</strong> as Phase 1 pilots</li>
+  </ul>
+
+  <h4>Positioning</h4>
+  <p>AIQ is the <strong>people &amp; capability arm</strong> of the AI Transformation:</p>
+  <ul>
+    <li>Taskforce = tools &amp; workflows</li>
+    <li>AIQ = people &amp; capability</li>
+    <li>Shared goal = AI-first company by end of year</li>
+  </ul>
+
+  <h4>Governance &amp; Operating Model</h4>
+  <ul>
+    <li><strong>AIQ Lead:</strong> Head of Strategy &amp; Operations</li>
+    <li><strong>Executive Sponsor:</strong> COO</li>
+    <li><strong>Steering Committee:</strong> Cross-functional (CHRO, CTO, Dept Heads)</li>
+    <li><strong>Alignment:</strong> AI Transformation Taskforce</li>
+    <li><strong>Measurement:</strong> Leading indicators (usage, adoption) + Lagging indicators (productivity, quality)</li>
+    <li><strong>External Partner:</strong> US-based company (scope being defined)</li>
+  </ul>
+
+  <div class="ask-box">
+    <h4>The Ask</h4>
+    <ol>
+      <li>C-level alignment and endorsement</li>
+      <li>Budget approval for: tool licensing, training investment, external partner engagement</li>
+      <li>Cross-functional mandate: every department participates</li>
+      <li>CEO as public champion — town hall launch</li>
+    </ol>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PART 2 -->
+  <!-- ============================================================ -->
+  <div class="part">
+    <h2>Part 2 — Detailed Appendix</h2>
+    <div class="part-sub">Working details referenced in the memo — to be built out post-Friday call</div>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix A</div>
+    <h4>AIQ Maturity Model — Detailed Definitions</h4>
+    <ul>
+      <li>Full competency descriptions per level (AIQ 1-4)</li>
+      <li>Role × Seniority mapping matrix (all job families)</li>
+      <li>Technical vs. non-technical adjustment rules</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix B</div>
+    <h4>Candidate Assessment — Design Specification</h4>
+    <ul>
+      <li>Assessment matrix per job family (Engineering, Product, Design, Marketing, Sales, Ops, Finance)</li>
+      <li>Funnel integration map (5 touchpoints)</li>
+      <li>Scoring methodology</li>
+      <li>Platform requirements &amp; partner scope</li>
+      <li>Legal/compliance checklist (GCC jurisdictions)</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix C</div>
+    <h4>Existing Employee Program — Detailed Design</h4>
+    <ul>
+      <li>Baseline assessment methodology &amp; survey design</li>
+      <li>Training curriculum framework (paths per AIQ level)</li>
+      <li>Gamification &amp; adoption mechanisms</li>
+      <li>Performance integration specification (competency definitions for review cycles)</li>
+      <li>Agent building program connection (central team charter integration)</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix D</div>
+    <h4>AI Stack — 3-Layer Specification</h4>
+    <ul>
+      <li>Layer 1: Foundation LLMs — approved list, data policies, licensing</li>
+      <li>Layer 2: Specialized Tools — evaluation framework per function</li>
+      <li>Layer 3: Application Layer — access matrix (role-based provisioning)</li>
+      <li>Shadow AI policy</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix E</div>
+    <h4>Governance Framework</h4>
+    <ul>
+      <li>Data privacy &amp; security policies</li>
+      <li>AI ethics guidelines</li>
+      <li>Bias &amp; fairness framework (especially for hiring)</li>
+      <li>Regulatory compliance by GCC jurisdiction</li>
+      <li>Accountability model (RACI)</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix F</div>
+    <h4>Change Management Plan</h4>
+    <ul>
+      <li>Stakeholder map &amp; sponsorship model</li>
+      <li>Communication plan (town hall → cascade → campaign)</li>
+      <li>Employee value proposition messaging</li>
+      <li>Resistance mitigation playbook</li>
+      <li>Success metrics for change adoption</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix G</div>
+    <h4>Measurement Framework</h4>
+    <ul>
+      <li>Leading indicators (usage, adoption rates, tool engagement)</li>
+      <li>Lagging indicators (productivity, quality, time-to-completion)</li>
+      <li>Dashboard specification</li>
+      <li>Reporting cadence (weekly → monthly → quarterly → board)</li>
+      <li>Target benchmarks by phase</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix H</div>
+    <h4>Budget &amp; Resource Requirements</h4>
+    <ul>
+      <li>Tool licensing costs (3-layer stack)</li>
+      <li>Training investment (content, facilitators, platforms)</li>
+      <li>External partner engagement costs</li>
+      <li>Internal resource allocation (FTE time)</li>
+      <li>ROI projection model</li>
+    </ul>
+  </div>
+
+  <div class="appendix-item">
+    <div class="app-label">Appendix I</div>
+    <h4>Risk Register</h4>
+    <ul>
+      <li>Key risks, likelihood, impact, mitigation strategies</li>
+      <li>Dependencies (partner, Taskforce, leadership bandwidth)</li>
+      <li>Contingency plans</li>
+    </ul>
+  </div>
+
+  <!-- NEXT STEPS -->
+  <div class="next-steps">
+    <h4>Next Steps</h4>
+    <ol>
+      <li><strong>Friday call:</strong> Evaluate partner capabilities against scope framework</li>
+      <li><strong>Week 1-2:</strong> Incorporate partner insights, finalize document</li>
+      <li><strong>Week 2:</strong> Internal review with COO</li>
+      <li><strong>Week 3:</strong> Present to C-level team</li>
+      <li><strong>Post-approval:</strong> Launch Phase 0 immediately</li>
+    </ol>
+  </div>
+
+  <div class="doc-footer">AIQ Initiative · Confidential · Working Draft · April 2026</div>
+
+</div>
+</body>
+</html>

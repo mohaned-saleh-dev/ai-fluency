@@ -1,0 +1,101 @@
+<apex:page showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false">
+<html>
+<head>
+    <title>Duplicate Tab — Closing...</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Salesforce Sans', Arial, sans-serif;
+        }
+        .warning-box {
+            background-color: white;
+            border-radius: 12px;
+            padding: 48px 64px;
+            text-align: center;
+            max-width: 520px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .warning-icon {
+            font-size: 72px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #c23934;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+        p {
+            font-size: 16px;
+            color: #444;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        .instruction {
+            font-weight: 700;
+            color: #0070d2;
+            margin-top: 24px;
+            font-size: 18px;
+        }
+        .sub-text {
+            font-size: 13px;
+            color: #999;
+            margin-top: 32px;
+        }
+        /* Initially hidden — only shown if auto-close fails */
+        .warning-box { display: none; }
+    </style>
+</head>
+<body>
+    <div class="warning-box" id="warningBox">
+        <div class="warning-icon">⚠️</div>
+        <h1>Salesforce Is Already Open</h1>
+        <p>You already have Salesforce open in another browser tab.</p>
+        <p>Using multiple tabs causes <strong>Omni-Channel issues</strong> — your status may become out of sync.</p>
+        <p class="instruction">Please close this tab and go back to your other Salesforce tab.</p>
+        <p class="sub-text">If you believe this is an error, close ALL Salesforce tabs and open a fresh one.</p>
+    </div>
+
+    <script>
+        // ============================================================
+        // AUTO-CLOSE SEQUENCE
+        // The tab tries to close itself automatically.
+        // The warning message is only shown as a last resort.
+        // ============================================================
+
+        // ATTEMPT 1: Immediately try to close
+        try {
+            window.open('about:blank', '_self');
+            window.close();
+        } catch(e) {}
+
+        // ATTEMPT 2: After 300ms, try again with a different method
+        setTimeout(function() {
+            try {
+                window.close();
+            } catch(e) {}
+        }, 300);
+
+        // ATTEMPT 3: After 600ms, try the open-then-close trick
+        setTimeout(function() {
+            try {
+                var win = window.open('', '_self');
+                if (win) win.close();
+            } catch(e) {}
+        }, 600);
+
+        // FALLBACK: After 1.5 seconds, if the tab is STILL open,
+        // the browser is blocking auto-close.
+        // Show the warning message so the agent knows to close manually.
+        setTimeout(function() {
+            document.getElementById('warningBox').style.display = 'block';
+        }, 1500);
+    </script>
+</body>
+</html>
+</apex:page>

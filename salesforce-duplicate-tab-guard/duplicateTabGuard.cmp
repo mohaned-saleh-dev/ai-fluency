@@ -1,0 +1,17 @@
+<!--
+    duplicateTabGuard — Aura Component
+    
+    Purpose: Detects if Salesforce is open in another browser tab.
+    If yes, redirects this (newer) tab to a warning page.
+    The original tab stays active and unaffected.
+    
+    Deploy via: Developer Console → File → New → Lightning Bundle
+    Add to: Service Console App → Utility Items → Start automatically = YES
+-->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!-- This component is invisible — it runs silently in the utility bar -->
+</aura:component>
+
+
+

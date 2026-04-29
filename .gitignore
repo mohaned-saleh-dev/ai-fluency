@@ -36,6 +36,17 @@ ENV/
 # Environment variables
 .env
 .env.local
+.env.backup
+.env.bak
+
+# Cursor / local IDE
+.cursor/
+
+# Local shell history
+.Rhistory
+
+# Local SQLite DBs (paths used by apps in this repo)
+**/instance/*.db
 
 # Configuration (if sensitive)
 config.json
@@ -43,6 +54,9 @@ config.local.json
 
 # Logs
 *.log
+
+# Local Contentful CMA exports (can be large / sensitive)
+contentful-export/
 
 # OS
 .DS_Store

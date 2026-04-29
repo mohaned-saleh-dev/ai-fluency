@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AiQ Admin Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0b1f;
+      --panel: #1b1232;
+      --panel-2: #25164a;
+      --line: #3d2b6f;
+      --ink: #f4efff;
+      --muted: #bcaee5;
+      --accent: #9c4dff;
+      --good: #19c37d;
+      --warn: #f6b100;
+      --bad: #ff7b7b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      background: radial-gradient(1200px 700px at 8% 0%, #2f1a5a 0%, #120c24 58%, #0f0b1f 100%) fixed;
+    }
+    .hidden { display: none !important; }
+    .shell { width: min(1400px, 96vw); margin: 0 auto; padding: 1rem 0 1.8rem; }
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.5rem 0.95rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(90deg, #6f2ae8, var(--accent));
+      cursor: pointer;
+    }
+    .btn.ghost {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(207, 183, 255, 0.26);
+      color: var(--ink);
+    }
+    .err { color: #ff9a9a; font-size: 0.82rem; min-height: 1rem; margin-top: 0.45rem; }
+
+    /* Login */
+    .login-wrap { min-height: 96vh; display: grid; place-items: center; }
+    .login-card {
+      width: min(520px, 94vw);
+      border-radius: 16px;
+      border: 1px solid rgba(174, 132, 255, 0.28);
+      background: linear-gradient(160deg, rgba(31, 20, 58, 0.95), rgba(16, 11, 31, 0.96));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+      padding: 1.05rem 1.05rem 0.9rem;
+    }
+    .kicker { margin: 0 0 0.38rem; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; }
+    .title { margin: 0; font-size: 1.4rem; letter-spacing: -0.01em; }
+    .sub { margin: 0.4rem 0 0.75rem; color: var(--muted); font-size: 0.9rem; line-height: 1.42; }
+    .in {
+      width: 100%;
+      padding: 0.68rem 0.72rem;
+      border-radius: 12px;
+      border: 1px solid rgba(199, 170, 255, 0.32);
+      outline: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--ink);
+      font-size: 0.94rem;
+    }
+    .in:focus { border-color: #c59bff; box-shadow: 0 0 0 3px rgba(177, 122, 255, 0.2); }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; }
+
+    /* Dashboard */
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+    .top h1 { margin: 0; font-size: 1.18rem; letter-spacing: -0.01em; }
+    .top p { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(390px, 0.9fr) minmax(580px, 1.4fr); gap: 0.8rem; }
+    @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+    .card { border: 1px solid rgba(175, 143, 242, 0.24); border-radius: 14px; background: linear-gradient(160deg, rgba(34, 21, 64, 0.94), rgba(16, 11, 31, 0.96)); overflow: hidden; }
+    .card-h { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.58rem 0.72rem; border-bottom: 1px solid rgba(175, 143, 242, 0.18); background: rgba(130, 75, 242, 0.1); }
+    .card-h h2 { margin: 0; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .card-h .meta { font-size: 0.68rem; color: var(--muted); }
+
+    .sess-wrap { max-height: 80vh; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border-bottom: 1px solid rgba(178, 151, 241, 0.13); padding: 0.46rem 0.46rem; text-align: left; font-size: 0.72rem; vertical-align: top; }
+    th { position: sticky; top: 0; z-index: 2; background: #301a58; color: #d9c9ff; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    tr.srow { cursor: pointer; }
+    tr.srow:hover { background: rgba(157, 84, 255, 0.12); }
+    tr.srow.active { background: rgba(157, 84, 255, 0.2); }
+    .btn-admin-del {
+      font-size: 0.6rem; padding: 0.2rem 0.45rem; min-width: auto; line-height: 1.2;
+      background: rgba(255, 90, 90, 0.2); border: 1px solid rgba(255, 140, 140, 0.45);
+      text-transform: none; letter-spacing: 0.02em; font-weight: 700;
+    }
+    .btn-admin-del:hover { background: rgba(255, 90, 90, 0.35); }
+    .card-h-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; max-width: 72%; }
+    th.no-click, td.del-cell { text-align: center; width: 3.2rem; }
+    td.del-cell { cursor: default; }
+    td.del-cell * { cursor: pointer; }
+    .sid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255, 255, 255, 0.08); border-radius: 5px; padding: 0.05rem 0.3rem; font-size: 0.68rem; }
+    .pill { display: inline-block; padding: 0.09rem 0.4rem; border-radius: 999px; background: #6f35e5; color: #fff; font-size: 0.67rem; font-weight: 800; }
+    .muted { color: #a89bcf; }
+    .detail { max-height: 80vh; overflow: auto; padding: 0.62rem 0.72rem 0.78rem; font-size: 0.9rem; line-height: 1.45; }
+    .metrics-hero {
+      border: 1px solid rgba(160, 130, 255, 0.35);
+      border-radius: 14px;
+      background: linear-gradient(160deg, rgba(45, 28, 82, 0.5), rgba(20, 14, 40, 0.85));
+      padding: 0.65rem 0.6rem 0.75rem;
+      margin-bottom: 0.65rem;
+      overflow: visible;
+    }
+    .metrics-hero h3 { font-size: 0.8rem; letter-spacing: 0.11em; margin: 0 0 0.4rem; color: #f0e8ff; font-weight: 800; }
+    .metrics-hero .lead { margin: 0 0 0.55rem; font-size: 0.8rem; line-height: 1.45; color: #c9b8ed; }
+    .kpis { display: grid; grid-template-columns: repeat(1, minmax(220px, 1fr)); gap: 0.6rem; }
+    @media (min-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(220px, 1fr)); } }
+    @media (min-width: 1180px) { .kpis { grid-template-columns: repeat(3, minmax(220px, 1fr)); } }
+    @media (max-width: 600px) { .kpis { grid-template-columns: 1fr; } }
+    .kpi { position: relative; border: 1px solid rgba(175, 146, 240, 0.28); border-radius: 14px; padding: 0.56rem 0.58rem 0.58rem; background: rgba(255, 255, 255, 0.04); min-height: 6.1rem; }
+    .kpi .k-row { display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; margin-bottom: 0.1rem; }
+    .kpi .k { font-size: 0.64rem; color: #ddd4f5; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; flex: 1; }
+    .kpi .v { font-size: 1.2rem; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.2; margin-top: 0.25rem; }
+    .hint-ico {
+      flex-shrink: 0;
+      width: 0.92rem; height: 0.92rem; border-radius: 999px; border: 1px solid rgba(199, 170, 255, 0.5);
+      background: rgba(130, 75, 242, 0.4); color: #fff; font-size: 0.5rem; font-weight: 900; cursor: pointer; line-height: 1; padding: 0;
+    }
+    .hint-ico:hover, .hint-ico:focus { background: rgba(180, 120, 255, 0.55); outline: none; box-shadow: 0 0 0 2px rgba(177, 122, 255, 0.4); }
+    .hint-pop {
+      display: none;
+      position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% - 2px);
+      margin-top: 0.25rem;
+      padding: 0.6rem 0.65rem;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      font-weight: 600;
+      color: #ece6ff;
+      background: #1f1438;
+      border: 1px solid rgba(190, 160, 255, 0.45);
+      border-radius: 10px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+    .kpi .hint-pop.open, .kpi--wide .hint-pop.open, .has-hint .hint-pop.open { display: block; }
+    .kpi--wide { grid-column: 1 / -1; min-height: 6.3rem; }
+    .kpi--wide .hint-pop { max-width: 100%; }
+    .hint-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; color: #f5efff; }
+    .hint-list { margin: 0; padding-left: 1.05rem; }
+    .hint-list li { margin: 0.12rem 0; }
+    .hint-list li::marker { color: #c7a8ff; }
+    .kpi .co, .kpi-co {
+      margin-top: 0.3rem;
+      font-size: 0.65rem;
+      line-height: 1.4;
+      color: #9e8cc9;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .panel-title { margin: 0 0 0.2rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #f2e8ff; font-weight: 800; }
+    .chart-legend { margin: 0.35rem 0 0.15rem; font-size: 0.75rem; line-height: 1.45; color: #c4b0e0; font-weight: 500; }
+    .chart-why { margin: 0 0 0.5rem; padding: 0.6rem 0.7rem; font-size: 0.9rem; line-height: 1.55; font-weight: 700; color: #f1e9ff; background: rgba(255,255,255,0.07); border-radius: 12px; border: 1px solid rgba(150, 120, 220, 0.3); }
+    .chart-why b { color: #fff; font-weight: 800; }
+    .chart-clean { display: grid; gap: 0.45rem; }
+    .turn-row { display: grid; grid-template-columns: 54px 1fr 70px; gap: 0.45rem; align-items: center; }
+    .turn-lbl { font-size: 0.76rem; color: #f2e9ff; font-weight: 700; }
+    .turn-track { position: relative; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(175,146,240,0.35); overflow: hidden; }
+    .turn-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #7f4dff, #d09cff); }
+    .turn-val { font-size: 0.75rem; text-align: right; font-weight: 700; color: #f2ebff; }
+    .dim-clean { display: grid; gap: 0.42rem; }
+    .dim-row { border: 1px solid rgba(175,146,240,0.25); background: rgba(255,255,255,0.03); border-radius: 10px; padding: 0.42rem 0.5rem; }
+    .dim-head { display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline; margin-bottom: 0.18rem; }
+    .dim-head b { font-size: 0.78rem; }
+    .dim-head span { font-size: 0.72rem; color: #dccdff; font-weight: 700; }
+    .dim-track { position: relative; height: 12px; border-radius: 999px; border: 1px solid rgba(175,146,240,0.32); background: rgba(255,255,255,0.05); overflow: hidden; }
+    .dim-target { position: absolute; left:0; top:0; bottom:0; background: rgba(167,138,230,0.55); }
+    .dim-actual { position: absolute; left:0; top:0; bottom:0; background: linear-gradient(90deg, #12c87c, #5fd9c2); }
+    .ev-wrap { min-height: 10rem; padding: 0.35rem 0.4rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(160, 130, 220, 0.22); }
+    .ev-h { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #c4b0ee; font-weight: 800; margin: 0.35rem 0 0.2rem; }
+    .ev-h:first-child { margin-top: 0; }
+    .ev-wrap ul { margin: 0.15rem 0 0 1.1rem; padding: 0; color: #e8dfff; font-size: 0.8rem; line-height: 1.45; }
+    .ev-wrap li { margin: 0.1rem 0; }
+    .ev-note { margin-top: 0.3rem; font-size: 0.8rem; line-height: 1.45; color: #e4dcf8; font-weight: 500; }
+    .sec { margin-top: 0.85rem; }
+    .sec h3 { margin: 0 0 0.4rem; font-size: 0.78rem; color: #eee6ff; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.46rem; }
+    @media (max-width: 980px) { .grid2 { grid-template-columns: 1fr; } }
+    .panel { border: 1px solid rgba(172, 142, 240, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.03); padding: 0.4rem 0.44rem; }
+    .chart { width: 100%; height: 200px; display: block; background: rgba(20, 13, 40, 0.58); border-radius: 8px; border: 1px solid rgba(162, 129, 236, 0.18); }
+    .caption { margin-top: 0.25rem; color: #a99dd0; font-size: 0.68rem; line-height: 1.35; }
+    .list { display: grid; gap: 0.34rem; }
+    .itm { border-left: 3px solid var(--accent); border-radius: 10px; background: rgba(255, 255, 255, 0.05); padding: 0.5rem 0.55rem; }
+    .itm b { font-size: 0.85rem; }
+    .itm p { margin: 0.1rem 0 0; color: #f0e8ff; font-size: 0.8rem; line-height: 1.5; font-weight: 600; }
+    .rec-panel .itm p { font-size: 0.9rem; line-height: 1.55; font-weight: 700; white-space: normal; }
+    .rec-panel .rec-lead { font-size: 0.7rem; line-height: 1.45; font-weight: 600; color: #b9a4df; margin: 0 0 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .rec-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0.55rem; }
+    .rec-action-card { border: 1px solid rgba(175,146,240,0.28); background: rgba(0,0,0,0.2); border-radius: 10px; padding: 0.5rem 0.55rem 0.55rem; margin-bottom: 0.42rem; }
+    .rec-action-card h4 { margin: 0 0 0.2rem; font-size: 0.84rem; color: #f3ecff; font-weight: 800; letter-spacing: 0.01em; }
+    .rec-action-card .rec-meta { font-size: 0.7rem; color: #c9b3ee; font-weight: 600; line-height: 1.4; margin-bottom: 0.4rem; }
+    .rec-action-card .rec-sub { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: #9e86d4; font-weight: 800; margin: 0.35rem 0 0.2rem; }
+    .rec-action-card ul { margin: 0.1rem 0 0.15rem; padding-left: 1.05rem; }
+    .rec-action-card li { color: #ebe4ff; font-size: 0.78rem; line-height: 1.5; font-weight: 500; margin: 0.15rem 0; }
+    .rec-action-card .rec-rational { font-size: 0.7rem; color: #9fa0c4; line-height: 1.4; font-style: italic; margin: 0.3rem 0 0; }
+    .rec-action-card .rec-ground { font-size: 0.68rem; color: #d4c2f2; line-height: 1.4; margin-top: 0.35rem; padding: 0.3rem; border-left: 2px solid rgba(150, 120, 220, 0.45); }
+    .course-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 36rem; overflow: auto; padding-right: 0.15rem; }
+    .course-card { border: 1px solid rgba(175,146,240,0.25); background: rgba(255,255,255,0.04); border-radius: 10px; padding: 0.5rem 0.55rem; }
+    .course-card b { font-size: 0.82rem; display: block; margin-bottom: 0.12rem; }
+    .course-card p { margin: 0.12rem 0; font-size: 0.74rem; color: #e9e0ff; line-height: 1.45; }
+    .course-link { font-size: 0.72rem; font-weight: 700; color: #d9beff; text-decoration: underline; text-underline-offset: 2px; }
+    @media (max-width: 980px) { .rec-grid { grid-template-columns: 1fr; } }
+    .resp-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .resp-table th, .resp-table td { padding: 0.5rem 0.45rem; border-bottom: 1px solid rgba(170, 143, 238, 0.16); }
+    .resp-table th { position: static; background: rgba(106, 57, 214, 0.32); font-size: 0.6rem; font-weight: 800; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+    .raw { margin: 0; white-space: pre-wrap; font-size: 0.66rem; line-height: 1.35; color: #d8cdf4; max-height: 15rem; overflow: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(169,139,236,0.2); border-radius: 8px; padding: 0.4rem; }
+    .link { color: #d4bcff; text-decoration: underline; text-underline-offset: 2px; }
+    .has-hint { position: relative; }
+    .gap-hero {
+      border: 1px solid rgba(172, 142, 240, 0.35);
+      border-radius: 12px;
+      background: linear-gradient(120deg, rgba(130, 75, 242, 0.22), rgba(255, 255, 255, 0.03));
+      padding: 0.55rem 0.58rem 0.62rem;
+      margin-bottom: 0.55rem;
+    }
+    .gap-hero__title { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .gap-hero__title h3 { margin: 0 !important; flex: 1; font-size: 0.82rem !important; }
+    .gap-hero h3 { margin: 0 0 0.4rem !important; font-size: 0.82rem !important; letter-spacing: 0.1em !important; color: #f6f0ff !important; font-weight: 800 !important; }
+    .gap-row { margin-top: 0.48rem; }
+    .gap-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.18rem; }
+    .gap-row-head b { font-size: 0.85rem; font-weight: 800; }
+    .gap-row-head span { font-size: 0.78rem; color: #efe8ff; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .bar-track {
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(167, 138, 230, 0.22);
+      overflow: hidden;
+    }
+    .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+    .bar-fill.actual { background: linear-gradient(90deg, #19c37d, #6f2ae8); }
+    .bar-fill.target { background: rgba(167, 138, 230, 0.55); }
+    .week-plan { display: grid; gap: 0.42rem; }
+    .week-card {
+      border-radius: 10px;
+      border: 1px solid rgba(172, 142, 240, 0.22);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.42rem 0.46rem;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 0.45rem;
+      align-items: start;
+    }
+    .week-badge {
+      border-radius: 10px;
+      background: rgba(130, 75, 242, 0.35);
+      border: 1px solid rgba(199, 170, 255, 0.35);
+      font-weight: 800;
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0.38rem 0.2rem;
+      line-height: 1.25;
+    }
+    .week-body h4 { margin: 0; font-size: 0.9rem; font-weight: 800; letter-spacing: -0.01em; }
+    .week-body .sub { margin: 0.12rem 0 0.28rem; color: #c9b8ef; font-size: 0.8rem; line-height: 1.45; }
+    .pill-grid { display: flex; flex-wrap: wrap; gap: 0.22rem; margin-top: 0.18rem; }
+    .mini-pill {
+      font-size: 0.58rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 800;
+      padding: 0.12rem 0.32rem;
+      border-radius: 999px;
+      border: 1px solid rgba(199, 170, 255, 0.28);
+      color: #efe6ff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .clip { white-space: pre-wrap; word-break: break-word; max-height: 5.5rem; overflow: auto; }
+    .turn-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #f0e8ff;
+    }
+    .turn-text--q { border-left: 3px solid #9c4dff; padding: 0.4rem 0.5rem; background: rgba(120, 70, 220, 0.12); border-radius: 0 8px 8px 0; }
+    .turn-text--a { max-height: 20rem; overflow: auto; }
+    .turn-text--q { max-height: 24rem; overflow-y: auto; }
+    .status-ongoing { color: #f6b100; }
+    .status-ended { color: #19c37d; }
+    .sess-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .resp-table th:nth-child(4), .resp-table td:nth-child(4) { width: 32%; }
+    .resp-table th:nth-child(2), .resp-table td:nth-child(2) { min-width: 8rem; }
+    .report-hero__label { margin: 0 0 0.35rem; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; color: #a894d4; }
+    .report-hero {
+      border: 1px solid rgba(175, 146, 240, 0.28);
+      border-radius: 12px;
+      padding: 0.5rem 0.58rem 0.55rem;
+      margin-bottom: 0.65rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .report-hero__p { margin: 0.15rem 0 0; font-size: 0.76rem; line-height: 1.45; color: #c9b8e8; }
+    .report-hero__p strong { color: #f4f0ff; }
+    .report-hero__aiq { font-size: 0.8rem; font-weight: 800; color: #d8c5ff; margin: 0.2rem 0 0; }
+    .report-toc {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.65rem;
+      margin: 0 0 0.7rem; padding: 0.4rem 0.5rem;
+      border: 1px solid rgba(160, 130, 220, 0.2); border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+      font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .report-toc a { color: #c9a8ff; text-decoration: none; border-bottom: 1px solid rgba(201, 168, 255, 0.35); }
+    .report-toc a:hover { color: #fff; border-color: #fff; }
+    .report-toc .report-toc__s { color: #7a6a9a; text-transform: none; letter-spacing: 0.02em; font-weight: 600; }
+    .report-sec { margin-bottom: 0.9rem; scroll-margin-top: 0.5rem; }
+    .report-sec__h {
+      display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.4rem; padding-bottom: 0.35rem;
+      border-bottom: 1px solid rgba(150, 120, 220, 0.22);
+      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #d8c2ff; font-weight: 800;
+    }
+    .report-sec__n {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 1.5rem; height: 1.5rem; border-radius: 999px; background: linear-gradient(135deg, #6f2ae8, #8b5cff);
+      font-size: 0.62rem; color: #fff; letter-spacing: 0.02em;
+    }
+    .report-sec__sub { margin: 0 0 0.5rem; font-size: 0.72rem; line-height: 1.4; }
+    .rec-panel.rec-stack { display: block; }
+    .rec-panel .rec-stacked { display: block; }
+    .rec-panel .rec-stacked .rec-links { margin-top: 0.6rem; padding-top: 0.55rem; border-top: 1px solid rgba(150, 120, 220, 0.2); }
+  </style>
+</head>
+<body>
+  <div id="login" class="login-wrap">
+    <div class="login-card">
+      <p class="kicker">Restricted</p>
+      <h1 class="title">AiQ Admin Login</h1>
+      <p class="sub">Enter any valid admin code to open analysis mode.</p>
+      <input id="tokenIn" class="in" type="password" placeholder="Admin code" autocomplete="current-password" />
+      <div class="row">
+        <button id="loginBtn" class="btn" type="button">Login</button>
+        <button id="clearBtn" class="btn ghost" type="button">Clear token</button>
+      </div>
+      <div id="loginErr" class="err"></div>
+    </div>
+  </div>
+
+  <div id="dash" class="shell hidden">
+    <div class="top">
+      <div>
+        <h1>Interviewer review</h1>
+        <p>Select a run on the left, then work through this run top to bottom.</p>
+      </div>
+      <div class="row" style="margin-top:0">
+        <button id="refreshBtn" class="btn ghost" type="button">Refresh</button>
+        <button id="logoutBtn" class="btn ghost" type="button">Logout</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="card">
+        <div class="card-h">
+          <h2>All runs</h2>
+          <span id="count" class="meta">0 loaded</span>
+        </div>
+        <div class="sess-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Started</th>
+                <th>Status</th>
+                <th>Session</th>
+                <th>Dur</th>
+                <th>Msgs</th>
+                <th>Blur</th>
+                <th>AiQ</th>
+                <th class="no-click"></th>
+              </tr>
+            </thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>This run</h2>
+          <div class="card-h-actions">
+            <span id="sidMeta" class="meta">select a session</span>
+            <button type="button" id="deleteSessionBtn" class="btn btn-admin-del hidden" title="Delete this session">Delete</button>
+          </div>
+        </div>
+        <div id="detail" class="detail">
+          <p class="muted">Click a session to load full analytics.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const KEY = "aiq_admin_token";
+      const qs = new URLSearchParams(location.search);
+      if (qs.get("token")) localStorage.setItem(KEY, (qs.get("token") || "").trim());
+
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+      const num = (v, d = 2) => (v == null || isNaN(Number(v)) ? "—" : Number(v).toFixed(d));
+      const sec = (v) => (v == null || isNaN(Number(v)) ? "—" : Number(v).toFixed(2) + "s");
+      function durHuman(totalSec) {
+        if (totalSec == null || isNaN(Number(totalSec))) return "—";
+        let s = Math.max(0, Math.round(Number(totalSec)));
+        const h = Math.floor(s / 3600);
+        s -= h * 3600;
+        const m = Math.floor(s / 60);
+        s -= m * 60;
+        const parts = [];
+        if (h) parts.push(h + " hour" + (h === 1 ? "" : "s"));
+        if (m) parts.push(m + " minute" + (m === 1 ? "" : "s"));
+        if (s || !parts.length) parts.push(s + " second" + (s === 1 ? "" : "s"));
+        return parts.join(" ");
+      }
+      const ts = (v) => (v == null || isNaN(Number(v)) ? "—" : new Date(Number(v) * 1000).toLocaleString());
+
+      function isSessionEnded(s) {
+        if (!s) return false;
+        if (s.completed === 1 || s.completed === true) return true;
+        if (s.ended_at != null && Number(s.ended_at) > 0) return true;
+        return false;
+      }
+
+      function statusPill(s) {
+        if (isSessionEnded(s)) {
+          return "<span class='pill' style='background:linear-gradient(90deg,#198754,#1fa76a)'>Ended</span>";
+        }
+        return "<span class='pill' style='background:linear-gradient(90deg,#9a6a00,#c49100)'>Ongoing</span>";
+      }
+
+      function token() { return (localStorage.getItem(KEY) || "").trim(); }
+      function setToken(v) { if (v && String(v).trim()) localStorage.setItem(KEY, String(v).trim()); }
+      function clearToken() { localStorage.removeItem(KEY); }
+      function withToken(path) {
+        const t = token();
+        const sep = path.includes("?") ? "&" : "?";
+        return path + (t ? sep + "token=" + encodeURIComponent(t) : "");
+      }
+      async function api(path) {
+        const t = token();
+        const r = await fetch(withToken(path), {
+          method: "GET",
+          cache: "no-store",
+          headers: t ? { Authorization: "Bearer " + t, "X-Aiq-Admin-Token": t } : {},
+        });
+        let j = {};
+        try { j = await r.json(); } catch (_) {}
+        if (!r.ok) throw new Error((j && (j.hint || j.error)) || ("HTTP " + r.status));
+        return j;
+      }
+
+      function formatShortSec(sec) {
+        if (sec == null || isNaN(Number(sec))) return "—";
+        const n = Math.round(Number(sec));
+        if (n < 60) return n + "s";
+        const m = Math.floor(n / 60);
+        const r = n % 60;
+        return r ? m + "m " + r + "s" : m + "m";
+      }
+
+      function sparkLineLabeled(svgId, points, key, color, yMax) {
+        const svg = $(svgId);
+        if (!svg) return;
+        const w = svg.viewBox.baseVal.width || 600;
+        const h = svg.viewBox.baseVal.height || 200;
+        const pl = 50;
+        const pr = 12;
+        const pt = 12;
+        const pb = 40;
+        const vals = (points || []).map((x) => Number(x[key] || 0));
+        const finite = vals.filter((x) => isFinite(x));
+        const maxV = (yMax != null && isFinite(yMax) && yMax > 0)
+          ? yMax
+          : (finite.length ? Math.max(1, ...finite) : 1);
+        const cw = w - pl - pr;
+        const ch = h - pt - pb;
+        const n = (points || []).length;
+        const yAt = (v) => pt + ch - (Math.max(0, v) / maxV) * ch;
+        const xAt = (i) => (n <= 1 ? pl + cw / 2 : pl + (i * cw) / (n - 1));
+        const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => maxV * t);
+        const grid = yTicks.map((yv) => {
+          const yy = yAt(yv);
+          return "<line x1='" + pl + "' y1='" + yy.toFixed(1) + "' x2='" + (w - pr) + "' y2='" + yy.toFixed(1) + "' stroke='rgba(180,160,230,0.12)' stroke-width='1' />";
+        }).join("");
+        const yLabs = yTicks.map((yv) => {
+          const yy = yAt(yv) + 3;
+          return "<text x='" + (pl - 4) + "' y='" + yy.toFixed(1) + "' font-size='8' text-anchor='end' fill='rgba(200,180,255,0.7)'>" + esc(formatShortSec(yv)) + "</text>";
+        }).join("");
+        const path = !n ? "" : (points
+          .map((pt0, i) => {
+            const x = xAt(i);
+            const y = yAt(Math.max(0, Number(pt0[key] || 0)));
+            return (i === 0 ? "M " : " L ") + x.toFixed(1) + " " + y.toFixed(1);
+          })
+          .join(""));
+        const circles = (points || []).map((pt0, i) => {
+          const x = xAt(i);
+          const y = yAt(Math.max(0, Number(pt0[key] || 0)));
+          return "<circle cx='" + x.toFixed(1) + "' cy='" + y.toFixed(1) + "' r='3' fill='" + color + "' stroke='rgba(20,8,40,0.5)' stroke-width='0.5' />";
+        }).join("");
+        const xStepLabel = n > 10 ? 2 : 1;
+        const xLabs = (points || []).map((pt0, i) => {
+          if (i % xStepLabel !== 0 && i !== n - 1) return "";
+          const x = xAt(i) - 4;
+          const turn = pt0.turn_idx != null ? String(pt0.turn_idx) : String(i + 1);
+          return "<text x='" + (x + 4) + "' y='" + (h - 8) + "' font-size='8' fill='rgba(200,180,255,0.8)' text-anchor='middle'>T" + esc(turn) + "</text>";
+        }).join("");
+        const yTitle = "<text x='12' y='" + (pt + ch / 2) + "' font-size='8' fill='rgba(200,180,255,0.55)' transform='rotate(-90,12," + (pt + ch / 2) + ")'>Seconds to compose</text>";
+        const xTitle = "<text x='" + (pl + cw / 2) + "' y='" + (h - 2) + "' font-size='8' text-anchor='middle' fill='rgba(200,180,255,0.55)'>User reply (turn #)</text>";
+        const sub = "<text x='" + (pl + cw / 2) + "' y='10' font-size='7' text-anchor='middle' fill='rgba(200,180,255,0.4)'>Upticks = that reply took more time to send after the prior interviewer line (see table for exact same numbers).</text>";
+        svg.innerHTML = sub + yTitle + yLabs + grid +
+          "<path d='" + path + "' fill='none' stroke='" + color + "' stroke-width='2.2' stroke-linecap='round' />" +
+          circles + xLabs + xTitle;
+      }
+
+      function barChartLabeled(svgId, rows) {
+        const svg = $(svgId);
+        if (!svg) return;
+        if (!rows || !rows.length) {
+          svg.innerHTML = "<text x='20' y='100' font-size='9' fill='rgba(200,180,255,0.55)'>No dimension data</text>";
+          return;
+        }
+        const w = svg.viewBox.baseVal.width || 600;
+        const h = svg.viewBox.baseVal.height || 200;
+        const pl = 34;
+        const p = 18;
+        const pr = 10;
+        const pb = 52;
+        const pt = 14;
+        const plotW = w - pl - pr;
+        const plotH = h - p - pb - pt;
+        const maxS = 10;
+        const yAt = (score) => p + pt + plotH - (Math.max(0, Math.min(10, Number(score))) / maxS) * plotH;
+        const yTicks = [0, 2, 4, 6, 8, 10];
+        const grid = yTicks.map((yv) => {
+          const yy = yAt(yv);
+          return "<line x1='" + pl + "' y1='" + yy.toFixed(1) + "' x2='" + (w - pr) + "' y2='" + yy.toFixed(1) + "' stroke='rgba(180,160,230,0.1)' stroke-width='1' />";
+        }).join("");
+        const yLabs = yTicks.map((yv) => {
+          const yy = yAt(yv) + 3;
+          return "<text x='" + (pl - 2) + "' y='" + yy.toFixed(1) + "' font-size='8' text-anchor='end' fill='rgba(200,180,255,0.65)'>" + esc(String(yv)) + "</text>";
+        }).join("");
+        const n = Math.max(1, (rows || []).length);
+        const groupW = plotW / n;
+        const barW = Math.max(6, (groupW * 0.7) / 2 - 1);
+        const bars2 = [];
+        (rows || []).forEach((r, i) => {
+          const cx = pl + i * groupW + groupW / 2;
+          const x1 = cx - barW - 1;
+          const x2 = cx + 1;
+          const act = Math.max(0, Number(r.actual || 0));
+          const tgt = Math.max(0, Number(r.target || 0));
+          const yA = yAt(act);
+          const yT = yAt(tgt);
+          const aH = (p + pt + plotH) - yA;
+          const tH = (p + pt + plotH) - yT;
+          const cls = Number(r.delta_vs_target || 0) >= 0 ? "var(--good)" : "var(--warn)";
+          const sub = (r.label || "").length > 22 ? (r.label || "").slice(0, 20) + "…" : (r.label || "");
+          const labelYa = aH > 4 ? (yA - 3) : (yA + 7);
+          const labelYt = tH > 4 ? (yT - 3) : (yT + 7);
+          const aNum = String(Number(act).toFixed(1));
+          const tNum = String(Number(tgt).toFixed(1));
+          bars2.push(
+            "<rect x='" + x1 + "' y='" + yA.toFixed(1) + "' width='" + barW + "' height='" + aH.toFixed(1) + "' rx='2' fill='" + cls + "'/>" +
+            "<rect x='" + x2 + "' y='" + yT.toFixed(1) + "' width='" + barW + "' height='" + tH.toFixed(1) + "' rx='2' fill='rgba(167,138,230,0.45)'/>" +
+            "<text x='" + (x1 + barW / 2) + "' y='" + labelYa.toFixed(1) + "' font-size='6' text-anchor='middle' fill='rgba(255,255,255,0.92)' font-weight='800'>" + esc(aNum) + "</text>" +
+            "<text x='" + (x2 + barW / 2) + "' y='" + labelYt.toFixed(1) + "' font-size='6' text-anchor='middle' fill='rgba(220,200,255,0.9)' font-weight='700'>" + esc(tNum) + "</text>" +
+            "<text x='" + cx + "' y='" + (h - 30) + "' font-size='9' text-anchor='middle' fill='rgba(220,206,255,0.9)' font-weight='700'>" + esc(r.code) + "</text>" +
+            "<text x='" + cx + "' y='" + (h - 18) + "' font-size='6.5' text-anchor='middle' fill='rgba(200,180,255,0.55)'>" + esc(sub) + "</text>"
+          );
+        });
+        const yTitle = "<text x='10' y='" + (p + pt + plotH / 2) + "' font-size='8' fill='rgba(200,180,255,0.5)' transform='rotate(-90,10," + (p + pt + plotH / 2) + ")'>Score (0–10)</text>";
+        const leg = "<text x='" + (pl + 8) + "' y='" + (pt - 1) + "' font-size='7' fill='rgba(200,180,255,0.55)'>▮ Actual (bright) · ▮ Target (ghost)</text>";
+        svg.innerHTML = yTitle + yLabs + grid + leg + bars2.join("");
+      }
+
+      let sessions = [];
+      let selected = "";
+
+      function rowHtml(s) {
+        const st = s.stats || {};
+        const aiq = s.last_scores && s.last_scores.AiQ_0_100 != null ? Number(s.last_scores.AiQ_0_100).toFixed(1) : "—";
+        return (
+          "<td>" + esc(ts(s.created_at)) + "</td>" +
+          "<td style='width:5.5rem'>" + statusPill(s) + "</td>" +
+          "<td><span class='sid'>" + esc((s.id || "").slice(0, 8)) + "</span></td>" +
+          "<td>" + esc(st.duration_sec != null ? durHuman(st.duration_sec) : "—") + "</td>" +
+          "<td>" + esc((st.user_messages || 0) + "/" + (st.model_messages || 0)) + "</td>" +
+          "<td>" + esc(st.tab_blur_count != null ? st.tab_blur_count : 0) + "</td>" +
+          "<td>" + (aiq === "—" ? "<span class='muted'>—</span>" : "<span class='pill'>" + esc(aiq) + "</span>") + "</td>" +
+          "<td class='del-cell'><button type='button' class='btn btn-admin-del' aria-label='Delete session'>Delete</button></td>"
+        );
+      }
+
+      async function deleteSessionById(id) {
+        if (!id) return;
+        if (!window.confirm("Delete this session permanently? This cannot be undone.")) return;
+        const t = token();
+        const r = await fetch(withToken("/api/admin/sessions/" + encodeURIComponent(id)), {
+          method: "DELETE",
+          cache: "no-store",
+          headers: t ? { Authorization: "Bearer " + t, "X-Aiq-Admin-Token": t } : {},
+        });
+        let j = {};
+        try { j = await r.json(); } catch (_) {}
+        if (!r.ok) {
+          window.alert((j && (j.hint || j.error)) || ("HTTP " + r.status));
+          return;
+        }
+        if (selected === id) selected = "";
+        await loadSessions();
+      }
+
+      function renderRows() {
+        const tb = $("tb");
+        tb.innerHTML = "";
+        sessions.forEach((s) => {
+          const tr = document.createElement("tr");
+          tr.className = "srow" + (s.id === selected ? " active" : "");
+          tr.innerHTML = rowHtml(s);
+          tr.onclick = () => openSession(s.id);
+          const delBtn = tr.querySelector("button.btn-admin-del");
+          if (delBtn) {
+            delBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              deleteSessionById(s.id);
+            });
+          }
+          tb.appendChild(tr);
+        });
+        $("count").textContent = sessions.length + " loaded";
+      }
+
+      function metric(k, v) {
+        return "<div class='kpi'><div class='k'>" + esc(k) + "</div><div class='v'>" + esc(v) + "</div></div>";
+      }
+
+      function hintMarkup(data) {
+        if (!data) return "<div class='hint-title'>Definition</div><ul class='hint-list'><li>No definition available.</li></ul>";
+        if (typeof data === "string") {
+          return "<div class='hint-title'>Definition</div><ul class='hint-list'><li>" + esc(data) + "</li></ul>";
+        }
+        const title = data.title || "Definition";
+        const lines = Array.isArray(data.lines) ? data.lines : [];
+        if (!lines.length) {
+          return "<div class='hint-title'>" + esc(title) + "</div><ul class='hint-list'><li>No additional details.</li></ul>";
+        }
+        return "<div class='hint-title'>" + esc(title) + "</div><ul class='hint-list'>" + lines.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>";
+      }
+
+      function kpiWithBubble(label, value, defData) {
+        return (
+          "<div class='kpi kpi--metric'>" +
+          "<div class='k-row'><span class='k'>" + esc(label) + "</span>" +
+          "<button type='button' class='hint-ico' aria-label='What does this metric mean?'>?</button></div>" +
+          "<div class='v'>" + esc(String(value)) + "</div>" +
+          "<div class='hint-pop' role='tooltip'>" + hintMarkup(defData) + "</div></div>"
+        );
+      }
+
+      function renderEvaluationCell(ev) {
+        if (ev == null) return "—";
+        if (typeof ev === "string") {
+          return "<div class='ev-wrap'>" + esc(ev) + "</div>";
+        }
+        const bits = [];
+        if (Array.isArray(ev.strengths) && ev.strengths.length) {
+          bits.push("<div class='ev-h'>Strengths</div><ul>" + ev.strengths.map((s) => "<li>" + esc(s) + "</li>").join("") + "</ul>");
+        }
+        if (ev.style_callout) {
+          bits.push("<div class='ev-h'>Focus for this turn</div><p class='ev-note'>" + esc(ev.style_callout) + "</p>");
+        }
+        if (Array.isArray(ev.coaching_angles) && ev.coaching_angles.length) {
+          bits.push("<div class='ev-h'>Coaching angles</div><ul>" + ev.coaching_angles.map((s) => "<li>" + esc(s) + "</li>").join("") + "</ul>");
+        }
+        if (ev.ai_likelihood) {
+          const al = ev.ai_likelihood;
+          bits.push(
+            "<div class='ev-h'>AI-style phrasing (heuristic)</div><p class='ev-note'><b>" + esc(num(al.score_0_100, 0)) + "</b>/100. " + esc(al.note || "") + "</p>"
+          );
+        }
+        if (ev.client_flag) {
+          bits.push("<div class='ev-h'>Client flag</div><p class='ev-note'>" + esc(ev.client_flag) + "</p>");
+        }
+        if (ev.next_step) {
+          bits.push("<div class='ev-h'>Next step</div><p class='ev-note'>" + esc(ev.next_step) + "</p>");
+        }
+        return "<div class='ev-wrap'>" + (bits.length ? bits.join("") : "<p class='ev-note'>No structured notes.</p>") + "</div>";
+      }
+
+      function formatLegacyActionLine(s) {
+        if (typeof s !== "string" || !s) return "—";
+        return esc(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      }
+
+      function renderActionCard(a) {
+        if (!a || typeof a !== "object") return "";
+        const title = a.title || a.code || "Action";
+        const meta = a.meta || "";
+        const subActions = (key, label) => {
+          const v = a[key];
+          if (!v) return "";
+          const inner = Array.isArray(v) ? v.map((x) => "<li>" + esc(String(x)) + "</li>").join("") : ("<p>" + esc(String(v)) + "</p>");
+          if (Array.isArray(v) && v.length) {
+            return "<div class='rec-sub'>" + label + "</div><ul>" + inner + "</ul>";
+          }
+          if (!Array.isArray(v) && v) {
+            return "<div class='rec-sub'>" + label + "</div>" + inner;
+          }
+          return "";
+        };
+        const tg = a.transcript_note || a.transcript_grounding;
+        const ex = tg
+          ? "<div class='rec-ground'><b>Excerpt (their words)</b> " + esc(String(tg)) + "</div>"
+          : "";
+        return (
+          "<div class='rec-action-card'>" +
+          "<h4>" + esc(String(title)) + "</h4>" +
+          (meta ? "<div class='rec-meta'>" + esc(String(meta)) + "</div>" : "") +
+          subActions("bullets", "Do") +
+          subActions("success_criterion", "Done when") +
+          (a.rationale ? "<p class='rec-rational'>" + esc(String(a.rationale)) + "</p>" : "") +
+          ex +
+          "</div>"
+        );
+      }
+
+      function renderCoachingByDimension(rows) {
+        if (!Array.isArray(rows) || !rows.length) {
+          return "<p class='muted'>No per-dimension coaching in this run.</p>";
+        }
+        return (
+          "<div class='list' style='gap:0.5rem'>" +
+          rows
+            .map((r) => {
+              if (!r || !r.code) return "";
+              const ex = Array.isArray(r.exercises) ? r.exercises : [];
+              const exH =
+                ex.length > 0
+                  ? ("<div class='rec-sub'>Practice (this week)</div><ul>" + ex.map((e) => "<li>" + esc(e) + "</li>").join("") + "</ul>")
+                  : "";
+              const sr = r.suggested_read;
+              const readH =
+                sr && sr.url
+                  ? "<div class='rec-sub'>Optional reference</div><p class='rec-rational'>" + esc((sr.why || "") + "") + " <a class='link' target='_blank' rel='noopener' href='" + esc(sr.url) + "'>Open</a></p>"
+                  : "";
+              return (
+                "<div class='rec-action-card coaching-dim'>" +
+                "<h4>" + esc((r.code || "") + " · " + (r.label || "Dimension")) + "</h4>" +
+                (r.meta ? "<div class='rec-meta'>" + esc(r.meta) + "</div>" : "") +
+                "<p class='rec-rational'>" + esc(r.standing || "—") + "</p>" +
+                "<p class='rec-rational' style='margin-top:0.4rem'><strong>Focus to close the gap:</strong> " + esc(r.focus || "—") + "</p>" +
+                exH +
+                readH +
+                "</div>"
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
+      function renderRecommendationsPanel(ai) {
+        const rawSteps = (ai && ai.priority_next_steps) || [];
+        const byDim = (ai && ai.coaching_by_dimension) && Array.isArray(ai.coaching_by_dimension) ? ai.coaching_by_dimension : [];
+        const struct = (ai && ai.priority_actions) && Array.isArray(ai.priority_actions) ? ai.priority_actions : [];
+        const plan = (ai && ai.learning_plan) || [];
+        const courses = plan.filter((x) => x && x.url);
+        const toolLines = (ai && ai.tool_actions) && Array.isArray(ai.tool_actions) ? ai.tool_actions : [];
+        const ctx = (ai && ai.context) || {};
+        const aiqC = ctx.aiq_score;
+        const famT = ctx.job_family ? String(ctx.job_family) : "";
+        const jobLine = famT ? "Job family in this run: <strong>" + esc(famT) + "</strong>. " : "";
+        const aiqLine =
+          aiqC != null
+            ? "Rough <strong>AiQ</strong> (composite): " + esc(String(aiqC)) + " / 100 — the rows below use the same dimension targets and gaps as section 2."
+            : "Coaching below is tied to the same dimension targets and gaps as section 2.";
+        const ctxLine = "<p class='muted' style='font-size:0.8rem;margin:0 0 0.5rem 0'>" + jobLine + aiqLine + "</p>";
+        const toolH =
+          toolLines.length > 0
+            ? "<div class='panel' style='border:1px solid rgba(180,150,255,0.25);padding:0.55rem 0.7rem;border-radius:10px;margin:0 0 0.65rem 0;'><div class='panel-title' style='font-size:0.72rem'>Signals from this run (ties to their replies)</div><ul class='hint-list' style='margin:0.35rem 0 0 0;padding-left:1.1rem'>" + toolLines.map((t) => "<li style='font-size:0.78rem'>" + esc(t) + "</li>").join("") + "</ul></div>"
+            : "";
+        const fallbackList = function () {
+          if (courses.length) return courses;
+          return [
+            { title: "AI for Everyone (Andrew Ng)", provider: "Coursera", dimension: "D1", why: "If no plan is stored for this run, this is a neutral starting point, not a personalized match.", url: "https://www.coursera.org/learn/ai-for-everyone" },
+            { title: "Generative AI: prompt engineering for everyone (IBM)", provider: "Coursera", dimension: "D2", why: "Second default when the stored plan is missing. Role-specific picks live in the row above once scoring runs.", url: "https://www.coursera.org/learn/generative-ai-prompt-engineering-for-everyone" }
+          ];
+        };
+        const courseRows = (courses.length ? courses : fallbackList()).filter((x) => x && x.url);
+        const hasBody = byDim.length > 0 || struct.length > 0 || (rawSteps && rawSteps.length);
+        if (!hasBody) {
+          return "<p class='muted'>No generated follow-up for this run.</p>";
+        }
+        const dimHtml = byDim.length
+          ? renderCoachingByDimension(byDim)
+          : struct.length
+            ? struct.map(renderActionCard).join("")
+            : rawSteps.map((s) => (
+                "<div class='rec-action-card'><h4>Next step (summary)</h4><p style='font-size:0.8rem;line-height:1.5;color:#ebe4ff;font-weight:500;margin:0'>" + formatLegacyActionLine(s) + "</p></div>"
+              )).join("");
+        const courseHtml = courseRows.length
+          ? courseRows
+              .map(
+                (c) =>
+                  "<div class='course-card'>" +
+                  "<b>" + esc(c.title || "Link") + "</b>" +
+                  "<p>" + esc((c.provider || "") + (c.dimension ? " · " + c.dimension : "") + (c.gap != null ? " · gap " + num(c.gap, 2) : "")) + "</p>" +
+                  "<p>" + esc(c.why || "") + "</p>" +
+                  "<a class='course-link' target='_blank' rel='noopener' href='" + esc(c.url) + "'>Open link</a>" +
+                  "</div>"
+              )
+              .join("")
+          : "<p class='muted'>No public links in this run’s plan.</p>";
+        return (
+          "<div class='rec-panel rec-stack'>" + ctxLine + toolH + "<div class='rec-stacked'><div class='list' style='gap:0.25rem'>" + dimHtml + "</div>" +
+          "<div class='rec-links'><div class='panel-title' style='margin-bottom:0.45rem'>Reference links (by gap &amp; role)</div><div class='course-list' style='max-height:20rem'>" + courseHtml + "</div></div></div></div>"
+        );
+      }
+
+      function renderGapBoard(items) {
+        if (!Array.isArray(items) || !items.length) return "<p class='muted'>No scored gap data yet.</p>";
+        const rows = items.map((g) => {
+          const delta = Number(g.gap || 0);
+          const cls = delta > 1.3 ? "bad" : delta > 0.6 ? "warn" : "good";
+          const actual = Number(g.actual || 0);
+          const target = Number(g.target || 0);
+          const aw = Math.max(2, Math.min(100, (actual / 10) * 100));
+          const tw = Math.max(2, Math.min(100, (target / 10) * 100));
+          return (
+            "<div class='gap-row'>" +
+            "<div class='gap-row-head'><b>" + esc(g.code + " · " + g.label) + "</b>" +
+            "<span>Actual <b>" + esc(num(actual, 1)) + "</b> · Target <b>" + esc(num(target, 1)) + "</b> · Gap <span class='" + cls + "'>" + esc(num(delta, 2)) + "</span></span></div>" +
+            "<div class='bar-track' aria-hidden='true'>" +
+            "<div class='bar-fill target' style='width:" + tw.toFixed(1) + "%'></div>" +
+            "<div class='bar-fill actual' style='width:" + aw.toFixed(1) + "%;opacity:0.92'></div>" +
+            "</div>" +
+            "</div>"
+          );
+        }).join("");
+        return (
+          "<div class='gap-hero'>" +
+          "<div class='gap-hero__title has-hint'>" +
+          "<h3>Relative gaps vs expected</h3>" +
+          "<button type='button' class='hint-ico' aria-label='What does this section show?'>?</button>" +
+          "<div class='hint-pop' role='tooltip'>" + hintMarkup({ title: "What this means", lines: ["This section ranks shortfalls against the expected target for this role level.", "Higher gap = bigger priority to improve.", "Different from the capability visual below, which shows only current strength (actual score) and does not compare to target."] }) + "</div>" +
+          "</div>" +
+          rows +
+          "</div>"
+        );
+      }
+
+      function renderLearning(plan) {
+        if (!Array.isArray(plan) || !plan.length) return "<p class='muted'>No learning items available.</p>";
+        return "<div class='list'>" + plan.map((c) => {
+          const kind = (c.kind || "course") === "topic" ? "Topic" : "Course";
+          const gapLine = c.gap == null ? "" : (" · gap " + num(c.gap, 2));
+          const link = c.url ? ("<p><a class='link' target='_blank' rel='noopener' href='" + esc(c.url) + "'>" + esc(c.url) + "</a></p>") : "<p class='muted'>No external link — use as a self-directed practice module.</p>";
+          return (
+            "<div class='itm'><b>" + esc(c.title) + "</b><p>" +
+            esc(kind + " · " + (c.provider || "") + " · " + (c.dimension || "") + gapLine) +
+            "</p><p>" + esc(c.why || "") + "</p>" + link + "</div>"
+          );
+        }).join("") + "</div>";
+      }
+
+      function renderThinkTimeVisual(points) {
+        const rows = Array.isArray(points) ? points : [];
+        if (!rows.length) return "<p class='muted'>Not enough replies yet to show a timing pattern.</p>";
+        const mx = Math.max(1, ...rows.map((r) => Number(r.compose_sec || 0)));
+        return "<div class='chart-clean'>" + rows.map((r) => {
+          const secVal = Number(r.compose_sec || 0);
+          const pct = Math.max(4, Math.min(100, (secVal / mx) * 100));
+          const turn = "T" + (r.turn_idx || "—");
+          return (
+            "<div class='turn-row'>" +
+            "<div class='turn-lbl'>" + esc(turn) + "</div>" +
+            "<div class='turn-track'><div class='turn-fill' style='width:" + pct.toFixed(1) + "%'></div></div>" +
+            "<div class='turn-val'>" + esc(formatShortSec(secVal)) + "</div>" +
+            "</div>"
+          );
+        }).join("") + "</div>";
+      }
+
+      function renderCapabilityStrength(rows) {
+        const list = Array.isArray(rows) ? rows : [];
+        if (!list.length) return "<p class='muted'>No score data available.</p>";
+        return "<div class='dim-clean'>" + list.map((r) => {
+          const a = Math.max(0, Number(r.actual || 0));
+          const aw = Math.max(2, Math.min(100, a * 10));
+          const status = a >= 7 ? "Strong" : (a >= 5.5 ? "Developing" : "Needs support");
+          return (
+            "<div class='dim-row'>" +
+            "<div class='dim-head'><b>" + esc((r.code || "") + " · " + (r.label || "")) + "</b><span>" + esc(num(a, 1)) + "/10 · " + esc(status) + "</span></div>" +
+            "<div class='dim-track'><div class='dim-actual' style='width:" + aw.toFixed(1) + "%'></div></div>" +
+            "</div>"
+          );
+        }).join("") + "</div>";
+      }
+
+      function renderTurnTable(rows) {
+        if (!Array.isArray(rows) || !rows.length) return "<p class='muted'>No user turns to review yet.</p>";
+        const body = rows.map((r) => {
+          const q = r.interviewer_question || "";
+          const a = r.user_response || "";
+          const think = r.compose_duration_human || durHuman(r.compose_sec);
+          const ai = r.ai_likelihood_0_100;
+          return (
+            "<tr>" +
+            "<td class='mono' style='width:46px'>" + esc(r.turn_idx || "—") + "</td>" +
+            "<td><div class='turn-text turn-text--q'>" + esc(q) + "</div></td>" +
+            "<td><div class='turn-text turn-text--a'>" + esc(a) + "</div></td>" +
+            "<td>" + renderEvaluationCell(r.evaluation) + "</td>" +
+            "<td class='mono' style='width:120px'>" + esc(think) + "</td>" +
+            "<td class='mono' style='width:86px'>" + esc(ai == null ? "—" : num(ai, 0)) + "</td>" +
+            "</tr>"
+          );
+        }).join("");
+        return (
+          "<table class='resp-table'><thead><tr>" +
+          "<th>Turn</th><th>Interviewer question</th><th>Participant reply</th><th>Evaluation (structured below)</th>" +
+          "<th title='Seconds from the prior interviewer line to this participant send (see Session metrics).'>Think time</th>" +
+          "<th title='0–100 phrasing heuristic for this turn; not proof of authorship (see Session metrics).'>AI-style</th>" +
+          "</tr></thead><tbody>" + body + "</tbody></table>"
+        );
+      }
+
+      function renderFocusAwayLog(log) {
+        if (!log || !log.length) {
+          return "";
+        }
+        const expl =
+          "Browsers do <b>not</b> expose other tabs&rsquo; titles or sites (privacy / security). " +
+          "We can only show <b>this</b> page&rsquo;s title and when it was hidden or refocused.";
+        const rows = log.map((e) => {
+          const typ = (e && e.type) || "—";
+          const mean =
+            typ === "window_blur"
+              ? "OS/window left this page (often another app or a different browser window)."
+              : typ === "tab_blur"
+                ? "This tab/ page became hidden (e.g. other tab, minimize)."
+                : typ === "tab_focus"
+                  ? "Came back to this page (visible again)."
+                  : (e && e.detail_note) || "—";
+          return (
+            "<tr><td class='mono'>" + esc(String(typ)) + "</td><td class='mono'>" + esc(e.at_iso || e.at || "—") + "</td><td>" +
+            esc(e.page_title || "—") + "</td><td class='mono'>" + esc(e.visibility || "—") + "</td><td>" + esc(mean) + "</td></tr>"
+          );
+        }).join("");
+        return (
+          "<div class='sec' style='margin-top:0.55rem'>" +
+          "<h3 style='font-size:0.7rem;letter-spacing:0.1em'>Focus &amp; tab visibility (this page only)</h3>" +
+          "<p class='muted' style='font-size:0.8rem;margin:0 0 0.4rem 0'>" + expl + "</p>" +
+          "<div style='max-height:14rem;overflow:auto;border-radius:10px;border:1px solid rgba(180,150,255,0.2)'>" +
+          "<table class='resp-table' style='font-size:0.72rem'><thead><tr><th>Type</th><th>Time</th><th>Title of this page</th><th>Visibility</th><th>Meaning</th></tr></thead><tbody>" +
+          rows +
+          "</tbody></table></div></div>"
+        );
+      }
+
+      function renderThirtyDays(plan) {
+        if (!Array.isArray(plan) || !plan.length) return "<p class='muted'>No 30-day plan available.</p>";
+        if (typeof plan[0] === "string") {
+          return "<div class='list'>" + plan.map((x) => "<div class='itm'><p>" + esc(x) + "</p></div>").join("") + "</div>";
+        }
+        return (
+          "<div class='week-plan'>" +
+          plan.map((w) => {
+            const wk = w.week != null ? ("Wk " + w.week) : "Week";
+            const title = w.title || "";
+            const objs = (w.objectives || []).map((x) => "<span class='mini-pill'>" + esc(x) + "</span>").join("");
+            const dels = (w.deliverables || []).map((x) => "<span class='mini-pill'>" + esc(x) + "</span>").join("");
+            const cad = (w.cadence || []).map((x) => "<span class='mini-pill'>" + esc(x) + "</span>").join("");
+            const met = (w.metrics || []).map((x) => "<span class='mini-pill'>" + esc(x) + "</span>").join("");
+            return (
+              "<div class='week-card'>" +
+              "<div class='week-badge'>" + esc(wk) + "</div>" +
+              "<div class='week-body'>" +
+              "<h4>" + esc(title) + "</h4>" +
+              "<div class='sub'><b>Objectives</b></div><div class='pill-grid'>" + objs + "</div>" +
+              "<div class='sub' style='margin-top:0.35rem'><b>Deliverables</b></div><div class='pill-grid'>" + dels + "</div>" +
+              "<div class='sub' style='margin-top:0.35rem'><b>Cadence</b></div><div class='pill-grid'>" + cad + "</div>" +
+              "<div class='sub' style='margin-top:0.35rem'><b>Metrics</b></div><div class='pill-grid'>" + met + "</div>" +
+              "</div></div>"
+            );
+          }).join("") +
+          "</div>"
+        );
+      }
+
+      function reportSection(n, id, title, sub, inner) {
+        const s = sub
+          ? "<p class='report-sec__sub muted'>" + esc(sub) + "</p>"
+          : "";
+        return (
+          "<div class='report-sec' id='" + esc(id) + "'>" +
+          "<div class='report-sec__h'><span class='report-sec__n'>" +
+          esc(n) +
+          "</span> " +
+          esc(title) +
+          "</div>" +
+          s +
+          inner +
+          "</div>"
+        );
+      }
+
+      function reportToc(items) {
+        if (!Array.isArray(items) || !items.length) return "";
+        const out = items.map((x) => {
+          if (x.muted) {
+            return "<span class='report-toc__s'>" + esc(x.label) + "</span>";
+          }
+          if (!x.id) return "";
+          return "<a href='#" + esc(x.id) + "'>" + esc(String(x.n) + " " + x.label) + "</a>";
+        });
+        return "<nav class='report-toc' aria-label='Sections for this run'>" + out.join(" · ") + "</nav>";
+      }
+
+      async function openSession(id) {
+        selected = id;
+        renderRows();
+        const delTop = $("deleteSessionBtn");
+        if (delTop) delTop.classList.add("hidden");
+        $("sidMeta").innerHTML = "<span class='sid'>" + esc(id) + "</span>";
+        $("detail").innerHTML = "<p class='muted'>Loading analysis…</p>";
+        try {
+          const o = await api("/api/admin/sessions/" + encodeURIComponent(id) + "?t=" + Date.now());
+          const sess0 = o.session || {};
+          const t = o.telemetry || {};
+          const k = t.kpis || {};
+          const ai = t.actionable_insights || {};
+          const charts = t.charts || {};
+          const evalConcluded = isSessionEnded(sess0);
+          const statusNote = evalConcluded
+            ? " <span class='pill' style='background:linear-gradient(90deg,#198754,#1fa76a)'>Scored</span>"
+            : " <span class='pill' style='background:linear-gradient(90deg,#9a6a00,#c49100)'>Open</span> — end the run to load the scoreboard.";
+
+          $("sidMeta").innerHTML =
+            "<div class='sess-head'><span class='sid'>" + esc((sess0.id || id)) + "</span>" + statusNote + "</div>";
+          const evTotal = k.behavior_events_total != null ? k.behavior_events_total : "—";
+          const evTypes = k.behavior_events_by_type || {};
+          const awayCount = Number(evTypes.tab_blur || 0);
+          const backCount = Number(evTypes.tab_focus || 0);
+          const topicChangeCount = Number(evTypes.dim_shift || 0);
+          const scoreEventCount = Number(evTypes.aiq_scoring_ok || 0);
+          const left = !!k.left_assessment_context;
+          const ass0 = o.assessment || {};
+          const scores0 = o.scores || {};
+          const aiqN = scores0.AiQ_0_100 != null ? num(scores0.AiQ_0_100, 1) : "—";
+          const levelL = ass0.level_label || ass0.level || "—";
+          const famL = ass0.job_family_label || ass0.job_family || "—";
+          const runHero =
+            "<div class='report-hero'>" +
+            "<div class='report-hero__label'>" + (evalConcluded ? "Run (scored)" : "Run (open)") + "</div>" +
+            "<p class='report-hero__p'>Profile they chose: <strong>" + esc(String(levelL)) + "</strong> · <strong>" + esc(String(famL)) + "</strong>. " +
+            "Their replies: <strong>" + String(k.user_messages || 0) + "</strong> · your lines: <strong>" + String(k.model_messages || 0) + "</strong>.</p>" +
+            (evalConcluded
+              ? "<p class='report-hero__aiq'>Rough composite: <strong>" + aiqN + "</strong> / 100 — the dimension list below matters more than this one number.</p>"
+              : "<p class='report-hero__p' style='color:#9e8ad4'>You will get gaps and a composite after you end the run and it scores.</p>") +
+            "</div>";
+          const onToc = [
+            { n: 1, id: "r-engage", label: "Engagement" },
+            { n: 2, id: "r-score", label: "Scores" },
+            { n: 3, id: "r-follow", label: "Coaching" },
+            { n: 4, id: "r-30", label: "30d outline" },
+            { n: 5, id: "r-tr", label: "Transcript" }
+          ];
+          if (!evalConcluded) {
+            onToc.push({ id: "x", muted: true, label: "3–4 after score" });
+          }
+
+          const kpisBlock =
+            "<div class='metrics-hero' style='margin:0; border:0; background:transparent; padding:0;'>" +
+            "<div class='kpis'>" +
+            kpiWithBubble(
+              "Duration",
+              k.duration_human || durHuman(k.duration_sec),
+              {
+                title: "What this means",
+                lines: [
+                  "Total assessment time from first message to last message.",
+                  "Use it to check whether the run was very short, typical, or unusually long.",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "Messages (all lines)",
+              k.message_total != null ? k.message_total : "—",
+              {
+                title: "What this means",
+                lines: [
+                  "Total chat lines in this run (interviewer + participant).",
+                  "Higher counts usually mean deeper probing or longer discussion.",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "User / interviewer lines",
+              (k.user_messages || 0) + " / " + (k.model_messages || 0),
+              {
+                title: "What this means",
+                lines: [
+                  "First number: participant replies.",
+                  "Second number: interviewer prompts/questions.",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "Behavior events (total)",
+              String(evTotal),
+              {
+                title: "What this means",
+                lines: [
+                  "This is a simple activity counter, not a quality score.",
+                  "This session: left tab " + awayCount + " times, returned " + backCount + " times, topic changed " + topicChangeCount + " times, scoring completed " + scoreEventCount + " time(s).",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "Avg think time / reply",
+              k.avg_compose_human_per_user_message || durHuman(k.avg_compose_sec_per_user_message),
+              {
+                title: "What this means",
+                lines: [
+                  "Average time the participant took before sending each reply.",
+                  "Useful for spotting whether responses were quick vs. reflective.",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "Session AI-style score",
+              k.session_ai_likelihood_0_100 != null ? num(k.session_ai_likelihood_0_100, 0) + "/100" : "—",
+              {
+                title: "What this means",
+                lines: [
+                  "Writing-style indicator only.",
+                  "Higher values mean answers look more templated.",
+                  "It is not proof that AI wrote the response.",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "Focus-away signal",
+              left ? "Yes" : "No",
+              {
+                title: "What this means",
+                lines: [
+                  "Yes = the person left the assessment tab at least once.",
+                  "Common reasons: checking another tab, app, or window.",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "Blur events (count)",
+              k.tab_blur_count != null ? k.tab_blur_count : "—",
+              {
+                title: "What this means",
+                lines: [
+                  "Count of times the assessment page lost focus.",
+                  "This run: " + (k.tab_blur_count != null ? k.tab_blur_count : "0") + " away events and " + (k.tab_focus_count != null ? k.tab_focus_count : 0) + " returns.",
+                ],
+              }
+            ) +
+            kpiWithBubble(
+              "Paste / generic flags",
+              k.generic_ai_flagged_user_messages != null ? k.generic_ai_flagged_user_messages : 0,
+              {
+                title: "What this means",
+                lines: [
+                  "How many replies looked copied or overly generic to our checker.",
+                  "Use as a prompt for follow-up questions, not as a final judgement.",
+                ],
+              }
+            ) + "</div></div>" + renderFocusAwayLog(k.focus_away_log || []) + " ";
+
+          const blockEngage = kpisBlock;
+          const blockScoreCharts =
+            (evalConcluded
+              ? renderGapBoard(ai.dimension_gaps || [])
+              : "<p class='muted' style='margin:0 0 0.55rem;'>Gap list and band line load after the run is ended and scored. Charts below work either way if there was at least one reply.</p>") +
+            "<p class='chart-why' style='font-size:0.78rem; margin:0.45rem 0;'>Pacing: longer = more time before that reply. Right: each label’s 0–10 for this run only.</p>" +
+            "<div class='grid2'>" +
+            "<div class='panel'>" +
+            "<div class='panel-title'>Reply time by turn</div>" +
+            "<p class='chart-legend'>Longer bar = more seconds to send that reply after your last line.</p>" +
+            renderThinkTimeVisual(charts.compose_time_by_turn || []) +
+            "</div>" +
+            "<div class='panel'>" +
+            "<div class='panel-title'>Score by dimension (this run)</div>" +
+            "<p class='chart-legend'>0–10 from the last scoring pass (empty until scored).</p>" +
+            renderCapabilityStrength(charts.dimension_score_vs_target || []) +
+            "</div></div>";
+
+          const s1 = reportSection(
+            "1",
+            "r-engage",
+            "Engagement and signals",
+            "Time, tab, topic shifts, and rough style flags. Use the transcript in section 5 to verify wording.",
+            blockEngage
+          );
+          const s2 = reportSection(
+            "2",
+            "r-score",
+            "Gaps, then charts",
+            "Gaps: shortfall vs the band for their level, then reply-time and 0–10 by dimension. Coaching in section 3 is aligned to these same targets.",
+            blockScoreCharts
+          );
+          const s3 = evalConcluded
+            ? reportSection(
+                "3",
+                "r-follow",
+                "Coaching by dimension",
+                "Where they stand, what to work on, and a small practice set per D1–D6; links are chosen for this job family and the largest gaps.",
+                renderRecommendationsPanel(ai)
+              )
+            : reportSection(
+                "3",
+                "r-follow",
+                "Coaching by dimension",
+                "End the run to generate the gap-aware coaching and reference links from the same scorecard as section 2.",
+                "<p class='muted'>—</p>"
+              );
+          const s4 = reportSection(
+            "4",
+            "r-30",
+            "30-day outline (template)",
+            "High-level only — optional org roadmap, separate from the per-dimension work above.",
+            evalConcluded
+              ? renderThirtyDays(ai.next_30_days || [])
+              : "<p class='muted'>Fills in after the run is scored.</p>"
+          );
+          const s5 = reportSection(
+            "5",
+            "r-tr",
+            "Transcript",
+            "What they said and what you asked, in order, with the derived fields in the table.",
+            renderTurnTable(t.interaction_turns || [])
+          );
+
+          $("detail").innerHTML =
+            runHero + reportToc(onToc) + s1 + s2 + s3 + s4 + s5;
+          if (delTop) delTop.classList.remove("hidden");
+        } catch (e) {
+          if (delTop) delTop.classList.add("hidden");
+          $("detail").innerHTML = "<p class='err'>" + esc(e.message || "Failed to load session") + "</p>";
+        }
+      }
+
+      async function loadSessions() {
+        const o = await api("/api/admin/sessions?t=" + Date.now());
+        sessions = Array.isArray(o.sessions) ? o.sessions : [];
+        renderRows();
+        if (!sessions.length) {
+          selected = "";
+          if ($("deleteSessionBtn")) $("deleteSessionBtn").classList.add("hidden");
+          $("detail").innerHTML = "<p class='muted'>No sessions yet.</p>";
+          return;
+        }
+        const stillThere = selected && sessions.some((s) => s.id === selected);
+        if (!stillThere) selected = sessions[0].id;
+        await openSession(selected);
+      }
+
+      function showLogin(msg) {
+        $("dash").classList.add("hidden");
+        $("login").classList.remove("hidden");
+        $("loginErr").textContent = msg || "";
+      }
+      function showDash() {
+        $("login").classList.add("hidden");
+        $("dash").classList.remove("hidden");
+      }
+
+      $("loginBtn").onclick = async function () {
+        const v = ($("tokenIn").value || "").trim();
+        if (!v) return showLogin("Enter an admin code.");
+        setToken(v);
+        try {
+          await loadSessions();
+          showDash();
+        } catch (e) {
+          showLogin(e.message || "Unauthorized");
+        }
+      };
+      $("clearBtn").onclick = function () { clearToken(); $("tokenIn").value = ""; showLogin("Token cleared."); };
+      $("refreshBtn").onclick = async function () {
+        try {
+          await loadSessions();
+        } catch (e) {
+          showLogin(e.message || "Unauthorized");
+        }
+      };
+      $("logoutBtn").onclick = function () {
+        clearToken();
+        selected = "";
+        sessions = [];
+        if ($("deleteSessionBtn")) $("deleteSessionBtn").classList.add("hidden");
+        $("tb").innerHTML = "";
+        $("detail").innerHTML = "<p class='muted'>Select a run in the list.</p>";
+        showLogin("");
+      };
+      if ($("deleteSessionBtn")) {
+        $("deleteSessionBtn").onclick = function () {
+          if (selected) deleteSessionById(selected);
+        };
+      }
+
+      $("detail").addEventListener("click", (e) => {
+        const btn = e.target && e.target.closest && e.target.closest("button.hint-ico");
+        if (btn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const host = btn.closest(".kpi, .has-hint");
+          if (!host) return;
+          const pop = host.querySelector(".hint-pop");
+          if (!pop) return;
+          const willOpen = !pop.classList.contains("open");
+          $("detail").querySelectorAll(".hint-pop.open").forEach((el) => { el.classList.remove("open"); });
+          if (willOpen) pop.classList.add("open");
+          return;
+        }
+        if (e.target && e.target.closest && e.target.closest(".hint-pop")) return;
+        $("detail").querySelectorAll(".hint-pop.open").forEach((el) => { el.classList.remove("open"); });
+      });
+
+      if (token()) {
+        loadSessions().then(showDash).catch((e) => showLogin(e.message || "Unauthorized"));
+      } else {
+        showLogin("");
+      }
+    })();
+  </script>
+</body>
+</html>

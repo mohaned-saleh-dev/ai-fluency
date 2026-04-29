@@ -1,15 +1,16 @@
 # Core dependencies for PRD Ticket Agent
 httpx>=0.24.0
 python-dotenv>=1.0.0
-google-generativeai>=0.3.0
+openai>=1.30.0
 
 # News Intelligence Agent
 feedparser>=6.0.0
 beautifulsoup4>=4.12.0
 flask>=3.0.0
 gunicorn>=22.0.0
+python-docx>=1.1.0
 
-# Optional dependencies
-# gspread>=5.0.0  # Only needed if using Google Sheets
-# google-auth>=2.0.0  # Only needed if using Google Sheets
+# Optional: weekly Contentful → Google Sheets (scripts/contentful_sheets_sync.py)
+gspread>=5.0.0
+google-auth>=2.0.0
 # slack-sdk>=3.27.0  # Only needed for Slack agent (not included in PRD agent)
