@@ -4,6 +4,7 @@
 # After deploy: Dashboard → your service → Environment → add secrets:
 #   GOOGLE_API_KEY or GEMINI_API_KEY   (required for Gemini)
 #   AIQ_ADMIN_SECRET                   (required for /admin)
+# Optional: AIQ_INTERVIEWER_REPAIR=1   (second Gemini call per turn — needs high upstream timeout)
 #
 # SQLite lives on ephemeral disk on free tier — data resets if the instance is recycled.
 # See https://render.com/docs/disks for persistent disk on paid plans.

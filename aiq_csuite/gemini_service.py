@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import re
 import time
@@ -251,6 +252,23 @@ Output only the fixed text:
     return t if t else partial
 
 
+def _llm_repair_interviewer_reply_enabled() -> bool:
+    """Optional second Gemini call to fix truncated / praise-only interviewer lines.
+
+    That repair roughly doubles latency per turn. Render (and similar hosts) often enforce a
+    ~100s HTTP proxy timeout — two long Gemini calls + retries can exceed it → 502 / Bad Gateway.
+
+    Default: **disabled** when ``RENDER=true`` (set automatically on Render). Enable explicitly with
+    ``AIQ_INTERVIEWER_REPAIR=1`` if you run on a tier with a higher upstream timeout.
+    """
+    ex = (os.environ.get("AIQ_INTERVIEWER_REPAIR") or "").strip().lower()
+    if ex in ("1", "true", "yes"):
+        return True
+    if ex in ("0", "false", "no"):
+        return False
+    return os.environ.get("RENDER", "").lower() != "true"
+
+
 def _postprocess_interviewer_reply(raw: str) -> str:
     """Repair obvious failures before the UI sees the line."""
     t0 = (raw or "").strip()
@@ -260,6 +278,8 @@ def _postprocess_interviewer_reply(raw: str) -> str:
         return t0
     vis = _visible_interviewer_excluding_dim(t0)
     if not _interviewer_needs_repair(vis):
+        return t0
+    if not _llm_repair_interviewer_reply_enabled():
         return t0
     fixed = _repair_interviewer_reply(t0)
     v2 = _visible_interviewer_excluding_dim(fixed)

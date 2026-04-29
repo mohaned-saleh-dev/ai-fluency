@@ -10,13 +10,13 @@ import app  # noqa: F401
 print("app: import OK", flush=True)
 PY
 
+# No --preload: safer with gRPC-based Google client after fork on some hosts.
 exec gunicorn \
-  --preload \
   -b "0.0.0.0:${PORT}" \
   -w 1 \
   -k sync \
-  --timeout 180 \
-  --graceful-timeout 30 \
+  --timeout 300 \
+  --graceful-timeout 60 \
   --access-logfile - \
   --error-logfile - \
   "app:app"
