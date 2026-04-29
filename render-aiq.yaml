@@ -1,0 +1,24 @@
+# Blueprint for AiQ CSuite only (Flask). Apply in Render: New → Blueprint → paste this file,
+# or merge this service into your main render.yaml.
+#
+# After deploy: Dashboard → your service → Environment → add secrets:
+#   GOOGLE_API_KEY or GEMINI_API_KEY   (required for Gemini)
+#   AIQ_ADMIN_SECRET                   (required for /admin)
+#
+# SQLite lives on ephemeral disk on free tier — data resets if the instance is recycled.
+# See https://render.com/docs/disks for persistent disk on paid plans.
+
+services:
+  - type: web
+    name: ai-fluency-aiq
+    runtime: docker
+    region: oregon
+    plan: free
+    rootDir: aiq_csuite
+    dockerfilePath: Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: AIQ_ADMIN_SECRET
+        sync: false
