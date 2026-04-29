@@ -1,8 +1,8 @@
-# PRD and Jira Ticket Writing Agent
+# AI Fluency
 
-A focused, installable application for creating Product Requirements Documents (PRDs) and Jira tickets using AI. This agent is dedicated exclusively to PRD and ticket generation, powered by Google's Gemini AI.
+Workspace for AI fluency work: executive assessment (AiQ CSuite under `aiq_csuite/`), PRD and Jira ticket tooling (`prd_ticket_agent/`), and related scripts and docs. Use whatever subdirectory matches the task.
 
-## Features
+## Features (PRD / ticket agent)
 
 - **PRD Generation**: Creates comprehensive PRDs following your team's format and style using Gemini LLM
 - **Jira Ticket Creation**: Generates tickets linked to PRDs with proper structure using Gemini LLM
