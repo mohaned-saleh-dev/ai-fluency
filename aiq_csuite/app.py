@@ -1627,4 +1627,7 @@ def admin_delete_session(session_id: str):
 
 if __name__ == "__main__":
     init_db()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5020)), debug=True)
+    _port = int(os.environ.get("PORT", 5020))
+    # FLASK_DEBUG=0 avoids the reloader child process (cleaner for tunnel wrappers).
+    _debug = os.environ.get("FLASK_DEBUG", "true").strip().lower() in ("1", "true", "yes", "on")
+    app.run(host="0.0.0.0", port=_port, debug=_debug)

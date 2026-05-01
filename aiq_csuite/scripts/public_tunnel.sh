@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Expose your LOCAL AiQ server (same machine as this script) on the internet.
 #
+# Prefer the one-shot launcher (starts Flask + tunnel + persistent ~/.aiq_csuite):
+#   cd aiq_csuite && ./scripts/run_local_persistent_tunnel.sh
+#
+# Or two terminals:
 # 1) Terminal A — start the app:
 #      cd aiq_csuite && python3 app.py
 # 2) Terminal B — run this script:
