@@ -199,138 +199,291 @@
       word-break: break-all;
     }
 
-    .weight-acc {
-      border: 1px solid rgba(42, 61, 54, 0.85);
-      border-radius: 14px;
-      background: rgba(0, 0, 0, 0.14);
-      margin-bottom: 0.75rem;
-      overflow: hidden;
+    /* === Mixer === */
+    .mix-aud {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.95rem;
+      margin: 0.1rem 0 1rem;
     }
-    .weight-acc summary {
-      list-style: none;
-      padding: 0.85rem 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
-      font-family: Fraunces, Georgia, serif;
-      font-size: 1.02rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
-    .weight-acc summary::-webkit-details-marker { display: none; }
-    .weight-acc summary::after {
-      content: "▼";
-      font-size: 0.58rem;
-      opacity: 0.55;
-      margin-top: 0.35rem;
-      transition: transform 0.2s ease;
-    }
-    .weight-acc[open] summary::after { transform: rotate(-180deg); }
-    .acc-sub {
-      font-family: "DM Sans", system-ui, sans-serif;
-      font-size: 0.78rem;
-      font-weight: 400;
+    @media (max-width: 720px) { .mix-aud { grid-template-columns: 1fr; } }
+    .aud-label {
+      margin: 0 0 0.35rem;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
       color: var(--muted);
-      margin-top: 0.28rem;
-      max-width: 58ch;
+      font-weight: 800;
+    }
+    .seg-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.32rem;
+    }
+    .seg-row button {
+      padding: 0.42rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(143, 168, 158, 0.28);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .seg-row button:hover { color: var(--ink); border-color: rgba(143, 168, 158, 0.5); }
+    .seg-row button.active {
+      background: var(--accent-dim);
+      border-color: rgba(46, 230, 184, 0.45);
+      color: var(--accent);
+    }
+
+    .live-mix {
+      margin: 0.2rem 0 1.1rem;
+      padding: 0.95rem 1rem 0.85rem;
+      border-radius: 14px;
+      background: linear-gradient(160deg, rgba(46, 230, 184, 0.07), rgba(0, 0, 0, 0.18));
+      border: 1px solid rgba(46, 230, 184, 0.2);
+    }
+    .live-mix-cap {
+      margin: 0 0 0.6rem;
+      font-size: 0.82rem;
+      color: var(--muted);
       line-height: 1.42;
     }
-    .weight-acc .acc-body { padding: 0 1rem 1rem; }
-
-    .profile-block {
-      margin-bottom: 1.05rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(42, 61, 54, 0.45);
-    }
-    .profile-block:last-child {
-      border-bottom: 0;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-    .profile-title {
-      font-size: 0.86rem;
-      font-weight: 700;
-      margin: 0 0 0.55rem;
-      color: var(--ink);
-    }
-
-    .dim-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
-      gap: 0.62rem;
-    }
-    .dim-chip {
-      background: var(--panel2);
-      border-radius: 12px;
-      padding: 0.5rem 0.58rem 0.55rem;
-      border: 1px solid rgba(143, 168, 158, 0.14);
-    }
-    .dim-chip .dc-top { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; }
-    .dim-chip .dc-code { font-weight: 800; font-size: 0.74rem; color: var(--accent); letter-spacing: 0.02em; }
-    .dim-chip .dc-label {
-      font-size: 0.62rem;
-      color: var(--muted);
-      line-height: 1.28;
-      margin: 0.22rem 0 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+    .live-mix-cap b { color: var(--ink); font-weight: 700; }
+    .mix-stack {
+      display: flex;
+      width: 100%;
+      height: 30px;
+      border-radius: 9px;
       overflow: hidden;
-      min-height: 2.45em;
+      background: rgba(0, 0, 0, 0.32);
     }
-    .dim-i0 { border-left: 3px solid #5eead4; }
-    .dim-i1 { border-left: 3px solid #7dd3fc; }
-    .dim-i2 { border-left: 3px solid #c4b5fd; }
-    .dim-i3 { border-left: 3px solid #fcd34d; }
-    .dim-i4 { border-left: 3px solid #fda4af; }
-    .dim-i5 { border-left: 3px solid #86efac; }
-
-    .num-stepper {
+    .mix-stack > .seg {
       display: flex;
       align-items: center;
-      gap: 0.28rem;
-      margin-top: 0.42rem;
-    }
-    .num-stepper .step {
+      justify-content: center;
+      font-size: 0.66rem;
+      font-weight: 800;
+      color: rgba(8, 22, 18, 0.75);
+      letter-spacing: 0.04em;
+      transition: width 0.22s ease;
       flex-shrink: 0;
-      width: 1.72rem;
-      height: 1.72rem;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .mix-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+    }
+    .lg {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.36rem 0.5rem;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      font-size: 0.72rem;
+    }
+    .lg .swatch { width: 0.62rem; height: 0.62rem; border-radius: 3px; flex-shrink: 0; }
+    .lg .lg-code { font-weight: 800; color: var(--ink); }
+    .lg .lg-name {
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 0;
+    }
+    .lg .lg-pct { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; }
+
+    .mix-tabs {
+      display: flex;
+      gap: 0.32rem;
+      border-bottom: 1px solid rgba(143, 168, 158, 0.18);
+      margin-bottom: 0.95rem;
+      flex-wrap: wrap;
+    }
+    .mix-tab {
+      padding: 0.55rem 0.9rem;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      font-family: inherit;
+      letter-spacing: -0.01em;
+    }
+    .mix-tab:hover { color: var(--ink); }
+    .mix-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .mix-panel { padding-top: 0.4rem; }
+    .panel-help {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin: 0 0 0.8rem;
+      line-height: 1.45;
+    }
+    .panel-help b { color: var(--ink); font-weight: 700; }
+
+    .rack { display: flex; flex-direction: column; gap: 0.5rem; }
+    .mix-row {
+      display: grid;
+      grid-template-columns: minmax(170px, 1.5fr) minmax(190px, 2.7fr) auto;
+      gap: 0.8rem;
+      align-items: center;
+      padding: 0.6rem 0.78rem;
+      border-radius: 11px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(42, 61, 54, 0.6);
+    }
+    @media (max-width: 720px) {
+      .mix-row { grid-template-columns: 1fr; }
+      .mix-row .row-value { text-align: left; }
+    }
+    .row-name {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .row-swatch { width: 0.42rem; height: 1.55rem; border-radius: 3px; flex-shrink: 0; }
+    .row-code { font-weight: 800; font-size: 0.78rem; color: var(--ink); letter-spacing: 0.02em; }
+    .row-label { font-size: 0.7rem; color: var(--muted); line-height: 1.32; }
+
+    .row-slider input[type="range"],
+    .nudge-controls input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 22px;
+      background: transparent;
+      margin: 0;
+      cursor: pointer;
+    }
+    .row-slider input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(46, 230, 184, 0.7), rgba(46, 230, 184, 0.18));
+    }
+    .row-slider input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(46, 230, 184, 0.4);
+    }
+    .nudge-controls input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255, 107, 107, 0.55), rgba(143, 168, 158, 0.18) 50%, rgba(46, 230, 184, 0.65));
+    }
+    .nudge-controls input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(143, 168, 158, 0.4);
+    }
+    .row-slider input[type="range"]::-webkit-slider-thumb,
+    .nudge-controls input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fffb;
+      margin-top: -6px;
+      box-shadow: 0 0 0 3px rgba(46, 230, 184, 0.28);
+    }
+    .row-slider input[type="range"]::-moz-range-thumb,
+    .nudge-controls input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fffb;
+      border: 0;
+    }
+    .row-slider input[type="range"]:focus,
+    .nudge-controls input[type="range"]:focus { outline: none; }
+
+    .nudge-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .nudge-controls .step {
+      flex-shrink: 0;
+      width: 1.85rem;
+      height: 1.85rem;
       border-radius: 9px;
       border: 1px solid rgba(143, 168, 158, 0.28);
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--ink);
       cursor: pointer;
       font-size: 1.05rem;
       line-height: 1;
       padding: 0;
+      font-family: inherit;
     }
-    .num-stepper .step:hover {
-      background: var(--accent-dim);
-      border-color: rgba(46, 230, 184, 0.45);
-    }
-    .num-stepper .in-num {
-      flex: 1;
-      min-width: 0;
-      padding: 0.32rem 0.38rem;
-      border-radius: 8px;
-      border: 1px solid rgba(143, 168, 158, 0.28);
-      background: rgba(0, 0, 0, 0.32);
-      color: var(--ink);
-      font-size: 0.8rem;
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-    }
+    .nudge-controls .step:hover { background: var(--accent-dim); border-color: rgba(46, 230, 184, 0.45); }
 
-    .weights-toolbar {
+    .row-value {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--ink);
+      min-width: 5rem;
+      text-align: right;
+    }
+    .row-value .small { font-size: 0.62rem; color: var(--muted); display: block; font-weight: 500; }
+
+    .mix-foot {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
       align-items: center;
-      margin-bottom: 0.85rem;
+      gap: 0.5rem;
+      margin-top: 1.1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid rgba(143, 168, 158, 0.18);
     }
-    .weights-toolbar .btn { font-size: 0.62rem; }
+    .mix-foot .btn { font-size: 0.62rem; }
+    .dirty-dot {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--warm);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-right: auto;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .dirty-dot::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--warm);
+      box-shadow: 0 0 0 3px rgba(244, 185, 66, 0.18);
+    }
+
+    .preset-row { display: flex; gap: 0.32rem; flex-wrap: wrap; margin: 0.45rem 0 0.95rem; }
+    .preset-row .preset {
+      padding: 0.34rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(143, 168, 158, 0.28);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .preset-row .preset:hover { color: var(--ink); border-color: rgba(46, 230, 184, 0.45); }
 
     .section-title {
       margin: 1.25rem 0 0.5rem;
@@ -395,7 +548,7 @@
       <div>
         <p class="tag">AiQ · operator only</p>
         <h1>AI Fluency Orchestrator</h1>
-        <p>Inspect the interviewer agent, tune rubric weights (base + level + job-family deltas), and append instructions without editing Python. Same auth as admin.</p>
+        <p>Pick a person, see how the rubric will weight their session, and slide. Same auth as admin.</p>
       </div>
       <div class="toolbar">
         <input type="password" id="token-field" class="in-token" placeholder="Admin token" autocomplete="off" />
@@ -426,16 +579,71 @@
       </section>
     </div>
 
-    <p class="section-title">Rubric tuning</p>
+    <p class="section-title">Mixer</p>
     <div class="card">
-      <h2>Weights</h2>
-      <p class="sub">Small numbers: <strong>base</strong> is the starting mix across D1–D6; <strong>deltas</strong> nudge that mix by seniority and job family. When you save, the app writes one JSON file next to your database — nothing here edits Python.</p>
+      <h2>Tune the rubric</h2>
+      <p class="sub">Pick a person, see how the six dimensions stack for them, and slide. The big bar updates instantly — that’s exactly what the scorer will weight on a real session.</p>
       <div id="weights-override-note" class="sub" style="margin-bottom:0.65rem;"></div>
-      <div class="weights-toolbar">
-        <button type="button" class="btn" id="btn-save-weights">Save weights</button>
-        <button type="button" class="btn warn" id="btn-reset-weights">Reset to defaults</button>
+
+      <div class="mix-aud">
+        <div>
+          <p class="aud-label">Seniority</p>
+          <div class="seg-row" id="seg-level"></div>
+        </div>
+        <div>
+          <p class="aud-label">Job family</p>
+          <div class="seg-row" id="seg-family"></div>
+        </div>
       </div>
-      <div id="weight-tables"></div>
+
+      <div class="live-mix">
+        <p class="live-mix-cap" id="live-mix-cap">Pick someone above to see their mix.</p>
+        <div class="mix-stack" id="mix-stack" aria-label="Effective dimension mix"></div>
+        <div class="mix-legend" id="mix-legend"></div>
+        <div style="margin-top:0.7rem; display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center;">
+          <button type="button" class="preset" id="btn-toggle-doc">Compare with shipped defaults</button>
+          <span class="aud-label" id="doc-source-line" style="margin:0;text-transform:none;letter-spacing:0.04em;font-weight:500;font-size:0.66rem;color:var(--muted);">Source of truth: <code>knowledge/aiq_context_rag.md</code></span>
+        </div>
+        <div id="doc-mix" class="hidden" style="margin-top:0.6rem;padding-top:0.55rem;border-top:1px dashed rgba(143, 168, 158, 0.3);">
+          <p class="aud-label" style="margin-bottom:0.4rem;">Shipped defaults (D1–D6 baseline as documented)</p>
+          <div class="mix-stack" id="doc-mix-stack" style="opacity:0.92;"></div>
+          <div class="mix-legend" id="doc-mix-legend"></div>
+        </div>
+      </div>
+
+      <div class="mix-tabs" role="tablist">
+        <button type="button" class="mix-tab active" data-tab="base">Default mix</button>
+        <button type="button" class="mix-tab" data-tab="level">Tweak by seniority</button>
+        <button type="button" class="mix-tab" data-tab="family">Tweak by job family</button>
+      </div>
+
+      <div class="mix-panel" id="mix-panel-base">
+        <p class="panel-help">Set how important each dimension is by default. The system normalizes these to add up to 100% on every session — you only set the <b>shape</b>.</p>
+        <div class="preset-row">
+          <button type="button" class="preset" data-preset="balanced">Balanced</button>
+          <button type="button" class="preset" data-preset="judgment_first">Judgment-first</button>
+          <button type="button" class="preset" data-preset="risk_heavy">Risk-heavy</button>
+          <button type="button" class="preset" data-preset="output_focus">Output focus</button>
+        </div>
+        <div class="rack" id="rack-base"></div>
+      </div>
+
+      <div class="mix-panel hidden" id="mix-panel-level">
+        <p class="panel-help">Bump or lower a dimension <b>just for this seniority</b>. The slider is centered at zero — left makes it count less, right makes it count more.</p>
+        <div class="rack" id="rack-level"></div>
+      </div>
+
+      <div class="mix-panel hidden" id="mix-panel-family">
+        <p class="panel-help">Same idea, but for the selected job family.</p>
+        <div class="rack" id="rack-family"></div>
+      </div>
+
+      <div class="mix-foot">
+        <span class="dirty-dot hidden" id="dirty-dot">Unsaved changes</span>
+        <button type="button" class="btn secondary" id="btn-discard">Discard</button>
+        <button type="button" class="btn warn" id="btn-reset-weights">Reset to defaults</button>
+        <button type="button" class="btn" id="btn-save-weights">Save</button>
+      </div>
     </div>
 
     <p class="section-title">Interviewer instructions (append)</p>
@@ -555,172 +763,326 @@
         return x ? x.label : slug;
       }
 
-      function renderWeights(data) {
+      // === Mixer ===
+      const DIM_COLORS = ["#5eead4", "#7dd3fc", "#c4b5fd", "#fcd34d", "#fda4af", "#86efac"];
+      const PRESETS = {
+        balanced: [0.18, 0.16, 0.18, 0.16, 0.16, 0.16],
+        judgment_first: [0.14, 0.12, 0.28, 0.16, 0.10, 0.20],
+        risk_heavy: [0.14, 0.10, 0.16, 0.16, 0.08, 0.36],
+        output_focus: [0.14, 0.18, 0.14, 0.14, 0.24, 0.16],
+      };
+
+      let draft = null;
+      let selected = { level: "", family: "" };
+      let activeTab = "base";
+      let isDirty = false;
+
+      function clone6(a) { return (a || [0, 0, 0, 0, 0, 0]).slice(0, 6).map(function (x) { return Number(x) || 0; }); }
+      function cloneMap6(m) {
+        const out = {};
+        Object.keys(m || {}).forEach(function (k) { out[k] = clone6(m[k]); });
+        return out;
+      }
+
+      function buildDraft(data) {
+        const eff = (data.weights && data.weights.effective) || {};
+        draft = {
+          base: clone6(eff.base),
+          level_deltas: cloneMap6(eff.level_deltas),
+          family_deltas: cloneMap6(eff.family_deltas),
+        };
+      }
+
+      function combineNorm(base, ld, fd) {
+        const combined = [];
+        for (let i = 0; i < 6; i++) combined.push((base[i] || 0) + (ld[i] || 0) + (fd[i] || 0));
+        const clamped = combined.map(function (x) { return Math.max(0.01, x); });
+        const s = clamped.reduce(function (a, x) { return a + x; }, 0) || 1;
+        return clamped.map(function (x) { return x / s; });
+      }
+
+      function effectiveFor(level, family) {
+        return combineNorm(
+          draft.base,
+          draft.level_deltas[level] || [0, 0, 0, 0, 0, 0],
+          draft.family_deltas[family] || [0, 0, 0, 0, 0, 0]
+        );
+      }
+
+      function defaultEffectiveFor(data, level, family) {
+        const def = (data.weights && data.weights.defaults) || {};
+        return combineNorm(
+          def.base || [0, 0, 0, 0, 0, 0],
+          (def.level_deltas && def.level_deltas[level]) || [0, 0, 0, 0, 0, 0],
+          (def.family_deltas && def.family_deltas[family]) || [0, 0, 0, 0, 0, 0]
+        );
+      }
+
+      function paintStack(targetStack, targetLegend, dims, effArr) {
+        targetStack.innerHTML = "";
+        targetLegend.innerHTML = "";
+        effArr.forEach(function (frac, i) {
+          const pct = frac * 100;
+          const seg = document.createElement("div");
+          seg.className = "seg";
+          seg.style.width = pct.toFixed(2) + "%";
+          seg.style.background = DIM_COLORS[i];
+          if (frac >= 0.07) seg.textContent = dims[i].code;
+          seg.title = dims[i].code + " · " + dims[i].lab + ": " + pct.toFixed(1) + "%";
+          targetStack.appendChild(seg);
+          const lg = document.createElement("div");
+          lg.className = "lg";
+          lg.innerHTML =
+            "<span class='swatch' style='background:" + DIM_COLORS[i] + "'></span>" +
+            "<span class='lg-code'>" + esc(dims[i].code) + "</span>" +
+            "<span class='lg-name'>" + esc(dims[i].lab) + "</span>" +
+            "<span class='lg-pct'>" + pct.toFixed(1) + "%</span>";
+          targetLegend.appendChild(lg);
+        });
+      }
+
+      function setDirty(v) {
+        isDirty = !!v;
+        $("dirty-dot").classList.toggle("hidden", !isDirty);
+      }
+
+      function renderSegments(data) {
+        const segLevel = $("seg-level");
+        segLevel.innerHTML = "";
+        (data.levels || []).forEach(function (L) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = L.label;
+          b.dataset.slug = L.slug;
+          if (selected.level === L.slug) b.classList.add("active");
+          b.addEventListener("click", function () {
+            selected.level = L.slug;
+            renderSegments(data);
+            renderLiveMix(data);
+            if (activeTab === "level") renderRack("level", data);
+          });
+          segLevel.appendChild(b);
+        });
+        const segFamily = $("seg-family");
+        segFamily.innerHTML = "";
+        (data.job_families || []).forEach(function (F) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = F.label;
+          b.dataset.slug = F.slug;
+          if (selected.family === F.slug) b.classList.add("active");
+          b.addEventListener("click", function () {
+            selected.family = F.slug;
+            renderSegments(data);
+            renderLiveMix(data);
+            if (activeTab === "family") renderRack("family", data);
+          });
+          segFamily.appendChild(b);
+        });
+      }
+
+      function renderLiveMix(data) {
+        const dims = dimLabels(data.weights || {});
+        const eff = effectiveFor(selected.level, selected.family);
+        const lvl = (data.levels || []).find(function (x) { return x.slug === selected.level; });
+        const fam = (data.job_families || []).find(function (x) { return x.slug === selected.family; });
+        $("live-mix-cap").innerHTML =
+          "What scoring weights for an <b>" +
+          esc(lvl ? lvl.label : selected.level || "—") +
+          "</b> in <b>" +
+          esc(fam ? fam.label : selected.family || "—") +
+          "</b>.";
+
+        paintStack($("mix-stack"), $("mix-legend"), dims, eff);
+
+        const docPanel = $("doc-mix");
+        if (docPanel && !docPanel.classList.contains("hidden")) {
+          const def = defaultEffectiveFor(data, selected.level, selected.family);
+          paintStack($("doc-mix-stack"), $("doc-mix-legend"), dims, def);
+        }
+      }
+
+      function buildRow(dims, i, kind) {
+        const row = document.createElement("div");
+        row.className = "mix-row";
+
+        const name = document.createElement("div");
+        name.className = "row-name";
+        const sw = document.createElement("span");
+        sw.className = "row-swatch";
+        sw.style.background = DIM_COLORS[i];
+        name.appendChild(sw);
+        const txt = document.createElement("div");
+        txt.innerHTML =
+          "<div class='row-code'>" + esc(dims[i].code) + "</div>" +
+          "<div class='row-label'>" + esc(dims[i].lab) + "</div>";
+        name.appendChild(txt);
+        row.appendChild(name);
+        return row;
+      }
+
+      function renderRack(kind, data) {
+        const dims = dimLabels(data.weights || {});
+        const host = $("rack-" + kind);
+        host.innerHTML = "";
+
+        if (kind === "base") {
+          const sumB = draft.base.reduce(function (a, x) { return a + x; }, 0) || 1;
+          for (let i = 0; i < 6; i++) {
+            const row = buildRow(dims, i, "base");
+            const wrap = document.createElement("div");
+            wrap.className = "row-slider";
+            const inp = document.createElement("input");
+            inp.type = "range";
+            inp.min = "0";
+            inp.max = "60";
+            inp.step = "1";
+            inp.value = String(Math.round((draft.base[i] || 0) * 100));
+            wrap.appendChild(inp);
+            row.appendChild(wrap);
+
+            const val = document.createElement("div");
+            val.className = "row-value";
+            const pctSpan = document.createElement("span");
+            const small = document.createElement("span");
+            small.className = "small";
+            val.appendChild(pctSpan);
+            val.appendChild(small);
+            row.appendChild(val);
+
+            function refreshDisplay() {
+              const sum = draft.base.reduce(function (a, x) { return a + x; }, 0) || 1;
+              const p = ((draft.base[i] || 0) / sum) * 100;
+              pctSpan.textContent = p.toFixed(1) + "%";
+              small.textContent = "raw " + (draft.base[i] || 0).toFixed(2);
+            }
+            refreshDisplay();
+            inp.addEventListener("input", function () {
+              draft.base[i] = parseFloat(inp.value) / 100;
+              setDirty(true);
+              renderLiveMix(data);
+              host.querySelectorAll(".row-value").forEach(function (el, idx) {
+                if (idx === i) refreshDisplay();
+                else {
+                  const ps = el.children[0], sm = el.children[1];
+                  if (!ps || !sm) return;
+                  const sumNow = draft.base.reduce(function (a, x) { return a + x; }, 0) || 1;
+                  ps.textContent = (((draft.base[idx] || 0) / sumNow) * 100).toFixed(1) + "%";
+                  sm.textContent = "raw " + (draft.base[idx] || 0).toFixed(2);
+                }
+              });
+            });
+            host.appendChild(row);
+          }
+          return;
+        }
+
+        const slug = kind === "level" ? selected.level : selected.family;
+        if (!slug) {
+          host.innerHTML = "<p class='panel-help'>Pick a " + (kind === "level" ? "seniority" : "job family") + " above to tune.</p>";
+          return;
+        }
+        const tbl = kind === "level" ? draft.level_deltas : draft.family_deltas;
+        if (!tbl[slug]) tbl[slug] = [0, 0, 0, 0, 0, 0];
+        const arr = tbl[slug];
+
+        for (let i = 0; i < 6; i++) {
+          const row = buildRow(dims, i, kind);
+          const ctrl = document.createElement("div");
+          ctrl.className = "nudge-controls";
+          const minus = document.createElement("button");
+          minus.type = "button";
+          minus.className = "step";
+          minus.textContent = "−";
+          const plus = document.createElement("button");
+          plus.type = "button";
+          plus.className = "step";
+          plus.textContent = "+";
+          const slider = document.createElement("input");
+          slider.type = "range";
+          slider.min = "-15";
+          slider.max = "15";
+          slider.step = "1";
+          slider.value = String(Math.round((arr[i] || 0) * 100));
+          ctrl.appendChild(minus);
+          ctrl.appendChild(slider);
+          ctrl.appendChild(plus);
+          row.appendChild(ctrl);
+
+          const val = document.createElement("div");
+          val.className = "row-value";
+          const v0 = parseInt(slider.value, 10);
+          val.textContent = (v0 > 0 ? "+" : "") + String(v0);
+          row.appendChild(val);
+
+          function commit(n) {
+            const clamped = Math.max(-15, Math.min(15, n));
+            slider.value = String(clamped);
+            arr[i] = clamped / 100;
+            val.textContent = (clamped > 0 ? "+" : "") + String(clamped);
+            setDirty(true);
+            renderLiveMix(data);
+          }
+          slider.addEventListener("input", function () { commit(parseInt(slider.value, 10)); });
+          minus.addEventListener("click", function () { commit(parseInt(slider.value, 10) - 1); });
+          plus.addEventListener("click", function () { commit(parseInt(slider.value, 10) + 1); });
+          host.appendChild(row);
+        }
+      }
+
+      function setActiveTab(tab, data) {
+        activeTab = tab;
+        document.querySelectorAll(".mix-tab").forEach(function (t) {
+          t.classList.toggle("active", t.dataset.tab === tab);
+        });
+        ["base", "level", "family"].forEach(function (k) {
+          $("mix-panel-" + k).classList.toggle("hidden", k !== tab);
+        });
+        renderRack(tab, data);
+      }
+
+      function renderMixer(data) {
+        buildDraft(data);
         const w = data.weights || {};
-        const eff = w.effective || {};
         const paths = data.paths || {};
         const note = $("weights-override-note");
         note.textContent = "";
-        note.appendChild(document.createTextNode(w.override_active ? "Saved overrides: " : "Defaults only — saving creates "));
+        note.appendChild(document.createTextNode(w.override_active ? "Saved tweaks live in " : "First save will write "));
         const code = document.createElement("code");
         code.style.fontSize = "0.76rem";
         code.style.margin = "0 0.2rem";
         code.textContent = paths.weights_json || w.override_file || "orchestrator_weights.json";
         note.appendChild(code);
-        note.appendChild(document.createTextNode(w.override_active ? "." : " beside your SQLite file."));
+        note.appendChild(document.createTextNode("."));
 
-        const dims = dimLabels(w);
-        const host = $("weight-tables");
-        host.innerHTML = "";
-
-        function buildRowBlocks(rows, kind) {
-          const frag = document.createDocumentFragment();
-          const stepAmt = kind === "base" ? "0.005" : "0.01";
-          rows.forEach((row) => {
-            const pb = document.createElement("div");
-            pb.className = "profile-block";
-            const pt = document.createElement("p");
-            pt.className = "profile-title";
-            pt.textContent = row.label;
-            pb.appendChild(pt);
-            const grid = document.createElement("div");
-            grid.className = "dim-grid";
-            row.values.forEach((val, i) => {
-              const d = dims[i];
-              const chip = document.createElement("div");
-              chip.className = "dim-chip dim-i" + i;
-              const top = document.createElement("div");
-              top.className = "dc-top";
-              const codeEl = document.createElement("span");
-              codeEl.className = "dc-code";
-              codeEl.textContent = d.code;
-              top.appendChild(codeEl);
-              chip.appendChild(top);
-              const lab = document.createElement("div");
-              lab.className = "dc-label";
-              lab.textContent = d.lab;
-              chip.appendChild(lab);
-              const stepper = document.createElement("div");
-              stepper.className = "num-stepper";
-              const minus = document.createElement("button");
-              minus.type = "button";
-              minus.className = "step";
-              minus.textContent = "−";
-              minus.setAttribute("data-delta", "-" + stepAmt);
-              const inp = document.createElement("input");
-              inp.type = "text";
-              inp.className = "in-num";
-              inp.setAttribute("inputmode", "decimal");
-              inp.dataset.kind = kind;
-              inp.dataset.row = row.key;
-              inp.dataset.idx = String(i);
-              inp.value = val;
-              const plus = document.createElement("button");
-              plus.type = "button";
-              plus.className = "step";
-              plus.textContent = "+";
-              plus.setAttribute("data-delta", stepAmt);
-              stepper.appendChild(minus);
-              stepper.appendChild(inp);
-              stepper.appendChild(plus);
-              chip.appendChild(stepper);
-              grid.appendChild(chip);
-            });
-            pb.appendChild(grid);
-            frag.appendChild(pb);
-          });
-          return frag;
+        if (!selected.level) {
+          selected.level =
+            (data.levels && (data.levels.find(function (x) { return x.slug === "head_of"; }) || data.levels[0]) || {}).slug || "";
+        }
+        if (!selected.family) {
+          selected.family =
+            (data.job_families && (data.job_families.find(function (x) { return x.slug === "general_management"; }) || data.job_families[0]) || {}).slug || "";
         }
 
-        function section(title, subtitle, rows, kind, openDefault) {
-          const det = document.createElement("details");
-          det.className = "weight-acc";
-          det.open = !!openDefault;
-          const sum = document.createElement("summary");
-          const left = document.createElement("div");
-          const strong = document.createElement("strong");
-          strong.textContent = title;
-          left.appendChild(strong);
-          const sub = document.createElement("div");
-          sub.className = "acc-sub";
-          sub.textContent = subtitle;
-          left.appendChild(sub);
-          sum.appendChild(left);
-          det.appendChild(sum);
-          const body = document.createElement("div");
-          body.className = "acc-body";
-          body.appendChild(buildRowBlocks(rows, kind));
-          det.appendChild(body);
-          host.appendChild(det);
-        }
-
-        const base = eff.base || [0, 0, 0, 0, 0, 0];
-        section(
-          "Base mix",
-          "Starting balance across D1–D6 before seniority or job-family nudges.",
-          [{ key: "_", label: "All participants", values: base }],
-          "base",
-          true
-        );
-
-        const ld = eff.level_deltas || {};
-        const lr = Object.keys(ld).map((k) => ({
-          key: k,
-          label: levelLabel(k, data),
-          values: ld[k],
-        }));
-        section(
-          "By seniority",
-          "Additive tweaks per level — small shifts, not final percentages.",
-          lr,
-          "level",
-          false
-        );
-
-        const fd = eff.family_deltas || {};
-        const fr = Object.keys(fd).map((k) => ({
-          key: k,
-          label: familyLabel(k, data),
-          values: fd[k],
-        }));
-        section(
-          "By job family",
-          "Same for role clusters (product, care, finance, …).",
-          fr,
-          "family",
-          false
-        );
+        renderSegments(data);
+        renderLiveMix(data);
+        setActiveTab(activeTab, data);
+        setDirty(false);
       }
 
       function collectWeightsPayload() {
-        const inputs = document.querySelectorAll("#weight-tables input.in-num");
-        const base = [0, 0, 0, 0, 0, 0];
-        const level_deltas = {};
-        const family_deltas = {};
-        inputs.forEach((inp) => {
-          const k = inp.dataset.kind;
-          const row = inp.dataset.row;
-          const idx = parseInt(inp.dataset.idx, 10);
-          const v = parseFloat(String(inp.value).replace(/,/g, ""));
-          if (!isFinite(v)) throw new Error("Invalid number at " + k + " / " + row);
-          if (k === "base") base[idx] = v;
-          if (k === "level") {
-            if (!level_deltas[row]) level_deltas[row] = [0, 0, 0, 0, 0, 0];
-            level_deltas[row][idx] = v;
-          }
-          if (k === "family") {
-            if (!family_deltas[row]) family_deltas[row] = [0, 0, 0, 0, 0, 0];
-            family_deltas[row][idx] = v;
-          }
-        });
-        return { base, level_deltas, family_deltas };
+        return {
+          base: clone6(draft.base),
+          level_deltas: cloneMap6(draft.level_deltas),
+          family_deltas: cloneMap6(draft.family_deltas),
+        };
       }
 
       async function load() {
         const data = await apiGet("/api/orchestrator/state");
         state = data;
         renderAgent(data);
-        renderWeights(data);
+        renderMixer(data);
         const paths = data.paths || {};
         const rpl = $("rag-path-line");
         if (rpl) {
@@ -775,28 +1137,21 @@
           const payload = collectWeightsPayload();
           await apiPost("/api/orchestrator/weights", payload);
           await load();
-          toast("Weights saved.", true);
+          toast("Saved.", true);
         } catch (e) {
           toast(e.message || String(e), false);
         }
       });
 
-      $("weight-tables").addEventListener("click", function (e) {
-        const btn = e.target.closest(".num-stepper .step");
-        if (!btn || !this.contains(btn)) return;
-        const d = parseFloat(btn.getAttribute("data-delta") || "0");
-        if (!isFinite(d)) return;
-        const wrap = btn.closest(".num-stepper");
-        const inp = wrap && wrap.querySelector("input.in-num");
-        if (!inp) return;
-        let v = parseFloat(String(inp.value).replace(/,/g, ""));
-        if (!isFinite(v)) v = 0;
-        v = Math.round((v + d) * 10000) / 10000;
-        inp.value = v;
+      $("btn-discard").addEventListener("click", function () {
+        if (!isDirty) return;
+        if (!confirm("Discard your unsaved changes and reload from the server?")) return;
+        renderMixer(state);
+        toast("Discarded — back to last saved version.", true);
       });
 
       $("btn-reset-weights").addEventListener("click", async () => {
-        if (!confirm("Remove saved weight overrides and revert to the defaults shipped in code?")) return;
+        if (!confirm("Remove saved tweaks and revert to the defaults shipped in code? This cannot be undone.")) return;
         try {
           await apiPost("/api/orchestrator/weights", { reset: true });
           await load();
@@ -804,6 +1159,32 @@
         } catch (e) {
           toast(e.message || String(e), false);
         }
+      });
+
+      document.querySelectorAll(".mix-tab").forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          if (!state) return;
+          setActiveTab(tab.dataset.tab, state);
+        });
+      });
+
+      $("btn-toggle-doc").addEventListener("click", function () {
+        const panel = $("doc-mix");
+        const showing = panel.classList.toggle("hidden");
+        this.textContent = showing ? "Compare with shipped defaults" : "Hide shipped defaults";
+        if (!showing && state) renderLiveMix(state);
+      });
+
+      document.querySelectorAll(".preset-row .preset").forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (!draft || !state) return;
+          const p = PRESETS[b.dataset.preset];
+          if (!p) return;
+          draft.base = p.slice(0, 6);
+          setDirty(true);
+          renderLiveMix(state);
+          if (activeTab === "base") renderRack("base", state);
+        });
       });
 
       $("btn-save-prompt").addEventListener("click", async () => {
