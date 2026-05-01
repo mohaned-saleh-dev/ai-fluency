@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Fluency Orchestrator · AiQ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c1210;
+      --panel: #141c19;
+      --panel2: #1a2521;
+      --line: #2a3d36;
+      --ink: #e8f2ec;
+      --muted: #8fa89e;
+      --accent: #2ee6b8;
+      --accent-dim: rgba(46, 230, 184, 0.15);
+      --warm: #f4b942;
+      --warn: #ffb020;
+      --bad: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-optical-sizing: auto;
+      background:
+        radial-gradient(900px 500px at 12% -10%, rgba(46, 230, 184, 0.09), transparent 55%),
+        radial-gradient(700px 420px at 88% 0%, rgba(244, 185, 66, 0.06), transparent 50%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    .shell { width: min(1180px, 96vw); margin: 0 auto; padding: 1.25rem 0 2.5rem; }
+    .hidden { display: none !important; }
+
+    .hero {
+      border-radius: 18px;
+      border: 1px solid rgba(46, 230, 184, 0.22);
+      background: linear-gradient(145deg, rgba(26, 37, 33, 0.92), rgba(15, 22, 19, 0.96));
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .hero h1 {
+      margin: 0;
+      font-family: Fraunces, Georgia, serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .hero .tag {
+      display: inline-block;
+      margin-top: 0.35rem;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .hero p { margin: 0.45rem 0 0; font-size: 0.88rem; color: var(--muted); max-width: 52ch; line-height: 1.45; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .in-token {
+      width: min(280px, 42vw);
+      padding: 0.55rem 0.65rem;
+      border-radius: 10px;
+      border: 1px solid rgba(143, 168, 158, 0.35);
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--ink);
+      font-size: 0.82rem;
+    }
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.48rem 1rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 800;
+      cursor: pointer;
+      color: #062019;
+      background: linear-gradient(90deg, #22cfa3, var(--accent));
+    }
+    .btn.secondary {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(143, 168, 158, 0.35);
+    }
+    .btn.warn {
+      background: linear-gradient(90deg, #c9782a, var(--warm));
+      color: #1a1208;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+
+    .card {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 1rem 1.05rem;
+    }
+    .card h2 {
+      margin: 0 0 0.65rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .card .sub {
+      margin: -0.35rem 0 0.75rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.65rem; }
+    .pill {
+      font-size: 0.68rem;
+      padding: 0.22rem 0.55rem;
+      border-radius: 999px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .pill.amber { background: rgba(244, 185, 66, 0.14); color: var(--warm); }
+
+    .kv { font-size: 0.82rem; line-height: 1.55; }
+    .kv span { color: var(--muted); }
+
+    .scroll-pre {
+      margin: 0;
+      max-height: 280px;
+      overflow: auto;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      background: var(--panel2);
+      border: 1px solid rgba(42, 61, 54, 0.9);
+      font-size: 0.72rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #c5d5cd;
+    }
+
+    .ta {
+      width: 100%;
+      min-height: 200px;
+      padding: 0.75rem 0.8rem;
+      border-radius: 12px;
+      border: 1px solid rgba(143, 168, 158, 0.35);
+      background: rgba(0, 0, 0, 0.22);
+      color: var(--ink);
+      font-size: 0.84rem;
+      line-height: 1.45;
+      resize: vertical;
+      font-family: ui-monospace, "Cascadia Code", monospace;
+    }
+    .ta:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(46, 230, 184, 0.15);
+    }
+
+    .help-callout {
+      border-radius: 12px;
+      border: 1px dashed rgba(244, 185, 66, 0.32);
+      background: rgba(244, 185, 66, 0.07);
+      padding: 0.75rem 0.9rem;
+      font-size: 0.8rem;
+      line-height: 1.52;
+      color: #dbe8e2;
+      margin-bottom: 0.65rem;
+    }
+    .help-callout strong { color: var(--warm); font-weight: 700; }
+    .help-callout ol { margin: 0.45rem 0 0 1.15rem; padding: 0; }
+    .help-callout li { margin-bottom: 0.35rem; }
+    .help-callout code {
+      font-size: 0.74rem;
+      background: rgba(0, 0, 0, 0.28);
+      padding: 0.1rem 0.38rem;
+      border-radius: 6px;
+      word-break: break-all;
+    }
+
+    .weight-acc {
+      border: 1px solid rgba(42, 61, 54, 0.85);
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.14);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+    .weight-acc summary {
+      list-style: none;
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      font-family: Fraunces, Georgia, serif;
+      font-size: 1.02rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .weight-acc summary::-webkit-details-marker { display: none; }
+    .weight-acc summary::after {
+      content: "▼";
+      font-size: 0.58rem;
+      opacity: 0.55;
+      margin-top: 0.35rem;
+      transition: transform 0.2s ease;
+    }
+    .weight-acc[open] summary::after { transform: rotate(-180deg); }
+    .acc-sub {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--muted);
+      margin-top: 0.28rem;
+      max-width: 58ch;
+      line-height: 1.42;
+    }
+    .weight-acc .acc-body { padding: 0 1rem 1rem; }
+
+    .profile-block {
+      margin-bottom: 1.05rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(42, 61, 54, 0.45);
+    }
+    .profile-block:last-child {
+      border-bottom: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .profile-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin: 0 0 0.55rem;
+      color: var(--ink);
+    }
+
+    .dim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+      gap: 0.62rem;
+    }
+    .dim-chip {
+      background: var(--panel2);
+      border-radius: 12px;
+      padding: 0.5rem 0.58rem 0.55rem;
+      border: 1px solid rgba(143, 168, 158, 0.14);
+    }
+    .dim-chip .dc-top { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; }
+    .dim-chip .dc-code { font-weight: 800; font-size: 0.74rem; color: var(--accent); letter-spacing: 0.02em; }
+    .dim-chip .dc-label {
+      font-size: 0.62rem;
+      color: var(--muted);
+      line-height: 1.28;
+      margin: 0.22rem 0 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.45em;
+    }
+    .dim-i0 { border-left: 3px solid #5eead4; }
+    .dim-i1 { border-left: 3px solid #7dd3fc; }
+    .dim-i2 { border-left: 3px solid #c4b5fd; }
+    .dim-i3 { border-left: 3px solid #fcd34d; }
+    .dim-i4 { border-left: 3px solid #fda4af; }
+    .dim-i5 { border-left: 3px solid #86efac; }
+
+    .num-stepper {
+      display: flex;
+      align-items: center;
+      gap: 0.28rem;
+      margin-top: 0.42rem;
+    }
+    .num-stepper .step {
+      flex-shrink: 0;
+      width: 1.72rem;
+      height: 1.72rem;
+      border-radius: 9px;
+      border: 1px solid rgba(143, 168, 158, 0.28);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 1.05rem;
+      line-height: 1;
+      padding: 0;
+    }
+    .num-stepper .step:hover {
+      background: var(--accent-dim);
+      border-color: rgba(46, 230, 184, 0.45);
+    }
+    .num-stepper .in-num {
+      flex: 1;
+      min-width: 0;
+      padding: 0.32rem 0.38rem;
+      border-radius: 8px;
+      border: 1px solid rgba(143, 168, 158, 0.28);
+      background: rgba(0, 0, 0, 0.32);
+      color: var(--ink);
+      font-size: 0.8rem;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .weights-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.85rem;
+    }
+    .weights-toolbar .btn { font-size: 0.62rem; }
+
+    .section-title {
+      margin: 1.25rem 0 0.5rem;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .login-wrap {
+      min-height: 96vh;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+    .login-card {
+      width: min(440px, 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(46, 230, 184, 0.28);
+      background: linear-gradient(165deg, rgba(22, 32, 28, 0.98), rgba(12, 18, 16, 0.99));
+      padding: 1.25rem 1.2rem;
+    }
+    .login-card h1 { margin: 0; font-family: Fraunces, Georgia, serif; font-size: 1.35rem; }
+    .login-card p { color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
+
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1rem;
+      max-width: min(420px, 92vw);
+      padding: 0.65rem 0.85rem;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      z-index: 50;
+      animation: slide 0.25s ease;
+    }
+    .toast.ok { border-color: rgba(46, 230, 184, 0.45); }
+    .toast.err { border-color: rgba(255, 107, 107, 0.5); color: #ffc9c9; }
+    @keyframes slide { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div id="gate" class="login-wrap">
+    <div class="login-card">
+      <p class="tag" style="margin:0 0 0.35rem;font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);font-weight:800;">Private</p>
+      <h1>AI Fluency Orchestrator</h1>
+      <p>Paste the same admin secret you use for <strong>/admin</strong> (value of <code>AIQ_ADMIN_SECRET</code> in <code>aiq_csuite/.env</code>), then connect.</p>
+      <input type="password" id="gate-token" class="in-token" style="width:100%;max-width:none;margin-top:0.75rem" placeholder="Admin token" autocomplete="off" />
+      <div class="toolbar" style="margin-top:0.85rem">
+        <button type="button" class="btn" id="gate-connect">Connect</button>
+      </div>
+      <p id="gate-err" style="margin-top:0.75rem;color:var(--bad);font-size:0.82rem;min-height:1.2rem;"></p>
+    </div>
+  </div>
+
+  <div id="app" class="shell hidden">
+    <header class="hero">
+      <div>
+        <p class="tag">AiQ · operator only</p>
+        <h1>AI Fluency Orchestrator</h1>
+        <p>Inspect the interviewer agent, tune rubric weights (base + level + job-family deltas), and append instructions without editing Python. Same auth as admin.</p>
+      </div>
+      <div class="toolbar">
+        <input type="password" id="token-field" class="in-token" placeholder="Admin token" autocomplete="off" />
+        <button type="button" class="btn secondary" id="btn-reload">Reload</button>
+      </div>
+    </header>
+
+    <div class="grid2">
+      <section class="card">
+        <h2>Agent &amp; model</h2>
+        <p class="sub">Same interviewer stack as the live chat (Gemini / Ollama).</p>
+        <div class="pill-row" id="agent-pills"></div>
+        <div class="kv" id="agent-kv"></div>
+      </section>
+      <section class="card">
+        <h2>RAG context</h2>
+        <p class="sub">What the interviewer sees as internal rubric context (not shown verbatim to participants).</p>
+        <div id="rag-help" class="help-callout">
+          <strong>How to edit the RAG file</strong>
+          <ol>
+            <li>Open the Markdown file in your repo (path shown below after you connect).</li>
+            <li>Edit and save — it’s plain text.</li>
+            <li>Restart the Flask process locally, or redeploy to Render so production picks it up.</li>
+          </ol>
+          <p style="margin:0.5rem 0 0" id="rag-path-line"></p>
+        </div>
+        <pre class="scroll-pre" id="rag-pre">—</pre>
+      </section>
+    </div>
+
+    <p class="section-title">Rubric tuning</p>
+    <div class="card">
+      <h2>Weights</h2>
+      <p class="sub">Small numbers: <strong>base</strong> is the starting mix across D1–D6; <strong>deltas</strong> nudge that mix by seniority and job family. When you save, the app writes one JSON file next to your database — nothing here edits Python.</p>
+      <div id="weights-override-note" class="sub" style="margin-bottom:0.65rem;"></div>
+      <div class="weights-toolbar">
+        <button type="button" class="btn" id="btn-save-weights">Save weights</button>
+        <button type="button" class="btn warn" id="btn-reset-weights">Reset to defaults</button>
+      </div>
+      <div id="weight-tables"></div>
+    </div>
+
+    <p class="section-title">Interviewer instructions (append)</p>
+    <div class="card">
+      <h2>Extra interviewer instructions</h2>
+      <p class="sub">Optional text appended after the main system prompt. Use for experiments; keep non‑negotiable rules in code. Saves to <code>knowledge/orchestrator_prompt_append.md</code> on the server.</p>
+      <textarea id="prompt-append" class="ta" placeholder="Markdown or plain text…"></textarea>
+      <div class="toolbar" style="margin-top:0.65rem">
+        <button type="button" class="btn" id="btn-save-prompt">Save prompt append</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-slot"></div>
+
+  <script>
+    (function () {
+      const KEY = "aiq_admin_token";
+      const qs = new URLSearchParams(location.search);
+      if (qs.get("token")) localStorage.setItem(KEY, (qs.get("token") || "").trim());
+
+      const $ = (id) => document.getElementById(id);
+      const gate = $("gate");
+      const app = $("app");
+
+      function token() { return (localStorage.getItem(KEY) || $("token-field")?.value || "").trim(); }
+      function setToken(v) {
+        if (v && String(v).trim()) {
+          localStorage.setItem(KEY, String(v).trim());
+          if ($("token-field")) $("token-field").value = "";
+        }
+      }
+      function withToken(path) {
+        const t = token();
+        const sep = path.includes("?") ? "&" : "?";
+        return path + (t ? sep + "token=" + encodeURIComponent(t) : "");
+      }
+      function headers() {
+        const t = token();
+        const h = { "Content-Type": "application/json" };
+        if (t) {
+          h.Authorization = "Bearer " + t;
+          h["X-Aiq-Admin-Token"] = t;
+        }
+        return h;
+      }
+
+      function toast(msg, ok) {
+        const slot = $("toast-slot");
+        const el = document.createElement("div");
+        el.className = "toast " + (ok ? "ok" : "err");
+        el.textContent = msg;
+        slot.appendChild(el);
+        setTimeout(() => { el.remove(); }, 4200);
+      }
+
+      async function apiGet(path) {
+        const r = await fetch(withToken(path), { method: "GET", cache: "no-store", headers: headers() });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.hint || j.message || j.error || "HTTP " + r.status);
+        return j;
+      }
+      async function apiPost(path, body) {
+        const r = await fetch(withToken(path), {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify(body),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.message || j.hint || j.error || "HTTP " + r.status);
+        return j;
+      }
+
+      let state = null;
+
+      function dimLabels(w) {
+        const order = (w && w.dimension_order) || ["D1", "D2", "D3", "D4", "D5", "D6"];
+        const labels = (w && w.dimension_labels) || {};
+        return order.map((code) => ({ code, lab: labels[code] || code }));
+      }
+
+      function renderAgent(data) {
+        const llm = data.llm || {};
+        const pills = $("agent-pills");
+        pills.innerHTML = "";
+        const p1 = document.createElement("span");
+        p1.className = "pill";
+        p1.textContent = llm.ok ? "LLM reachable" : "LLM issue";
+        const p2 = document.createElement("span");
+        p2.className = "pill amber";
+        p2.textContent = (llm.backend || "—") + (llm.model ? " · " + llm.model : "");
+        pills.appendChild(p1);
+        pills.appendChild(p2);
+
+        $("agent-kv").innerHTML = [
+          "<div><span>Role</span> · " + esc(data.agent_role || "—") + "</div>",
+          "<div><span>Backend</span> · " + esc(llm.backend || "—") + "</div>",
+          "<div><span>Active model</span> · " + esc(llm.model || "—") + "</div>",
+          "<div><span>Gemini config</span> · " + esc(llm.gemini_model_config || "—") + "</div>",
+          "<div><span>Ollama config</span> · " + esc(llm.ollama_model_config || "—") + "</div>",
+          "<div><span>Detail</span> · " + esc(llm.detail || "—") + "</div>",
+        ].join("");
+      }
+
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+      }
+
+      function levelLabel(slug, data) {
+        const L = data.levels || [];
+        const x = L.find((l) => l.slug === slug);
+        return x ? x.label : slug;
+      }
+      function familyLabel(slug, data) {
+        const L = data.job_families || [];
+        const x = L.find((l) => l.slug === slug);
+        return x ? x.label : slug;
+      }
+
+      function renderWeights(data) {
+        const w = data.weights || {};
+        const eff = w.effective || {};
+        const paths = data.paths || {};
+        const note = $("weights-override-note");
+        note.textContent = "";
+        note.appendChild(document.createTextNode(w.override_active ? "Saved overrides: " : "Defaults only — saving creates "));
+        const code = document.createElement("code");
+        code.style.fontSize = "0.76rem";
+        code.style.margin = "0 0.2rem";
+        code.textContent = paths.weights_json || w.override_file || "orchestrator_weights.json";
+        note.appendChild(code);
+        note.appendChild(document.createTextNode(w.override_active ? "." : " beside your SQLite file."));
+
+        const dims = dimLabels(w);
+        const host = $("weight-tables");
+        host.innerHTML = "";
+
+        function buildRowBlocks(rows, kind) {
+          const frag = document.createDocumentFragment();
+          const stepAmt = kind === "base" ? "0.005" : "0.01";
+          rows.forEach((row) => {
+            const pb = document.createElement("div");
+            pb.className = "profile-block";
+            const pt = document.createElement("p");
+            pt.className = "profile-title";
+            pt.textContent = row.label;
+            pb.appendChild(pt);
+            const grid = document.createElement("div");
+            grid.className = "dim-grid";
+            row.values.forEach((val, i) => {
+              const d = dims[i];
+              const chip = document.createElement("div");
+              chip.className = "dim-chip dim-i" + i;
+              const top = document.createElement("div");
+              top.className = "dc-top";
+              const codeEl = document.createElement("span");
+              codeEl.className = "dc-code";
+              codeEl.textContent = d.code;
+              top.appendChild(codeEl);
+              chip.appendChild(top);
+              const lab = document.createElement("div");
+              lab.className = "dc-label";
+              lab.textContent = d.lab;
+              chip.appendChild(lab);
+              const stepper = document.createElement("div");
+              stepper.className = "num-stepper";
+              const minus = document.createElement("button");
+              minus.type = "button";
+              minus.className = "step";
+              minus.textContent = "−";
+              minus.setAttribute("data-delta", "-" + stepAmt);
+              const inp = document.createElement("input");
+              inp.type = "text";
+              inp.className = "in-num";
+              inp.setAttribute("inputmode", "decimal");
+              inp.dataset.kind = kind;
+              inp.dataset.row = row.key;
+              inp.dataset.idx = String(i);
+              inp.value = val;
+              const plus = document.createElement("button");
+              plus.type = "button";
+              plus.className = "step";
+              plus.textContent = "+";
+              plus.setAttribute("data-delta", stepAmt);
+              stepper.appendChild(minus);
+              stepper.appendChild(inp);
+              stepper.appendChild(plus);
+              chip.appendChild(stepper);
+              grid.appendChild(chip);
+            });
+            pb.appendChild(grid);
+            frag.appendChild(pb);
+          });
+          return frag;
+        }
+
+        function section(title, subtitle, rows, kind, openDefault) {
+          const det = document.createElement("details");
+          det.className = "weight-acc";
+          det.open = !!openDefault;
+          const sum = document.createElement("summary");
+          const left = document.createElement("div");
+          const strong = document.createElement("strong");
+          strong.textContent = title;
+          left.appendChild(strong);
+          const sub = document.createElement("div");
+          sub.className = "acc-sub";
+          sub.textContent = subtitle;
+          left.appendChild(sub);
+          sum.appendChild(left);
+          det.appendChild(sum);
+          const body = document.createElement("div");
+          body.className = "acc-body";
+          body.appendChild(buildRowBlocks(rows, kind));
+          det.appendChild(body);
+          host.appendChild(det);
+        }
+
+        const base = eff.base || [0, 0, 0, 0, 0, 0];
+        section(
+          "Base mix",
+          "Starting balance across D1–D6 before seniority or job-family nudges.",
+          [{ key: "_", label: "All participants", values: base }],
+          "base",
+          true
+        );
+
+        const ld = eff.level_deltas || {};
+        const lr = Object.keys(ld).map((k) => ({
+          key: k,
+          label: levelLabel(k, data),
+          values: ld[k],
+        }));
+        section(
+          "By seniority",
+          "Additive tweaks per level — small shifts, not final percentages.",
+          lr,
+          "level",
+          false
+        );
+
+        const fd = eff.family_deltas || {};
+        const fr = Object.keys(fd).map((k) => ({
+          key: k,
+          label: familyLabel(k, data),
+          values: fd[k],
+        }));
+        section(
+          "By job family",
+          "Same for role clusters (product, care, finance, …).",
+          fr,
+          "family",
+          false
+        );
+      }
+
+      function collectWeightsPayload() {
+        const inputs = document.querySelectorAll("#weight-tables input.in-num");
+        const base = [0, 0, 0, 0, 0, 0];
+        const level_deltas = {};
+        const family_deltas = {};
+        inputs.forEach((inp) => {
+          const k = inp.dataset.kind;
+          const row = inp.dataset.row;
+          const idx = parseInt(inp.dataset.idx, 10);
+          const v = parseFloat(String(inp.value).replace(/,/g, ""));
+          if (!isFinite(v)) throw new Error("Invalid number at " + k + " / " + row);
+          if (k === "base") base[idx] = v;
+          if (k === "level") {
+            if (!level_deltas[row]) level_deltas[row] = [0, 0, 0, 0, 0, 0];
+            level_deltas[row][idx] = v;
+          }
+          if (k === "family") {
+            if (!family_deltas[row]) family_deltas[row] = [0, 0, 0, 0, 0, 0];
+            family_deltas[row][idx] = v;
+          }
+        });
+        return { base, level_deltas, family_deltas };
+      }
+
+      async function load() {
+        const data = await apiGet("/api/orchestrator/state");
+        state = data;
+        renderAgent(data);
+        renderWeights(data);
+        const paths = data.paths || {};
+        const rpl = $("rag-path-line");
+        if (rpl) {
+          rpl.textContent = "";
+          rpl.appendChild(document.createTextNode("Path on this server: "));
+          const c = document.createElement("code");
+          c.textContent = paths.rag_markdown_abs || "aiq_csuite/knowledge/aiq_context_rag.md";
+          rpl.appendChild(c);
+        }
+        const rag = (data.knowledge && data.knowledge.aiq_context_rag) || {};
+        $("rag-pre").textContent = rag.preview || (rag.exists ? "" : "(missing file)");
+        const orch = (data.knowledge && data.knowledge.orchestrator_prompt_append) || {};
+        $("prompt-append").value = orch.full != null ? orch.full : (orch.preview || "");
+        app.classList.remove("hidden");
+        gate.classList.add("hidden");
+      }
+
+      function showGate(msg) {
+        gate.classList.remove("hidden");
+        app.classList.add("hidden");
+        $("gate-err").textContent = msg || "";
+      }
+
+      $("gate-connect").addEventListener("click", async () => {
+        const v = ($("gate-token").value || "").trim();
+        $("gate-err").textContent = "";
+        if (!v) {
+          $("gate-err").textContent = "Enter token.";
+          return;
+        }
+        setToken(v);
+        try {
+          await load();
+          toast("Connected.", true);
+        } catch (e) {
+          showGate(e.message || String(e));
+        }
+      });
+
+      $("btn-reload").addEventListener("click", async () => {
+        try {
+          await load();
+          toast("Reloaded.", true);
+        } catch (e) {
+          toast(e.message || String(e), false);
+          if ((e.message || "").indexOf("401") >= 0 || (e.message || "").toLowerCase().indexOf("unauthorized") >= 0) showGate();
+        }
+      });
+
+      $("btn-save-weights").addEventListener("click", async () => {
+        try {
+          const payload = collectWeightsPayload();
+          await apiPost("/api/orchestrator/weights", payload);
+          await load();
+          toast("Weights saved.", true);
+        } catch (e) {
+          toast(e.message || String(e), false);
+        }
+      });
+
+      $("weight-tables").addEventListener("click", function (e) {
+        const btn = e.target.closest(".num-stepper .step");
+        if (!btn || !this.contains(btn)) return;
+        const d = parseFloat(btn.getAttribute("data-delta") || "0");
+        if (!isFinite(d)) return;
+        const wrap = btn.closest(".num-stepper");
+        const inp = wrap && wrap.querySelector("input.in-num");
+        if (!inp) return;
+        let v = parseFloat(String(inp.value).replace(/,/g, ""));
+        if (!isFinite(v)) v = 0;
+        v = Math.round((v + d) * 10000) / 10000;
+        inp.value = v;
+      });
+
+      $("btn-reset-weights").addEventListener("click", async () => {
+        if (!confirm("Remove saved weight overrides and revert to the defaults shipped in code?")) return;
+        try {
+          await apiPost("/api/orchestrator/weights", { reset: true });
+          await load();
+          toast("Reset to code defaults.", true);
+        } catch (e) {
+          toast(e.message || String(e), false);
+        }
+      });
+
+      $("btn-save-prompt").addEventListener("click", async () => {
+        try {
+          await apiPost("/api/orchestrator/prompt-append", { text: $("prompt-append").value });
+          await load();
+          toast("Prompt append saved.", true);
+        } catch (e) {
+          toast(e.message || String(e), false);
+        }
+      });
+
+      $("token-field").addEventListener("change", function () {
+        setToken(this.value);
+      });
+
+      (async () => {
+        if (token()) {
+          try {
+            await load();
+            return;
+          } catch (_) {
+            /* fall through to gate */
+          }
+        }
+        showGate(token() ? "Could not verify token. Re-enter your admin secret." : "");
+      })();
+    })();
+  </script>
+</body>
+</html>

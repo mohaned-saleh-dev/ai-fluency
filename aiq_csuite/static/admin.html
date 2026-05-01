@@ -369,6 +369,7 @@
           <h2>All runs</h2>
           <span id="count" class="meta">0 loaded</span>
         </div>
+        <p id="dbMeta" class="meta" style="font-size:0.68rem;opacity:0.82;margin:-0.35rem 0 0.55rem;line-height:1.35;color:rgba(230,220,255,0.88)"></p>
         <div class="sess-wrap">
           <table>
             <thead>
@@ -1264,11 +1265,23 @@
       async function loadSessions() {
         const o = await api("/api/admin/sessions?t=" + Date.now());
         sessions = Array.isArray(o.sessions) ? o.sessions : [];
+        const meta = o.meta || {};
+        const dm = $("dbMeta");
+        if (dm) {
+          const pathLine = meta.sqlite_path ? "SQLite file this server reads: " + esc(meta.sqlite_path) : "";
+          const warn =
+            !sessions.length && meta.sqlite_path
+              ? " · Empty DB is normal after a Render redeploy unless you use a persistent disk + AIQ_SQLITE_PATH (see render-aiq.yaml)."
+              : "";
+          dm.innerHTML = pathLine ? pathLine + warn : "";
+        }
         renderRows();
         if (!sessions.length) {
           selected = "";
           if ($("deleteSessionBtn")) $("deleteSessionBtn").classList.add("hidden");
-          $("detail").innerHTML = "<p class='muted'>No sessions yet.</p>";
+          $("detail").innerHTML =
+            "<p class='muted'>No sessions in this database.</p>" +
+            "<p class='muted' style='margin-top:0.5rem;font-size:0.82rem'>If you ran the interview on another host/port or lost disk on redeploy, runs live only where that SQLite file was written.</p>";
           return;
         }
         const stillThere = selected && sessions.some((s) => s.id === selected);
@@ -1311,6 +1324,7 @@
         sessions = [];
         if ($("deleteSessionBtn")) $("deleteSessionBtn").classList.add("hidden");
         $("tb").innerHTML = "";
+        if ($("dbMeta")) $("dbMeta").innerHTML = "";
         $("detail").innerHTML = "<p class='muted'>Select a run in the list.</p>";
         showLogin("");
       };

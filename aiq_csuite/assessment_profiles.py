@@ -6,7 +6,13 @@ the assessor must interpret evidence *through* this profile.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+from config import INSTANCE_DIR
+
+_ORCH_WEIGHTS_PATH = INSTANCE_DIR / "orchestrator_weights.json"
 
 # --- Canonical slugs (API / UI) -------------------------------------------------
 
@@ -118,16 +124,130 @@ def _norm6(t: Tuple[float, float, float, float, float, float]) -> Tuple[float, .
     return tuple(round(x / s, 4) for x in a)
 
 
+def _effective_weight_tables() -> Tuple[
+    Tuple[float, float, float, float, float, float],
+    Dict[str, Tuple[float, float, float, float, float, float]],
+    Dict[str, Tuple[float, float, float, float, float, float]],
+]:
+    """
+    Code defaults, optionally overridden by instance/orchestrator_weights.json
+    (written by AI Fluency Orchestrator UI).
+    """
+    base = _BASE
+    ld_tbl = dict(_LEVEL_DELTAS)
+    fd_tbl = dict(_FAMILY_DELTAS)
+    if not _ORCH_WEIGHTS_PATH.is_file():
+        return base, ld_tbl, fd_tbl
+    try:
+        data = json.loads(_ORCH_WEIGHTS_PATH.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError, TypeError):
+        return base, ld_tbl, fd_tbl
+    if isinstance(data.get("base"), list) and len(data["base"]) == 6:
+        try:
+            base = tuple(max(0.0, float(x)) for x in data["base"])  # type: ignore[assignment]
+        except (TypeError, ValueError):
+            base = _BASE
+    raw_ld = data.get("level_deltas")
+    if isinstance(raw_ld, dict):
+        for k, v in raw_ld.items():
+            if isinstance(v, list) and len(v) == 6:
+                try:
+                    ld_tbl[str(k)] = tuple(float(x) for x in v)
+                except (TypeError, ValueError):
+                    pass
+    raw_fd = data.get("family_deltas")
+    if isinstance(raw_fd, dict):
+        for k, v in raw_fd.items():
+            if isinstance(v, list) and len(v) == 6:
+                try:
+                    fd_tbl[str(k)] = tuple(float(x) for x in v)
+                except (TypeError, ValueError):
+                    pass
+    return base, ld_tbl, fd_tbl
+
+
+def orchestrator_weights_snapshot() -> Dict[str, Any]:
+    """Serializable defaults + whether an override file is active (for Orchestrator API)."""
+    base_e, ld_e, fd_e = _effective_weight_tables()
+    active = _ORCH_WEIGHTS_PATH.is_file()
+    return {
+        "override_file": str(_ORCH_WEIGHTS_PATH.name),
+        "override_active": active,
+        "defaults": {
+            "base": list(_BASE),
+            "level_deltas": {k: list(v) for k, v in _LEVEL_DELTAS.items()},
+            "family_deltas": {k: list(v) for k, v in _FAMILY_DELTAS.items()},
+        },
+        "effective": {
+            "base": list(base_e),
+            "level_deltas": {k: list(v) for k, v in ld_e.items()},
+            "family_deltas": {k: list(v) for k, v in fd_e.items()},
+        },
+        "dimension_labels": DIMENSION_DECK_LABELS,
+        "dimension_order": list(_DIM_ORDER),
+    }
+
+
+def write_orchestrator_weights_file(payload: Dict[str, Any]) -> None:
+    """
+    Persist weight overrides to instance/orchestrator_weights.json.
+    Pass ``{\"reset\": true}`` to delete the file and fall back to shipped defaults.
+    """
+    if payload.get("reset") is True:
+        try:
+            _ORCH_WEIGHTS_PATH.unlink()
+        except OSError:
+            pass
+        return
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be a JSON object")
+    out: Dict[str, Any] = {}
+
+    if "base" in payload:
+        b = payload["base"]
+        if not isinstance(b, list) or len(b) != 6:
+            raise ValueError("base must be a list of 6 numbers")
+        try:
+            out["base"] = [max(0.0, float(x)) for x in b]
+        except (TypeError, ValueError) as e:
+            raise ValueError("base values must be numbers") from e
+
+    def _delta_block(raw: Any, name: str) -> Dict[str, List[float]]:
+        if not isinstance(raw, dict):
+            raise ValueError(f"{name} must be an object")
+        d: Dict[str, List[float]] = {}
+        for k, v in raw.items():
+            if not isinstance(v, list) or len(v) != 6:
+                raise ValueError(f"{name}[{k!r}] must be a list of 6 numbers")
+            try:
+                d[str(k)] = [float(x) for x in v]
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"{name}[{k!r}] values must be numbers") from e
+        return d
+
+    if "level_deltas" in payload:
+        out["level_deltas"] = _delta_block(payload["level_deltas"], "level_deltas")
+    if "family_deltas" in payload:
+        out["family_deltas"] = _delta_block(payload["family_deltas"], "family_deltas")
+
+    if not out:
+        raise ValueError("nothing to save; send base, level_deltas, and/or family_deltas, or reset")
+
+    _ORCH_WEIGHTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _ORCH_WEIGHTS_PATH.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def _weights_from_deltas(lev: str, fam: str) -> Dict[str, float]:
-    ld = _LEVEL_DELTAS.get(lev) or _LEVEL_DELTAS[DEFAULT_LEVEL]
-    fd = _FAMILY_DELTAS.get(fam) or _FAMILY_DELTAS["other"]
+    base, ld_map, fd_map = _effective_weight_tables()
+    ld = ld_map.get(lev) or ld_map.get(DEFAULT_LEVEL) or _LEVEL_DELTAS[DEFAULT_LEVEL]
+    fd = fd_map.get(fam) or fd_map.get("other") or _FAMILY_DELTAS["other"]
     if ld is None:  # pragma: no cover
         ld = (0.0,) * 6
     if fd is None:  # pragma: no cover
         fd = (0.0,) * 6
     combined: List[float] = []
     for i in range(6):
-        v = _BASE[i] + ld[i] + fd[i]
+        v = base[i] + ld[i] + fd[i]
         combined.append(v)
     n6 = _norm6(tuple(combined))  # type: ignore
     return {c: n6[i] for i, c in enumerate(_DIM_ORDER)}

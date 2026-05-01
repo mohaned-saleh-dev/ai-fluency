@@ -18,6 +18,8 @@ import config
 from config import (
     ADMIN_SECRET,
     ADMIN_SECRETS,
+    DB_PATH,
+    INSTANCE_DIR,
     OLLAMA_MODEL,
     SESSION_MAX_AGE_SEC,
     TARGET_DURATION_SEC,
@@ -55,6 +57,8 @@ from assessment_profiles import (
     LEVELS,
     build_assessment_block,
     is_technical_product_family,
+    orchestrator_weights_snapshot,
+    write_orchestrator_weights_file,
 )
 from ollama_client import resolve_backend
 from coaching_engine import build_coaching_dimension_row, fam_cluster, pick_one_course
@@ -161,6 +165,120 @@ def admin():
     /api/admin/* (Bearer or ?token=). Open /admin, paste AIQ_ADMIN_SECRET, Save, Load sessions.
     """
     return send_from_directory(HERE, "static/admin.html")
+
+
+@app.route("/orchestrator", strict_slashes=False)
+def orchestrator_page():
+    """AI Fluency Orchestrator — rubric weights + interviewer prompt append (admin token)."""
+    return send_from_directory(HERE, "static/orchestrator.html")
+
+
+@app.route("/api/orchestrator/state", methods=["GET"])
+def orchestrator_state():
+    ensure_instance()
+    init_db()
+    if not _admin_ok():
+        return (
+            jsonify(
+                {
+                    "error": "unauthorized",
+                    "hint": "Use the same AIQ_ADMIN_SECRET as /admin (?token= or Bearer).",
+                }
+            ),
+            401,
+        )
+    ok, mode, detail, mname = _llm_status()
+    rag_path = os.path.join(HERE, "knowledge", "aiq_context_rag.md")
+    orch_prompt_path = os.path.join(HERE, "knowledge", "orchestrator_prompt_append.md")
+
+    def _file_meta(path: str, preview_max: int = 6000) -> Dict[str, Any]:
+        if not os.path.isfile(path):
+            return {"path": path, "exists": False, "chars": 0, "preview": "", "full": None}
+        try:
+            raw = open(path, encoding="utf-8").read()
+        except OSError:
+            return {"path": path, "exists": True, "chars": 0, "preview": "", "full": None, "read_error": True}
+        prev = raw if len(raw) <= preview_max else raw[:preview_max] + "\n… [truncated]"
+        out: Dict[str, Any] = {
+            "path": os.path.basename(path),
+            "exists": True,
+            "chars": len(raw),
+            "preview": prev,
+        }
+        if path.endswith("orchestrator_prompt_append.md"):
+            out["full"] = raw
+        return out
+
+    return jsonify(
+        {
+            "tool": "AI Fluency Orchestrator",
+            "agent_role": "Interviewer (Gemini / Ollama via gemini_service.run_interviewer_reply)",
+            "llm": {
+                "ok": ok,
+                "backend": mode,
+                "detail": detail,
+                "model": mname or "",
+                "gemini_model_config": config.GEMINI_MODEL,
+                "ollama_model_config": OLLAMA_MODEL,
+            },
+            "levels": LEVELS,
+            "job_families": JOB_FAMILIES,
+            "dimensions": [{"code": c, "label": lbl} for c, lbl in DIMENSION_ORDER],
+            "weights": orchestrator_weights_snapshot(),
+            "knowledge": {
+                "aiq_context_rag": _file_meta(rag_path),
+                "orchestrator_prompt_append": _file_meta(orch_prompt_path),
+            },
+            "paths": {
+                "weights_json": str((INSTANCE_DIR / "orchestrator_weights.json").resolve()),
+                "rag_markdown_abs": os.path.abspath(rag_path),
+                "prompt_append_abs": os.path.abspath(orch_prompt_path),
+            },
+        }
+    )
+
+
+@app.route("/api/orchestrator/weights", methods=["POST"])
+def orchestrator_weights_post():
+    ensure_instance()
+    init_db()
+    if not _admin_ok():
+        return jsonify({"error": "unauthorized"}), 401
+    try:
+        payload = request.get_json(force=True, silent=False)
+        if not isinstance(payload, dict):
+            return jsonify({"error": "JSON object required"}), 400
+        write_orchestrator_weights_file(payload)
+    except ValueError as e:
+        return jsonify({"error": "validation", "message": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "write_failed", "message": str(e)}), 500
+    return jsonify({"ok": True, "weights": orchestrator_weights_snapshot()})
+
+
+@app.route("/api/orchestrator/prompt-append", methods=["POST"])
+def orchestrator_prompt_append_post():
+    ensure_instance()
+    init_db()
+    if not _admin_ok():
+        return jsonify({"error": "unauthorized"}), 401
+    try:
+        payload = request.get_json(force=True, silent=False)
+    except Exception:
+        return jsonify({"error": "invalid_json"}), 400
+    if not isinstance(payload, dict):
+        return jsonify({"error": "JSON object required"}), 400
+    text = payload.get("text")
+    if text is None:
+        return jsonify({"error": "field `text` required"}), 400
+    path = os.path.join(HERE, "knowledge", "orchestrator_prompt_append.md")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(str(text))
+    except OSError as e:
+        return jsonify({"error": "write_failed", "message": str(e)}), 500
+    return jsonify({"ok": True, "chars": len(str(text))})
 
 
 @app.route("/api/health", methods=["GET"])
@@ -1434,7 +1552,15 @@ def admin_sessions():
                 "stats": s,
             }
         )
-    return jsonify({"sessions": out})
+    return jsonify(
+        {
+            "sessions": out,
+            "meta": {
+                "sqlite_path": str(DB_PATH.resolve()),
+                "session_count": len(out),
+            },
+        }
+    )
 
 
 @app.route("/api/admin/sessions/<session_id>", methods=["GET"])

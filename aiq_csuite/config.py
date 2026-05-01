@@ -44,9 +44,31 @@ try:
             os.environ["AIQ_ADMIN_SECRETS"] = str(_from_file_multi)
 except ImportError:
     pass
-INSTANCE_DIR = BASE_DIR / "instance"
+
+
+def _truthy_env(key: str) -> bool:
+    return os.environ.get(key, "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _resolve_instance_dir() -> Path:
+    """
+    Writable app data directory (SQLite DB name + orchestrator_weights.json live here).
+
+    - AIQ_LOCAL_DATA_DIR or AIQ_USER_DATA_DIR — explicit absolute path (highest priority).
+    - AIQ_STORE_DATA_IN_HOME=1 — ~/.aiq_csuite (recommended for local-only work on your Mac).
+    - Otherwise — <repo>/aiq_csuite/instance (default).
+    """
+    explicit = os.environ.get("AIQ_LOCAL_DATA_DIR") or os.environ.get("AIQ_USER_DATA_DIR")
+    if explicit:
+        return Path(explicit).expanduser().resolve()
+    if _truthy_env("AIQ_STORE_DATA_IN_HOME"):
+        return (Path.home() / ".aiq_csuite").resolve()
+    return (BASE_DIR / "instance").resolve()
+
+
+INSTANCE_DIR = _resolve_instance_dir()
 KNOWLEDGE_DIR = BASE_DIR / "knowledge"
-DB_PATH = Path(os.environ.get("AIQ_SQLITE_PATH", str(INSTANCE_DIR / "aiq_csuite.db")))
+DB_PATH = Path(os.environ.get("AIQ_SQLITE_PATH", str(INSTANCE_DIR / "aiq_csuite.db"))).expanduser().resolve()
 
 GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY", "")
 # gemini-2.0-flash is 404 for many new users; use 2.5+ on https://ai.google.dev/gemini-api/docs/models
@@ -82,3 +104,8 @@ SESSION_MAX_AGE_SEC = SESSION_MAX_AGE_HOURS * 3600.0
 
 def ensure_instance():
     INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
+    # DB may be overridden to another folder via AIQ_SQLITE_PATH
+    try:
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass

@@ -9,6 +9,18 @@ from typing import Any, Dict, List, Optional, Tuple
 from config import AIQ_LLM_CLASSIFY, BASE_DIR, GEMINI_API_KEY, GEMINI_MODEL, OLLAMA_MODEL
 from ollama_client import ollama_available, ollama_chat, ollama_generate_text, resolve_backend
 
+_ORCH_PROMPT_PATH = BASE_DIR / "knowledge" / "orchestrator_prompt_append.md"
+
+
+def _load_orchestrator_prompt_append() -> str:
+    if not _ORCH_PROMPT_PATH.is_file():
+        return ""
+    try:
+        t = _ORCH_PROMPT_PATH.read_text(encoding="utf-8").strip()
+        return t if t else ""
+    except OSError:
+        return ""
+
 # Varies first message per session; `opening_id` in variation JSON picks the index.
 OPENING_VARIANTS: List[str] = [
     (
@@ -485,6 +497,14 @@ RAG (weights and dimensions — **internal** only; do not name RAG, codes, or "d
 {rag_text[:8000]}
 
 Over **roughly 10–15 minutes**, you want *breadth* across the six areas in the RAG without making it feel like an interrogation or a checklist. You **never** say "D1" or "dimension" aloud."""
+
+    orch = _load_orchestrator_prompt_append()
+    if orch:
+        system = (
+            system
+            + "\n\n---\n**Additional instructions (AI Fluency Orchestrator)**\n\n"
+            + orch
+        )
 
     mode, err_detail = _llm_mode()
     if mode == "error":

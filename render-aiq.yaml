@@ -6,8 +6,21 @@
 #   AIQ_ADMIN_SECRET                   (required for /admin)
 # Optional: AIQ_INTERVIEWER_REPAIR=1   (second Gemini call per turn — needs high upstream timeout)
 #
-# SQLite lives on ephemeral disk on free tier — data resets if the instance is recycled.
-# See https://render.com/docs/disks for persistent disk on paid plans.
+# SQLite lives on ephemeral disk — each deploy / new instance starts with an EMPTY database
+# unless you store the DB on a persistent disk. Admin lists sessions from whatever file
+# AIQ_SQLITE_PATH points at (default: aiq_csuite/instance/aiq_csuite.db inside the container).
+#
+# Fix (paid instances): Dashboard → Disks → attach disk, then set e.g.
+#   AIQ_SQLITE_PATH=/var/data/aiq_csuite.db
+# Or add to this blueprint (paid plans support disk:):
+#   disk:
+#     name: aiq-sqlite
+#     mountPath: /var/data
+#     sizeGB: 1
+#   envVars:
+#     - key: AIQ_SQLITE_PATH
+#       value: /var/data/aiq_csuite.db
+# https://render.com/docs/disks
 
 services:
   - type: web
@@ -23,3 +36,6 @@ services:
         sync: false
       - key: AIQ_ADMIN_SECRET
         sync: false
+      # Optional: absolute path on a persistent disk (see comment block above).
+      # - key: AIQ_SQLITE_PATH
+      #   value: /var/data/aiq_csuite.db
