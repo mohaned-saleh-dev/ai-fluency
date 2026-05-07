@@ -69,6 +69,8 @@ def _resolve_instance_dir() -> Path:
 INSTANCE_DIR = _resolve_instance_dir()
 KNOWLEDGE_DIR = BASE_DIR / "knowledge"
 DB_PATH = Path(os.environ.get("AIQ_SQLITE_PATH", str(INSTANCE_DIR / "aiq_csuite.db"))).expanduser().resolve()
+DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
+DB_BACKEND = "postgres" if DATABASE_URL else "sqlite"
 
 GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()

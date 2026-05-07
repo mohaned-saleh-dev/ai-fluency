@@ -1,6 +1,6 @@
 # AiQ assessment (Tamara-styled, Gemini or local Ollama)
 
-Private prototype: a **~10 minute** self-serve **AiQ** conversation. Uses **Flask + SQLite** for sessions and a **separate admin view** for transcript, timing, and tab-visibility beacons. The LLM (see below) runs the dialogue, a lightweight RAG file (`knowledge/aiq_context_rag.md`), a **scenario randomizer** per session, a **“generic AI”** check (heuristics or optional model), and a **final JSON scoring** pass (D1–D6 and composite AiQ).
+Private prototype: a **~10 minute** self-serve **AiQ** conversation. Uses **Flask + SQLite/Postgres** for sessions and a **separate admin view** for transcript, timing, and tab-visibility beacons. The LLM (see below) runs the dialogue, a lightweight RAG file (`knowledge/aiq_context_rag.md`), a **scenario randomizer** per session, a **“generic AI”** check (heuristics or optional model), and a **final JSON scoring** pass (D1–D6 and composite AiQ).
 
 ## Branding
 
@@ -26,12 +26,20 @@ python app.py
 - **Executive memo (long read-ahead):** `http://127.0.0.1:5020/deck/executive-memo`  
 - **Source:** `../aiq-executive-summary.html` (v1.2 in cover); copy under `static/deck/`.
 - **Admin:** `/admin` opens a login screen; paste an admin code from env and load sessions.
-- **LLM check:** `GET /api/health` or `GET /api/health/llm` (shows `backend`: `gemini` | `ollama` | `error`, plus `detail`).
+- **LLM check:** `GET /api/health` or `GET /api/health/llm` (shows `backend`: `gemini` | `openai` | `ollama` | `error`, plus `detail`).
 - **APIs:** `POST /api/session/start`, `POST /api/session/<id>/message`, `POST /api/session/<id>/complete`, `POST /api/session/<id>/event`.
 
 **LLM choice (env):** `AIQ_LLM_PROVIDER=auto` (default) uses **Gemini** if `GOOGLE_API_KEY` / `GEMINI_API_KEY` is set, else **OpenAI** if `OPENAI_API_KEY` is set, else **Ollama** at `OLLAMA_BASE` (default `http://127.0.0.1:11434`) if the server is up. Set `AIQ_LLM_PROVIDER=ollama` / `openai` / `gemini` to force. **Ollama (no API key):** [install Ollama](https://ollama.com), `ollama pull llama3.2` (or set `OLLAMA_MODEL`), run `ollama serve`, then `auto` with no cloud key uses local inference.
 
 **Model / 404 (Gemini):** The app defaults to `gemini-2.5-flash` (2.0-flash and older are often 404 for new users). If you get 404, set `AIQ_GEMINI_MODEL` to a name your key supports, e.g. `gemini-2.5-flash-lite` (see [models](https://ai.google.dev/gemini-api/docs/models)). **429 / rate limits / quota:** With **Ollama running** (`ollama serve` + `ollama pull` your `OLLAMA_MODEL`), the app **falls back to local** if Gemini returns 429 (interviewer, scoring, and optional paste classifier). You can also remove the key or set `AIQ_LLM_PROVIDER=ollama` to use only Ollama. Paste-detection uses **heuristics** by default (`AIQ_LLM_CLASSIFY=0`) so Gemini only gets one main call per message.
+
+**Database backend (env):**
+- Default (no `DATABASE_URL`) → local SQLite at `AIQ_SQLITE_PATH` / `instance/aiq_csuite.db`.
+- Set `DATABASE_URL=postgresql://...` (Supabase/Neon/etc) → app uses Postgres for sessions/messages/events.
+- One-off migration from existing SQLite file:
+  ```bash
+  DATABASE_URL='postgresql://...' python3 scripts/migrate_sqlite_to_postgres.py
+  ```
 
 ## Production notes
 
@@ -45,4 +53,5 @@ python app.py
 - `knowledge/aiq_context_rag.md` – rubric, weights, executive expectations (edit here to change RAG without code).
 - `knowledge/scenario_variants.json` – one random hook per dimension per session.
 - `gemini_service.py` – model calls.
-- `db.py` – SQLite.
+- `db.py` – DB adapter (SQLite or Postgres via `DATABASE_URL`).
+- `scripts/migrate_sqlite_to_postgres.py` – one-off copier from local SQLite to Postgres.

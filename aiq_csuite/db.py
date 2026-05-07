@@ -2,58 +2,158 @@ import json
 import sqlite3
 import time
 import uuid
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from config import DB_PATH, ensure_instance
+from config import DATABASE_URL, DB_BACKEND, DB_PATH, ensure_instance
+
+try:
+    import psycopg2
+    from psycopg2.extras import DictCursor
+except Exception:  # pragma: no cover - optional dependency locally
+    psycopg2 = None  # type: ignore[assignment]
+    DictCursor = None  # type: ignore[assignment]
 
 
-def get_conn() -> sqlite3.Connection:
-    ensure_instance()
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+class DBConn:
+    """Lightweight compatibility wrapper for sqlite and postgres."""
+
+    def __init__(self):
+        ensure_instance()
+        self.backend = DB_BACKEND
+        if self.backend == "postgres":
+            if not DATABASE_URL:
+                raise RuntimeError("DB_BACKEND=postgres but DATABASE_URL is empty")
+            if psycopg2 is None or DictCursor is None:
+                raise RuntimeError(
+                    "Postgres backend selected but psycopg2 is not installed. "
+                    "Run: pip install psycopg2-binary"
+                )
+            self._conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
+        else:
+            self._conn = sqlite3.connect(DB_PATH)
+            self._conn.row_factory = sqlite3.Row
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if exc_type is None:
+            self._conn.commit()
+        else:
+            self._conn.rollback()
+        self._conn.close()
+
+    def _sql(self, query: str) -> str:
+        if self.backend == "postgres":
+            return query.replace("?", "%s")
+        return query
+
+    def execute(self, query: str, params: Optional[tuple] = None):
+        p = params or ()
+        if self.backend == "postgres":
+            cur = self._conn.cursor(cursor_factory=DictCursor)
+            cur.execute(self._sql(query), p)
+            return cur
+        return self._conn.execute(query, p)
+
+    def executescript(self, script: str):
+        if self.backend == "postgres":
+            cur = self._conn.cursor()
+            for stmt in script.split(";"):
+                q = stmt.strip()
+                if q:
+                    cur.execute(q)
+            return cur
+        return self._conn.executescript(script)
+
+
+def get_conn() -> DBConn:
+    return DBConn()
 
 
 def init_db():
     ensure_instance()
     with get_conn() as c:
-        c.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS sessions (
-                id TEXT PRIMARY KEY,
-                created_at REAL NOT NULL,
-                started_at REAL,
-                ended_at REAL,
-                target_role TEXT DEFAULT 'c_level',
-                client_seed TEXT,
-                variation_json TEXT,
-                last_scores_json TEXT,
-                completed INTEGER DEFAULT 0,
-                user_agent TEXT,
-                client_meta_json TEXT
-            );
-            CREATE TABLE IF NOT EXISTS messages (
-                id TEXT PRIMARY KEY,
-                session_id TEXT NOT NULL,
-                role TEXT NOT NULL,
-                content TEXT NOT NULL,
-                created_at REAL NOT NULL,
-                flags_json TEXT,
-                FOREIGN KEY (session_id) REFERENCES sessions(id)
-            );
-            CREATE TABLE IF NOT EXISTS events (
-                id TEXT PRIMARY KEY,
-                session_id TEXT NOT NULL,
-                type TEXT NOT NULL,
-                payload_json TEXT,
-                created_at REAL NOT NULL,
-                FOREIGN KEY (session_id) REFERENCES sessions(id)
-            );
-            CREATE INDEX IF NOT EXISTS idx_msg_sess ON messages(session_id);
-            CREATE INDEX IF NOT EXISTS idx_ev_sess ON events(session_id);
-            """
-        )
+        if DB_BACKEND == "postgres":
+            c.execute(
+                """
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    created_at DOUBLE PRECISION NOT NULL,
+                    started_at DOUBLE PRECISION,
+                    ended_at DOUBLE PRECISION,
+                    target_role TEXT DEFAULT 'c_level',
+                    client_seed TEXT,
+                    variation_json TEXT,
+                    last_scores_json TEXT,
+                    completed INTEGER DEFAULT 0,
+                    user_agent TEXT,
+                    client_meta_json TEXT
+                )
+                """
+            )
+            c.execute(
+                """
+                CREATE TABLE IF NOT EXISTS messages (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL REFERENCES sessions(id),
+                    role TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    created_at DOUBLE PRECISION NOT NULL,
+                    flags_json TEXT
+                )
+                """
+            )
+            c.execute(
+                """
+                CREATE TABLE IF NOT EXISTS events (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL REFERENCES sessions(id),
+                    type TEXT NOT NULL,
+                    payload_json TEXT,
+                    created_at DOUBLE PRECISION NOT NULL
+                )
+                """
+            )
+            c.execute("CREATE INDEX IF NOT EXISTS idx_msg_sess ON messages(session_id)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_ev_sess ON events(session_id)")
+        else:
+            c.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    created_at REAL NOT NULL,
+                    started_at REAL,
+                    ended_at REAL,
+                    target_role TEXT DEFAULT 'c_level',
+                    client_seed TEXT,
+                    variation_json TEXT,
+                    last_scores_json TEXT,
+                    completed INTEGER DEFAULT 0,
+                    user_agent TEXT,
+                    client_meta_json TEXT
+                );
+                CREATE TABLE IF NOT EXISTS messages (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    created_at REAL NOT NULL,
+                    flags_json TEXT,
+                    FOREIGN KEY (session_id) REFERENCES sessions(id)
+                );
+                CREATE TABLE IF NOT EXISTS events (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    payload_json TEXT,
+                    created_at REAL NOT NULL,
+                    FOREIGN KEY (session_id) REFERENCES sessions(id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_msg_sess ON messages(session_id);
+                CREATE INDEX IF NOT EXISTS idx_ev_sess ON events(session_id);
+                """
+            )
 
 
 def new_session(

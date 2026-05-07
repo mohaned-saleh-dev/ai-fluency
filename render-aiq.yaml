@@ -21,6 +21,10 @@
 #     - key: AIQ_SQLITE_PATH
 #       value: /var/data/aiq_csuite.db
 # https://render.com/docs/disks
+#
+# Alternative (recommended on free tiers): use hosted Postgres (Supabase/Neon).
+# Set:
+#   DATABASE_URL=postgresql://... (app switches to Postgres and ignores SQLite file path)
 
 services:
   - type: web
@@ -36,6 +40,9 @@ services:
         sync: false
       - key: AIQ_ADMIN_SECRET
         sync: false
+      # Optional: hosted Postgres (Supabase/Neon/etc); when set, app uses Postgres.
+      # - key: DATABASE_URL
+      #   sync: false
       # Optional: absolute path on a persistent disk (see comment block above).
       # - key: AIQ_SQLITE_PATH
       #   value: /var/data/aiq_csuite.db

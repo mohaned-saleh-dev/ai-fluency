@@ -1268,12 +1268,15 @@
         const meta = o.meta || {};
         const dm = $("dbMeta");
         if (dm) {
-          const pathLine = meta.sqlite_path ? "SQLite file this server reads: " + esc(meta.sqlite_path) : "";
+          const isPg = (meta.db_backend || "").toLowerCase() === "postgres";
+          const targetLine = meta.db_target
+            ? (isPg ? "Database backend: Postgres (DATABASE_URL configured)." : "SQLite file this server reads: " + esc(meta.db_target))
+            : "";
           const warn =
-            !sessions.length && meta.sqlite_path
+            !sessions.length && !isPg && meta.db_target
               ? " · Empty DB is normal after a Render redeploy unless you use a persistent disk + AIQ_SQLITE_PATH (see render-aiq.yaml)."
-              : "";
-          dm.innerHTML = pathLine ? pathLine + warn : "";
+              : (!sessions.length && isPg ? " · No rows yet in Postgres." : "");
+          dm.innerHTML = targetLine ? targetLine + warn : "";
         }
         renderRows();
         if (!sessions.length) {

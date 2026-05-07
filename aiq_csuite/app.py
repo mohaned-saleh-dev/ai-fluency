@@ -1565,7 +1565,12 @@ def admin_sessions():
         {
             "sessions": out,
             "meta": {
-                "sqlite_path": str(DB_PATH.resolve()),
+                "db_backend": config.DB_BACKEND,
+                "db_target": (
+                    "postgres://***"
+                    if config.DB_BACKEND == "postgres"
+                    else str(DB_PATH.resolve())
+                ),
                 "session_count": len(out),
             },
         }
