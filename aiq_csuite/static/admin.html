@@ -73,8 +73,61 @@
     }
     .in:focus { border-color: #c59bff; box-shadow: 0 0 0 3px rgba(177, 122, 255, 0.2); }
     .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; }
+    .btn.is-loading { opacity: 0.72; pointer-events: none; cursor: wait; }
+    .login-status {
+      min-height: 1.35rem;
+      font-size: 0.78rem;
+      color: #c9b8ff;
+      margin-top: 0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .login-status.is-busy::before {
+      content: "";
+      width: 0.85rem;
+      height: 0.85rem;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: aiq-admin-spin 0.65s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes aiq-admin-spin { to { transform: rotate(360deg); } }
 
     /* Dashboard */
+    .dash-loading {
+      font-size: 0.72rem;
+      color: #d4c4ff;
+      padding: 0.35rem 0.55rem;
+      margin-bottom: 0.55rem;
+      border-radius: 10px;
+      background: rgba(124, 72, 230, 0.18);
+      border: 1px solid rgba(186, 156, 255, 0.28);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .dash-loading::before {
+      content: "";
+      width: 0.75rem;
+      height: 0.75rem;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-top-color: #e8ddff;
+      border-radius: 50%;
+      animation: aiq-admin-spin 0.65s linear infinite;
+    }
+    .detail-loading { display: flex; align-items: center; gap: 0.45rem; color: var(--muted); font-size: 0.82rem; }
+    .detail-loading::before {
+      content: "";
+      width: 0.75rem;
+      height: 0.75rem;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: aiq-admin-spin 0.65s linear infinite;
+    }
+
     .top { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
     .top h1 { margin: 0; font-size: 1.18rem; letter-spacing: -0.01em; }
     .top p { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--muted); }
@@ -347,11 +400,13 @@
         <button id="loginBtn" class="btn" type="button">Login</button>
         <button id="clearBtn" class="btn ghost" type="button">Clear token</button>
       </div>
+      <p id="loginStatus" class="login-status" role="status" aria-live="polite"></p>
       <div id="loginErr" class="err"></div>
     </div>
   </div>
 
-  <div id="dash" class="shell hidden">
+    <div id="dash" class="shell hidden">
+    <div id="dashLoading" class="dash-loading hidden" role="status" aria-live="polite">Loading sessions…</div>
     <div class="top">
       <div>
         <h1>Interviewer review</h1>
@@ -411,6 +466,38 @@
       if (qs.get("token")) localStorage.setItem(KEY, (qs.get("token") || "").trim());
 
       const $ = (id) => document.getElementById(id);
+      const loginBtnDefault = "Login";
+      function setLoginBusy(on, msg) {
+        const btn = $("loginBtn");
+        const st = $("loginStatus");
+        const inp = $("tokenIn");
+        const clr = $("clearBtn");
+        if (btn) {
+          btn.disabled = !!on;
+          btn.classList.toggle("is-loading", !!on);
+          btn.textContent = on ? "Please wait…" : loginBtnDefault;
+        }
+        if (st) {
+          st.classList.toggle("is-busy", !!on);
+          st.textContent = on ? (msg || "Loading…") : "";
+        }
+        if (inp) inp.disabled = !!on;
+        if (clr) clr.disabled = !!on;
+      }
+      function setDashListBusy(on) {
+        const rb = $("refreshBtn");
+        const bar = $("dashLoading");
+        if (rb) {
+          rb.disabled = !!on;
+          if (on) {
+            if (!rb.getAttribute("data-lbl")) rb.setAttribute("data-lbl", rb.textContent);
+            rb.textContent = "Loading…";
+          } else {
+            rb.textContent = rb.getAttribute("data-lbl") || "Refresh";
+          }
+        }
+        if (bar) bar.classList.toggle("hidden", !on);
+      }
       const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
       const num = (v, d = 2) => (v == null || isNaN(Number(v)) ? "—" : Number(v).toFixed(d));
       const sec = (v) => (v == null || isNaN(Number(v)) ? "—" : Number(v).toFixed(2) + "s");
@@ -1038,7 +1125,7 @@
         const delTop = $("deleteSessionBtn");
         if (delTop) delTop.classList.add("hidden");
         $("sidMeta").innerHTML = "<span class='sid'>" + esc(id) + "</span>";
-        $("detail").innerHTML = "<p class='muted'>Loading analysis…</p>";
+        $("detail").innerHTML = "<div class='detail-loading' role='status'>Loading analysis…</div>";
         try {
           const o = await api("/api/admin/sessions/" + encodeURIComponent(id) + "?t=" + Date.now());
           const sess0 = o.session || {};
@@ -1263,7 +1350,14 @@
       }
 
       async function loadSessions() {
-        const o = await api("/api/admin/sessions?t=" + Date.now());
+        const onDash = $("dash") && !$("dash").classList.contains("hidden");
+        if (onDash) setDashListBusy(true);
+        let o;
+        try {
+          o = await api("/api/admin/sessions?t=" + Date.now());
+        } finally {
+          if (onDash) setDashListBusy(false);
+        }
         sessions = Array.isArray(o.sessions) ? o.sessions : [];
         const meta = o.meta || {};
         const dm = $("dbMeta");
@@ -1305,11 +1399,15 @@
       $("loginBtn").onclick = async function () {
         const v = ($("tokenIn").value || "").trim();
         if (!v) return showLogin("Enter an admin code.");
+        $("loginErr").textContent = "";
         setToken(v);
+        setLoginBusy(true, "Signing in and loading sessions…");
         try {
           await loadSessions();
+          setLoginBusy(false);
           showDash();
         } catch (e) {
+          setLoginBusy(false);
           showLogin(e.message || "Unauthorized");
         }
       };
@@ -1356,7 +1454,16 @@
       });
 
       if (token()) {
-        loadSessions().then(showDash).catch((e) => showLogin(e.message || "Unauthorized"));
+        setLoginBusy(true, "Loading sessions…");
+        loadSessions()
+          .then(() => {
+            setLoginBusy(false);
+            showDash();
+          })
+          .catch((e) => {
+            setLoginBusy(false);
+            showLogin(e.message || "Unauthorized");
+          });
       } else {
         showLogin("");
       }

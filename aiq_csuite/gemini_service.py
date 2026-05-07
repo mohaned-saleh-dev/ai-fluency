@@ -478,34 +478,20 @@ def _build_coverage_block(coverage_state: Optional[dict]) -> str:
         if current
         else "none yet (you have not signalled any dim)"
     )
-    # Force a switch when we've stayed on one dim too long, especially with collaborative users.
     must_switch_now = bool(current and streak >= 3 and pending)
     near_full = (model_turns >= 4) and pending
-    rules = [
-        "**Coverage so far in THIS session (server-tracked, do not invent):**",
-        f"- Dims already signalled: {touched_str}",
-        f"- Dims still pending: {pending_str}",
-        f"- Current dim: {cur_str}",
-        f"- Your model turns so far in this session: {model_turns}",
-        "",
-        "**Hard rules for this turn (must follow, this overrides earlier dim guidance):**",
-        "- The first turn of any *new* dim MUST start with `[Dim: D? — <short name>]` exactly. No banner = the app cannot record coverage.",
-        "- When you are unsure whether you are still in the same dim as the last turn, **EMIT** the banner. Err on the side of emitting.",
-        "- Within the *same* dim, max **2** of YOUR turns; on the **3rd** of your turns on the same dim you MUST switch to a still-pending dim and emit `[Dim: …]`.",
-        "- If the user is **collaborative** (substantive replies, no clarification needed), be aggressive about moving on after 1–2 of your turns on a dim.",
-        "- Never re-open a dim you have already covered when there are still pending dims.",
-        "- Pick the next dim from the **pending list** above; choose whichever fits naturally with their last reply, but do not stay on the current dim.",
+    # Keep this block short — it is re-sent every turn and inflates latency/token cost.
+    lines = [
+        "**Dim coverage (server, do not invent):** "
+        f"touched [{touched_str}] · pending [{pending_str}] · current **{cur_str}** · model turns **{model_turns}**. "
+        "New dim → first line `[Dim: Dx — short name]`; max ~2 your turns per dim then switch if pending remain; "
+        "emit banner when unsure.",
     ]
     if must_switch_now:
-        rules.append(
-            "- **THIS TURN you MUST switch to a pending dim.** You have already used your turns on the current dim. "
-            "Begin this turn with `[Dim: …]` for one of the pending dims."
-        )
-    if near_full:
-        rules.append(
-            "- **You are past the early phase. Move breadth-wise.** Prefer to touch a pending dim with one well-aimed question rather than going deeper on what you've already covered."
-        )
-    return "\n".join(rules)
+        lines.append("**This turn:** switch to a pending dim (banner required).")
+    elif near_full:
+        lines.append("**Now:** prefer breadth — pick a pending dim.")
+    return "\n".join(lines)
 
 
 def run_interviewer_reply(
@@ -584,10 +570,10 @@ def run_interviewer_reply(
 - {context_note}
 
 **Scenario hooks (internal only; must become AI-fluency questions):**  
-The lines below are **vignettes to bend toward GenAI in *their* role** — *not* permission to ask about *QA teams*, *contact centers*, or *chat-agent roadmaps* unless the participant has already said they work there. {v_private[:2000]}
+The lines below are **vignettes to bend toward GenAI in *their* role** — *not* permission to ask about *QA teams*, *contact centers*, or *chat-agent roadmaps* unless the participant has already said they work there. {v_private[:1200]}
 
 RAG (weights and dimensions — **internal** only; do not name RAG, codes, or "dimensions" to the user):
-{rag_text[:8000]}
+{rag_text[:6000]}
 
 {_build_coverage_block(coverage_state)}
 

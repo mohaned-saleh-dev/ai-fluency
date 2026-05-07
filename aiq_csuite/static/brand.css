@@ -1267,6 +1267,50 @@ h2 {
   height: 0.32rem;
   margin-top: 0.2rem;
 }
+.dim-card__why {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-align: left;
+}
+.report-section__lede {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  max-width: 42ch;
+}
+.report-blurb {
+  margin: 0 0 0.45rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--ink);
+}
+.report-blurb--up {
+  padding-left: 0.35rem;
+  border-left: 3px solid rgba(25, 135, 84, 0.35);
+}
+.report-blurb:last-child {
+  margin-bottom: 0;
+}
+.report-blurb--watch {
+  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(199, 164, 255, 0.12) 0%, transparent 100%);
+  border-left: 3px solid var(--light-lilac);
+}
+.report-blurb__tag {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--zingy-purple);
+  margin-right: 0.35rem;
+}
 
 /* ——— One-page AiQ report (summary) ——— */
 .report-onepage {

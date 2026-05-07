@@ -429,13 +429,30 @@
       const o = S[d] || {};
       const sc = numScore(o.score);
       const pw = (sc * 10).toFixed(0);
+      const why = o.rationale_1line ? String(o.rationale_1line).trim() : "";
+      const whyHtml = why
+        ? '<p class="dim-card__why">' + escapeHtml(why.length > 220 ? why.slice(0, 217) + "…" : why) + "</p>"
+        : "";
       return (
         '<div class="dim-card">' +
         "<span class='dim-card__t'>" + escapeHtml(d) + " · " + escapeHtml(DIM_META[d] || "") + "</span>" +
         "<span class='dim-card__s'>" + (o.score != null ? o.score : "—") + "<span class='dim-card__s-out'>/10</span></span>" +
-        '<div class="dim-bar dim-card__bar" role="presentation"><div class="dim-bar__fill" style="width:' + pw + '%"></div></div></div>'
+        '<div class="dim-bar dim-card__bar" role="presentation"><div class="dim-bar__fill" style="width:' + pw + '%"></div></div>' +
+        whyHtml +
+        "</div>"
       );
     }).join("");
+
+    const strength = S.strength_1line ? String(S.strength_1line).trim() : "";
+    const risk = S.risk_1line ? String(S.risk_1line).trim() : "";
+    const summaryBlock =
+      strength || risk
+        ? '<section class="report-section">' +
+          '<h3 class="report-section__h">What this run suggests</h3>' +
+          (strength ? '<p class="report-blurb report-blurb--up">' + escapeHtml(strength) + "</p>" : "") +
+          (risk ? '<p class="report-blurb report-blurb--watch"><span class="report-blurb__tag">Watch</span>' + escapeHtml(risk) + "</p>" : "") +
+          "</section>"
+        : "";
 
     return (
       '<article class="report-simple slide-plate no-hero-num" aria-label="Your AiQ result">' +
@@ -446,7 +463,9 @@
       '<section class="report-section report-section--hero">' +
       '<h3 class="report-section__h">Your overall result</h3>' +
       '<div class="report-hero-num"><span class="report-hero-num__n">' + aiqOut + "</span><span class='report-hero-num__u'>AiQ · 0–100</span></div>" +
+      '<p class="report-section__lede">Composite from this conversation — useful directionally, not a performance label.</p>' +
       "</section>" +
+      summaryBlock +
       // 2. Where you're expected to be
       '<section class="report-section">' +
       '<h3 class="report-section__h">Where you’re expected to be</h3>' +
@@ -457,10 +476,12 @@
       '<section class="report-section">' +
       '<h3 class="report-section__h">Your AiQ level</h3>' +
       "<span class='band-pill band-pill--lg'>" + escapeHtml(String(band)) + "</span>" +
+      '<p class="report-section__sub">Band label from your composite for this experience.</p>' +
       "</section>" +
       // 4. Per-dimension scores
       '<section class="report-section">' +
       '<h3 class="report-section__h">Score per dimension</h3>' +
+      '<p class="report-section__sub">Each score is 0–10 with a short note from your answers in this chat.</p>' +
       "<div class='dim-card-grid'>" + dimCards + "</div>" +
       "</section>" +
       "</article>"
