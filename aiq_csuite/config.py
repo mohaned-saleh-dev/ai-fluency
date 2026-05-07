@@ -71,12 +71,16 @@ KNOWLEDGE_DIR = BASE_DIR / "knowledge"
 DB_PATH = Path(os.environ.get("AIQ_SQLITE_PATH", str(INSTANCE_DIR / "aiq_csuite.db"))).expanduser().resolve()
 
 GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
+OPENAI_BASE = os.environ.get("OPENAI_BASE", "https://api.openai.com/v1").rstrip("/")
 # gemini-2.0-flash is 404 for many new users; use 2.5+ on https://ai.google.dev/gemini-api/docs/models
 # Override in .env: AIQ_GEMINI_MODEL=…
 GEMINI_MODEL = os.environ.get("AIQ_GEMINI_MODEL", "gemini-2.5-flash")
+OPENAI_MODEL = os.environ.get("AIQ_OPENAI_MODEL", "gpt-4o-mini")
 # Second LLM call for "paste" detection: set 1 to use Gemini (more calls, more quota)
 AIQ_LLM_CLASSIFY = os.environ.get("AIQ_LLM_CLASSIFY", "").lower() in ("1", "true", "yes")
-# who answers: "gemini" | "ollama" | "auto" (if key: gemini, else ollama if running, else error)
+# who answers: "gemini" | "openai" | "ollama" | "auto"
+# auto preference: gemini (if key) -> openai (if key) -> ollama (if running)
 LLM_PROVIDER = os.environ.get("AIQ_LLM_PROVIDER", "auto").strip().lower() or "auto"
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://127.0.0.1:11434").rstrip("/")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2")

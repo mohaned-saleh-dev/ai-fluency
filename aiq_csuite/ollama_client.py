@@ -4,7 +4,7 @@ import urllib.error
 import urllib.request
 from typing import List, Optional, Tuple
 
-from config import GEMINI_MODEL, OLLAMA_BASE, OLLAMA_MODEL
+from config import GEMINI_MODEL, OLLAMA_BASE, OLLAMA_MODEL, OPENAI_MODEL
 
 
 def _post(path: str, body: dict, timeout: int = 120) -> dict:
@@ -82,9 +82,9 @@ def ollama_generate_text(
     return (out.get("response") or "").strip()
 
 
-def resolve_backend(gemini_key: str) -> Tuple[str, str]:
+def resolve_backend(gemini_key: str, openai_key: str = "") -> Tuple[str, str]:
     """
-    Returns ("gemini"|"ollama", message for /health).
+    Returns ("gemini"|"openai"|"ollama", message for /health).
     """
     from config import LLM_PROVIDER
 
@@ -92,6 +92,10 @@ def resolve_backend(gemini_key: str) -> Tuple[str, str]:
         if not gemini_key:
             return "error", "AIQ_LLM_PROVIDER=gemini but no GOOGLE_API_KEY / GEMINI_API_KEY"
         return "gemini", f"using Gemini model={GEMINI_MODEL}"
+    if LLM_PROVIDER == "openai":
+        if not openai_key:
+            return "error", "AIQ_LLM_PROVIDER=openai but no OPENAI_API_KEY"
+        return "openai", f"using OpenAI model={OPENAI_MODEL}"
     if LLM_PROVIDER == "ollama":
         if ollama_available():
             return "ollama", f"using Ollama at {OLLAMA_BASE} model={OLLAMA_MODEL}"
@@ -99,9 +103,11 @@ def resolve_backend(gemini_key: str) -> Tuple[str, str]:
     # auto
     if gemini_key:
         return "gemini", "auto: using Gemini (key present)"
+    if openai_key:
+        return "openai", "auto: using OpenAI (key present)"
     if ollama_available():
         return "ollama", f"auto: no Gemini key, using Ollama at {OLLAMA_BASE} model={OLLAMA_MODEL}"
     return "error", (
-        "auto: set GOOGLE_API_KEY for Gemini, or install Ollama and run: "
+        "auto: set GOOGLE_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY, or install Ollama and run: "
         f"ollama pull {OLLAMA_MODEL} && ollama serve"
     )

@@ -64,14 +64,17 @@ from ollama_client import resolve_backend
 from coaching_engine import build_coaching_dimension_row, fam_cluster, pick_one_course
 
 GEMINI_API_KEY = config.GEMINI_API_KEY
+OPENAI_API_KEY = config.OPENAI_API_KEY
 
 
 def _llm_status() -> tuple:
     """(ok, backend, detail, model_name)."""
-    mode, detail = resolve_backend(GEMINI_API_KEY)
+    mode, detail = resolve_backend(GEMINI_API_KEY, OPENAI_API_KEY)
     mname: str
     if mode == "gemini":
         mname = config.GEMINI_MODEL
+    elif mode == "openai":
+        mname = config.OPENAI_MODEL
     elif mode == "ollama":
         mname = OLLAMA_MODEL
     else:
@@ -219,6 +222,7 @@ def orchestrator_state():
                 "detail": detail,
                 "model": mname or "",
                 "gemini_model_config": config.GEMINI_MODEL,
+                "openai_model_config": config.OPENAI_MODEL,
                 "ollama_model_config": OLLAMA_MODEL,
             },
             "levels": LEVELS,
@@ -289,7 +293,12 @@ def health():
             "ok": ok,
             "backend": mode,
             "detail": detail,
-            "model": mname or (config.GEMINI_MODEL if GEMINI_API_KEY else ""),
+            "model": mname
+            or (
+                config.GEMINI_MODEL
+                if GEMINI_API_KEY
+                else (config.OPENAI_MODEL if OPENAI_API_KEY else "")
+            ),
         }
     )
 

@@ -6,7 +6,16 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from config import AIQ_LLM_CLASSIFY, BASE_DIR, GEMINI_API_KEY, GEMINI_MODEL, OLLAMA_MODEL
+from config import (
+    AIQ_LLM_CLASSIFY,
+    BASE_DIR,
+    GEMINI_API_KEY,
+    GEMINI_MODEL,
+    OLLAMA_MODEL,
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
+)
+from openai_client import openai_chat, openai_generate_text
 from ollama_client import ollama_available, ollama_chat, ollama_generate_text, resolve_backend
 
 _ORCH_PROMPT_PATH = BASE_DIR / "knowledge" / "orchestrator_prompt_append.md"
@@ -57,8 +66,8 @@ OPENING_VARIANTS: List[str] = [
 
 
 def _llm_mode() -> Tuple[str, str]:
-    """(mode, detail). mode: gemini | ollama | error"""
-    return resolve_backend(GEMINI_API_KEY)
+    """(mode, detail). mode: gemini | openai | ollama | error"""
+    return resolve_backend(GEMINI_API_KEY, OPENAI_API_KEY)
 
 
 def _read_rag() -> str:
@@ -250,6 +259,14 @@ Output only the fixed text:
     if mode == "ollama":
         o = ollama_generate_text(prompt, temperature=0.12, num_predict=900)
         return (o or partial).strip() or partial
+    if mode == "openai":
+        o = openai_generate_text(
+            prompt,
+            model=OPENAI_MODEL,
+            temperature=0.12,
+            max_output_tokens=900,
+        )
+        return (o or partial).strip() or partial
     import google.generativeai as genai
 
     genai.configure(api_key=GEMINI_API_KEY)
@@ -348,8 +365,11 @@ def classify_ai_paste_likeness(user_text: str) -> Tuple[float, str]:
     if not AIQ_LLM_CLASSIFY:
         return _heuristic_paste_likeness(user_text)
     mode, _ = _llm_mode()
-    if mode == "error" or (mode == "ollama" and not ollama_available()) or (
-        mode == "gemini" and not GEMINI_API_KEY
+    if (
+        mode == "error"
+        or (mode == "ollama" and not ollama_available())
+        or (mode == "gemini" and not GEMINI_API_KEY)
+        or (mode == "openai" and not OPENAI_API_KEY)
     ):
         return _heuristic_paste_likeness(user_text)
     prompt = f"""Could this be pasted from a generic LLM: padded structure, no real specifics, buzzword soup?
@@ -363,6 +383,15 @@ TEXT:
         if mode == "ollama":
             raw = ollama_generate_text(
                 "Return only JSON.\n\n" + prompt, temperature=0.1
+            )
+            o = json.loads(_strip_json((raw or "").strip()))
+        elif mode == "openai":
+            raw = openai_generate_text(
+                prompt,
+                model=OPENAI_MODEL,
+                temperature=0.1,
+                max_output_tokens=250,
+                response_json=True,
             )
             o = json.loads(_strip_json((raw or "").strip()))
         else:
@@ -514,6 +543,17 @@ Over **roughly 10–15 minutes**, you want *breadth* across the six areas in the
         return _postprocess_interviewer_reply(
             ollama_chat(system, history_ui, user_message, temperature=0.45)
         )
+    if mode == "openai":
+        return _postprocess_interviewer_reply(
+            openai_chat(
+                system,
+                history_ui,
+                user_message,
+                model=OPENAI_MODEL,
+                temperature=0.45,
+                max_output_tokens=2048,
+            )
+        )
     try:
         out = _send_chat_with_retry(system, h, user_message)
     except OllamaFallbackForQuota:
@@ -560,6 +600,48 @@ def _score_with_ollama_from_prompt_body(prompt: str) -> dict:
         "Every string: one line, no double quotes inside, max 200 chars. Invalid output:\n\n"
         + (r1 or "")[:8000],
         temperature=0.1,
+    )
+    return parse_scoring_json_object(r3)
+
+
+def _score_with_openai_from_prompt_body(prompt: str) -> dict:
+    sys = (
+        "You are a strict assessor. Return only one JSON object, no markdown. "
+        "No prose before/after. Keep keys exactly as requested."
+    )
+    r1 = openai_generate_text(
+        prompt,
+        model=OPENAI_MODEL,
+        temperature=0.2,
+        max_output_tokens=2500,
+        system_instruction=sys,
+        response_json=True,
+    )
+    try:
+        return parse_scoring_json_object(r1)
+    except json.JSONDecodeError:
+        pass
+    r2 = openai_generate_text(
+        "Return raw JSON only (no backticks, no text outside JSON).\n\n" + prompt,
+        model=OPENAI_MODEL,
+        temperature=0.1,
+        max_output_tokens=3000,
+        system_instruction=sys,
+        response_json=True,
+    )
+    try:
+        return parse_scoring_json_object(r2)
+    except json.JSONDecodeError:
+        pass
+    r3 = openai_generate_text(
+        "Previous output was invalid JSON. Return ONLY one valid JSON object with keys: "
+        "D1..D6, AiQ_0_100, maturity_band, strength_1line, risk_1line. Invalid output:\n\n"
+        + (r1 or "")[:8000],
+        model=OPENAI_MODEL,
+        temperature=0.1,
+        max_output_tokens=2500,
+        system_instruction=sys,
+        response_json=True,
     )
     return parse_scoring_json_object(r3)
 
@@ -718,6 +800,9 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
 """
     if mode == "ollama":
         out = _score_with_ollama_from_prompt_body(prompt)
+        return _finalize_scoring_for_session(out, w)
+    if mode == "openai":
+        out = _score_with_openai_from_prompt_body(prompt)
         return _finalize_scoring_for_session(out, w)
     import google.generativeai as genai
     genai.configure(api_key=GEMINI_API_KEY)
