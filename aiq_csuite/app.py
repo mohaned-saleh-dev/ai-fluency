@@ -786,12 +786,43 @@ _TOOL_HINTS = [
     "cursor",
     "notion ai",
     "openai",
+    "ollama",
+    "anthropic",
+    "midjourney",
     "llm",
+    "gpt",
     "prompt",
     "ai assistant",
 ]
 _RISK_HINTS = ["risk", "privacy", "pii", "compliance", "policy", "guardrail", "ip", "security"]
-_EVIDENCE_HINTS = ["because", "for example", "we built", "we changed", "we decided", "impact", "metric", "kpi"]
+_EVIDENCE_HINTS = [
+    "because",
+    "for example",
+    "we built",
+    "we changed",
+    "we decided",
+    "impact",
+    "metric",
+    "kpi",
+    "iteration",
+    "tested",
+    "validated",
+    "deployed",
+    "built",
+    "created",
+    "workflow",
+    "framework",
+    "methodology",
+    "sanity",
+    "pushing back",
+    "evidence",
+    "cross-",
+    "evaluation",
+    "dimension",
+    "consolidat",
+    "premise",
+    "skeptic",
+]
 
 # Each row may set `audiences`: a list of job_family slugs from assessment_profiles, or ["*"] for any.
 # `weight` is a tie-break: lower = prefer when the gap to target is large (more foundational / urgent).
@@ -980,22 +1011,47 @@ def _count_matches(text: str, hints: List[str]) -> int:
 
 
 def _analyze_user_response(text: str, flags: Optional[dict] = None) -> Dict[str, Any]:
+    """
+    Lightweight per-turn signals for admin UX — **not** the scoring model.
+
+    Older versions used thresholds that almost always fired all four “gap” bullets and the same
+    focus line, because one tool token scored ~2.2 and substring checks like ``\"i\" in text``
+    matched inside unrelated words. We apply sane floors and cap displayed coaching text so rows
+    diverge when the participant’s answers diverge.
+    """
     low = text.lower()
     words = [w for w in text.strip().split() if w]
     w = len(words)
     specificity = min(10.0, round((w / 14.0) + (0.8 if any(ch.isdigit() for ch in text) else 0.0), 2))
-    tool_sig = min(10.0, round(_count_matches(low, _TOOL_HINTS) * 2.2, 2))
+
+    tool_matches = _count_matches(low, _TOOL_HINTS)
+    tool_sig = min(10.0, round(tool_matches * 2.2, 2))
+    # Naming any known tool/stack once is enough signal for “not tools-empty”.
+    if tool_matches >= 1:
+        tool_sig = max(tool_sig, 5.0)
+
     risk_sig = min(10.0, round(_count_matches(low, _RISK_HINTS) * 2.0, 2))
     evidence_sig = min(10.0, round(_count_matches(low, _EVIDENCE_HINTS) * 1.8, 2))
+    # Substantive replies usually carry process / outcome language even without keyword bingo.
+    if w >= 28:
+        evidence_sig = max(evidence_sig, 4.5)
+    elif w >= 18:
+        evidence_sig = max(evidence_sig, 3.5)
+
+    first_person = bool(re.search(r"\b(i|me|my|mine|we|our|us)\b", low))
     reflection_sig = min(
         10.0,
         round(
-            (1.4 if "i" in low or "we" in low else 0.4)
-            + (1.8 if "because" in low or "trade-off" in low else 0.0)
-            + (1.6 if "learned" in low or "realized" in low else 0.0),
+            (2.8 if first_person else 1.0)
+            + (2.2 if "because" in low or "trade-off" in low or "tradeoff" in low else 0.0)
+            + (1.8 if "learned" in low or "realized" in low else 0.0)
+            + (1.5 if re.search(r"\b(feel|felt|think|thought|worry|concern)\b", low) else 0.0),
             2,
         ),
     )
+    if first_person and w >= 14:
+        reflection_sig = max(reflection_sig, 4.2)
+
     directness = min(10.0, round((10.0 if w > 0 else 0.0) - (1.5 if "don't make sense" in low else 0.0), 2))
 
     signals = []
@@ -1007,24 +1063,42 @@ def _analyze_user_response(text: str, flags: Optional[dict] = None) -> Dict[str,
         signals.append("Acknowledges governance/risk concerns.")
     if specificity >= 6:
         signals.append("Specific and reasonably concrete response.")
-    gaps = []
-    if tool_sig < 3:
-        gaps.append("Tools still light here — if they have named several use cases, gently pivot to a different one they mentioned rather than re-drilling the same thread.")
-    if evidence_sig < 3:
-        gaps.append("Outcomes still broad — one soft ask for a real example; if the answer stays thin, switch topic to another area of their work.")
-    if reflection_sig < 3:
-        gaps.append("Reflection light — one open question on trade-offs; if they do not go deep, change angle (another tool/workflow) with no pressure.")
-    if risk_sig < 2:
-        gaps.append("Controls not explicit yet — one question on who sees what or what never goes in the model; keep it optional, not ‘compliance test’ tone.")
+    if reflection_sig >= 4 and first_person:
+        signals.append("Uses first-person reflection on how they work.")
 
-    # One optional, turn-specific line (only when “Strengths” bullets would be empty on their own for this angle).
+    gap_defs = [
+        ("tools", 3.0, tool_sig, "Tools / surfaces — if they’ve named several angles, pivot to one they haven’t unpacked yet instead of re-drilling one thread."),
+        ("evidence", 3.0, evidence_sig, "Concrete outcomes — one gentle ask for a specific moment or artefact if this reply stays process-only."),
+        ("reflection", 3.0, reflection_sig, "Judgment / trade-offs — optional prompt on how they decide what “good” looks like if they haven’t gone there."),
+        ("risk", 2.0, risk_sig, "Guardrails — light optional question on data boundaries or who sees outputs (curious tone, not compliance-test)."),
+    ]
+    scored_gaps: List[Tuple[float, str]] = []
+    for _key, thresh, sig, msg in gap_defs:
+        if sig < thresh:
+            scored_gaps.append((thresh - sig, msg))
+    scored_gaps.sort(key=lambda x: -x[0])
+    gaps = [m for _, m in scored_gaps[:2]]
+
     style_callout: Optional[str] = None
-    if not signals and tool_sig < 2.5:
-        style_callout = "No tool names this turn — ask for one product or surface; if they already gave several shallow examples, move to a different one they named."
-    elif not signals and evidence_sig < 2.5:
-        style_callout = "Still high-level — one gentle nudge for a real moment; if they are brief again, switch to a new angle (different task or tool) without pushing."
-    elif not signals and w < 22:
-        style_callout = "Short answer — invite one more detail; if that still feels light, switch gears to another part of their AI use."
+    if 0 < w <= 6:
+        style_callout = "Very short reply — invite one concrete detail (tool, decision, or constraint)."
+    elif scored_gaps and scored_gaps[0][0] >= 1.25:
+        worst = scored_gaps[0][1]
+        style_callout = "Focus for this turn — " + worst.split(" — ")[0] + "."
+
+    next_probe = "Pick up on their last reply: deepen one thread they opened, or invite an adjacent angle so it stays conversational."
+    if gaps:
+        if scored_gaps and scored_gaps[0][0] >= scored_gaps[-1][0] + 0.5:
+            next_probe = (
+                "Prioritize: "
+                + scored_gaps[0][1].split(" — ")[0].lower()
+                + ". If they engage, stay there briefly; otherwise pivot once."
+            )
+        else:
+            next_probe = (
+                "Balance breadth: either extend what they just gave you, or switch to another AI touchpoint "
+                "they mentioned — avoid repeating the same prompt shape twice."
+            )
 
     return {
         "word_count": w,
@@ -1040,11 +1114,7 @@ def _analyze_user_response(text: str, flags: Optional[dict] = None) -> Dict[str,
         "signals": signals,
         "gaps": gaps,
         "style_callout": style_callout,
-        "next_probe": (
-            "They may have more than one AI use case: if this thread stays surface-level after one rephrase, thank them, pivot to another use case or tool they mentioned, or a fresh angle — do not interrogate the same line."
-            if gaps
-            else "Broaden: another workflow or tool, or a leadership / handoff angle so the chat stays easy, not a drill."
-        ),
+        "next_probe": next_probe,
     }
 
 
