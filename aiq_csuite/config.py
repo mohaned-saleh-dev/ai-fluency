@@ -100,8 +100,9 @@ elif ADMIN_SECRET not in ADMIN_SECRETS:
 # re-export for comparing pasted / URL / Bearer values to ADMIN_SECRET
 normalize_admin_token = _normalize_admin_value
 
-# Approximate 10 min session: nudge to wrap
-TARGET_DURATION_SEC = int(os.environ.get("AIQ_TARGET_SEC", "600"))
+# Soft target for session length (UI hint only — chat does NOT auto-end at this).
+# 15 min default. Override with AIQ_TARGET_SEC.
+TARGET_DURATION_SEC = int(os.environ.get("AIQ_TARGET_SEC", "900"))
 
 # Open (unended) sessions are auto-closed after this many hours (no new messages; complete may still run).
 SESSION_MAX_AGE_HOURS = float(os.environ.get("AIQ_SESSION_MAX_AGE_HOURS", "24"))

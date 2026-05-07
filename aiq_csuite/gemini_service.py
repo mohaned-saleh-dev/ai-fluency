@@ -448,12 +448,73 @@ def _send_chat_with_retry(
     return ""
 
 
+_DIM_SHORT_NAMES: Dict[str, str] = {
+    "D1": "Awareness & opportunity",
+    "D2": "Prompts & comms",
+    "D3": "Critical judgment",
+    "D4": "Workflows & org design",
+    "D5": "Clarity, craft & output fit",
+    "D6": "Risk & responsible use",
+}
+
+
+def _build_coverage_block(coverage_state: Optional[dict]) -> str:
+    """Inject server-tracked dim coverage into the prompt so the model knows where to go next.
+
+    coverage_state shape:
+      { "touched": ["D1","D3"], "current": "D3", "current_streak": 2, "model_turns": 7 }
+    """
+    if not isinstance(coverage_state, dict):
+        return ""
+    touched = [c for c in (coverage_state.get("touched") or []) if c in _DIM_SHORT_NAMES]
+    current = coverage_state.get("current") if coverage_state.get("current") in _DIM_SHORT_NAMES else None
+    streak = int(coverage_state.get("current_streak") or 0)
+    model_turns = int(coverage_state.get("model_turns") or 0)
+    pending = [c for c in ("D1", "D2", "D3", "D4", "D5", "D6") if c not in set(touched)]
+    touched_str = ", ".join(f"{c} ({_DIM_SHORT_NAMES[c]})" for c in touched) or "none yet"
+    pending_str = ", ".join(f"{c} ({_DIM_SHORT_NAMES[c]})" for c in pending) or "none — all six covered"
+    cur_str = (
+        f"{current} ({_DIM_SHORT_NAMES[current]}); you have spent **{streak}** of your turns on this dim"
+        if current
+        else "none yet (you have not signalled any dim)"
+    )
+    # Force a switch when we've stayed on one dim too long, especially with collaborative users.
+    must_switch_now = bool(current and streak >= 3 and pending)
+    near_full = (model_turns >= 4) and pending
+    rules = [
+        "**Coverage so far in THIS session (server-tracked, do not invent):**",
+        f"- Dims already signalled: {touched_str}",
+        f"- Dims still pending: {pending_str}",
+        f"- Current dim: {cur_str}",
+        f"- Your model turns so far in this session: {model_turns}",
+        "",
+        "**Hard rules for this turn (must follow, this overrides earlier dim guidance):**",
+        "- The first turn of any *new* dim MUST start with `[Dim: D? — <short name>]` exactly. No banner = the app cannot record coverage.",
+        "- When you are unsure whether you are still in the same dim as the last turn, **EMIT** the banner. Err on the side of emitting.",
+        "- Within the *same* dim, max **2** of YOUR turns; on the **3rd** of your turns on the same dim you MUST switch to a still-pending dim and emit `[Dim: …]`.",
+        "- If the user is **collaborative** (substantive replies, no clarification needed), be aggressive about moving on after 1–2 of your turns on a dim.",
+        "- Never re-open a dim you have already covered when there are still pending dims.",
+        "- Pick the next dim from the **pending list** above; choose whichever fits naturally with their last reply, but do not stay on the current dim.",
+    ]
+    if must_switch_now:
+        rules.append(
+            "- **THIS TURN you MUST switch to a pending dim.** You have already used your turns on the current dim. "
+            "Begin this turn with `[Dim: …]` for one of the pending dims."
+        )
+    if near_full:
+        rules.append(
+            "- **You are past the early phase. Move breadth-wise.** Prefer to touch a pending dim with one well-aimed question rather than going deeper on what you've already covered."
+        )
+    return "\n".join(rules)
+
+
 def run_interviewer_reply(
     rag_text: str,
     variation: dict,
     history_ui: List[dict],
     user_message: str,
     context_note: str,
+    coverage_state: Optional[dict] = None,
 ) -> str:
     """One assistant turn. One clear question; allow brief follow-up if the user is clarifying their last point."""
     from assessment_profiles import interviewer_profile_note
@@ -500,16 +561,19 @@ def run_interviewer_reply(
 - By the **mid-point of the session** (several turns in), you must have a working picture of **which** generative-AI or copilot tools they use in *real* work (product names and surfaces are fine) and **what they use them for** (e.g. drafts, code, research, comms, analysis). If they only name one, ask once for **another** tool or workstream that uses AI — unless they truly have a single tool, in which case pivot to judgment, risk, or workflow.  
 - **Do not** let most of the conversation stay on the **same** product, project code name, or internal feature. If the participant’s last **two** answers keep circling the **same named** product, your **next** question must **widen the lens** (other tool, other workstream, or leadership / hand-off / risk angle) so the session is not a deep dive on one line item.  
 
-**Closing the interview (the app can always show a summary) — *mandatory* behavior:**  
-- **Never** say you cannot show results, scores, or a summary, or that your role is only to block output. The page has **“View results”** below the input; it opens a one-page read from *this* chat. If they ask for results, say: tap **“View results”** under the input — that is how they see the one-page view from this session.  
-- When you have no further main questions, thank them briefly, **one** short sentence telling them to tap **“View results”** under the input, then a **separate** final line **exactly**: `[SESSION_COMPLETE]` (app-only, not spoken aloud; user will not be asked to type it).  
-- **Do not** stop after a cold “That’s all for today” with no next step.
+**Closing the interview (the *user* decides when to stop — the chat does *not* auto-end):**  
+- **Never** say you cannot show results, scores, or a summary, or that your role is only to block output. The page has **“End session & view results”** below the input; it opens a one-page read from *this* chat.  
+- **Do NOT** push the user to wrap up. **Do NOT** say things like “let’s wrap”, “in our remaining time”, “for our last question”. Do not act as if there is a deadline. The session is **open-ended** — keep going until the user says they want to stop or until you have asked at least one substantive question per dim.  
+- Only emit `[SESSION_COMPLETE]` (alone on the final line) if **either** (a) the participant has explicitly said they want to wrap / are done, **or** (b) you have already asked one substantive question on **all six** dims. Otherwise omit it.  
+- If the user asks for results, say: tap **“End session & view results”** under the input — that opens the one-page summary from this session.
 
-**Dimension hand-off (for the app UI, only on a *real* change of angle):**  
-If and **only** if this reply is the first time in this session you are deliberately probing a *different* AiQ dimension than the **immediately previous model turn**, put a **single first line** exactly in this form, then a blank line, then your question:  
-`[Dim: D2 — <short name>]`  
-Use these short names only: D1 *Awareness & opportunity*, D2 *Prompts & comms*, D3 *Critical judgment*, D4 *Workflows & org design*, D5 *Clarity, craft & output fit*, D6 *Risk & responsible use.*  
-**If you are still in the *same* dimension as last turn (e.g. both turns are D3), you must *omit* the `[Dim: …]` line entirely** — no duplicate banners, no re-announcement of the same label. If unsure, **omit** the line.
+**Dimension hand-off (mandatory — the app reads this to track coverage):**  
+- The **server** tells you which dims have been touched in this session — see the **Coverage block** below. Use that, *not* your own memory of the chat.  
+- On the **first** turn of any dim, your reply **MUST** start with a single line in this exact form, then a blank line, then your question:  
+  `[Dim: D2 — <short name>]`  
+  Allowed short names exactly: D1 *Awareness & opportunity*, D2 *Prompts & comms*, D3 *Critical judgment*, D4 *Workflows & org design*, D5 *Clarity, craft & output fit*, D6 *Risk & responsible use.*  
+- If you are clearly **still on the same dim as the previous model turn**, omit the line. **If unsure, EMIT the banner.**  
+- Stay on a dim for **at most 2 of your turns** when the user is being collaborative; switch on the 3rd. After 4–5 model turns total, prefer breadth — touch a still-pending dim with one well-aimed question rather than going deeper on the current one.
 - **Role fit (COO / exec default):** Do **not** fall into contact-center, “agent QA,” or “the AI that scores support chats” framing **unless** the participant has already said they own that surface. Default to **P&L, org design, portfolio, board / leadership trade-offs, and how they set expectations for others**. For D3 evidence, ask for a **concrete leadership moment** (pushback, trade-off, “we said no because…”) — not a generic “name an AI output you would challenge in the abstract” homework exercise. Keep early questions **one level up** from frontline ops minutiae.
 
 **What this session is (non-negotiable) — *AiQ* = AI *fluency* in *their* work:**  
@@ -525,7 +589,9 @@ The lines below are **vignettes to bend toward GenAI in *their* role** — *not*
 RAG (weights and dimensions — **internal** only; do not name RAG, codes, or "dimensions" to the user):
 {rag_text[:8000]}
 
-Over **roughly 10–15 minutes**, you want *breadth* across the six areas in the RAG without making it feel like an interrogation or a checklist. You **never** say "D1" or "dimension" aloud."""
+{_build_coverage_block(coverage_state)}
+
+You aim for *breadth* across the six areas in the RAG without making it feel like an interrogation or a checklist. There is no time pressure on the conversation — the user controls when to stop. You **never** say "D1" or "dimension" aloud."""
 
     orch = _load_orchestrator_prompt_append()
     if orch:

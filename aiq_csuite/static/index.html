@@ -40,7 +40,7 @@
         </div>
         <h1 class="display-title">AiQ <span class="accent">assessment</span></h1>
         <p class="sub">
-          About ten minutes. We explore how you use AI in practice — not a form, not a performance review.
+          A short open-ended chat about how you use AI in practice — not a form, not a performance review. You can end whenever you’re ready.
         </p>
         <ul class="expect">
           <li><strong>One clear question at a time.</strong> If anything is unclear, ask for a simpler phrasing — that&rsquo;s encouraged.</li>
@@ -88,7 +88,15 @@
           </div>
         </div>
         <span class="pill">In session</span>
-        <span id="timer">0:00 / ~10:00</span>
+        <span id="timer">0:00</span>
+      </div>
+      <div class="aiq-progress" id="aiqProgress" aria-label="Session coverage">
+        <div class="aiq-progress__row">
+          <span class="aiq-progress__label">Coverage</span>
+          <div class="aiq-progress__chips" id="aiqProgressChips" role="group" aria-label="Topics covered"></div>
+          <span class="aiq-progress__count" id="aiqProgressCount">0 / 6</span>
+        </div>
+        <div class="aiq-progress__bar" aria-hidden="true"><div class="aiq-progress__bar-fill" id="aiqProgressFill"></div></div>
       </div>
       <div class="messages" id="msgBox"></div>
       <div
@@ -109,7 +117,7 @@
           <button class="prim" type="submit" id="sendBtn">Send</button>
         </form>
         <p class="muted" style="font-size: 0.92rem">Press <strong>Enter</strong> to send · <strong>Shift+Enter</strong> for a new line</p>
-        <p class="muted" style="margin-top: 0.25rem"><a href="#" id="linkDone" class="link-view-results">View results</a></p>
+        <p class="muted" style="margin-top: 0.25rem"><a href="#" id="linkDone" class="link-view-results">End session &amp; view results</a></p>
       </div>
     </div>
     <div class="err-banner" id="chatErr"></div>
@@ -133,12 +141,14 @@
     <div class="end-modal__backdrop" id="endModalBackdrop" aria-hidden="true"></div>
     <div class="end-modal__panel slide-plate no-hero-num" role="document">
       <h2 class="end-modal__title" id="endModalTitle">End this session?</h2>
-      <div class="end-modal__body" id="endModalBody"></div>
+      <div class="end-modal__body" id="endModalBody">
+        <p class="end-modal__lede">Ending will close the chat and generate your one-page summary from this conversation. You can continue if you’d rather keep going.</p>
+      </div>
       <p class="end-modal__err" id="endModalError" hidden></p>
       <p class="end-modal__loading" id="endModalLoading" hidden>Preparing your one-page summary… this can take up to a minute.</p>
       <div class="end-modal__actions">
-        <button type="button" class="btn btn--secondary" id="endModalContinue">Continue</button>
-        <button type="button" class="btn prim" id="endModalConfirm">End here</button>
+        <button type="button" class="btn btn--secondary" id="endModalContinue">Keep going</button>
+        <button type="button" class="btn prim" id="endModalConfirm">End &amp; view results</button>
       </div>
     </div>
   </div>

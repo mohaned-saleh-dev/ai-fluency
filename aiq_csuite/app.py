@@ -328,6 +328,54 @@ def health_llm():
     )
 
 
+def _model_turn_count(session_id: str) -> int:
+    msgs = list_messages(session_id)
+    return sum(1 for m in msgs if (m.get("role") or "") == "model")
+
+
+def _coverage_state_for_session(session_id: str) -> dict:
+    """What the interviewer should know about dim coverage *before* picking its next dim."""
+    codes = get_dimension_shift_codes(session_id)
+    current = codes[-1] if codes else None
+    streak = 0
+    if current:
+        with get_conn() as c:
+            rows = c.execute(
+                "SELECT payload_json, created_at FROM events WHERE session_id = ? AND type = 'dim_shift' ORDER BY created_at",
+                (session_id,),
+            ).fetchall()
+        last_shift_at = float(rows[-1]["created_at"]) if rows else 0.0
+        msgs = list_messages(session_id)
+        streak = sum(
+            1
+            for m in msgs
+            if (m.get("role") or "") == "model" and float(m.get("created_at") or 0.0) >= last_shift_at
+        )
+    return {
+        "touched": codes,
+        "current": current,
+        "current_streak": streak,
+        "model_turns": _model_turn_count(session_id),
+    }
+
+
+def _progress_payload_for_session(session_id: str) -> dict:
+    """Compact progress object the chat UI uses for the top progress bar."""
+    codes = get_dimension_shift_codes(session_id)
+    st = session_stats(session_id)
+    elapsed = float(st.get("duration_sec") or 0.0)
+    target = int(TARGET_DURATION_SEC)
+    return {
+        "touched": codes,
+        "current": codes[-1] if codes else None,
+        "total": 6,
+        "labels": {c: lbl for c, lbl in DIMENSION_ORDER},
+        "user_turns": int(st.get("user_messages") or 0),
+        "elapsed_sec": round(elapsed, 1),
+        "target_sec": target,
+    }
+
+
 def _resume_dimension_shifts_for_client(messages: List[dict], ev_rows: List) -> List[dict]:
     """Map dim_shift events to chat indices so the UI can replay topic banners."""
     model_idxs = [i for i, m in enumerate(messages) if (m.get("role") or "") == "model"]
@@ -381,6 +429,7 @@ def get_session_resume(session_id: str):
             "dimension_shifts": shifts,
             "target_duration_sec": TARGET_DURATION_SEC,
             "started_at": started_at,
+            "progress": _progress_payload_for_session(session_id),
         }
     )
 
@@ -413,6 +462,7 @@ def start_session():
             "target_duration_sec": TARGET_DURATION_SEC,
             "assessment": ass,
             "variation_themes_sample": {k: v for k, v in var.items() if str(k).endswith("_theme")},
+            "progress": _progress_payload_for_session(sid),
         }
     )
 
@@ -496,6 +546,7 @@ def send_message(session_id: str):
             hist,
             user_text,
             ctx,
+            coverage_state=_coverage_state_for_session(session_id),
         )
     except Exception as e:
         err = str(e)
@@ -526,6 +577,7 @@ def send_message(session_id: str):
             "session_id": session_id,
             "model_flags": flags,
             "stats": st,
+            "progress": _progress_payload_for_session(session_id),
         }
     )
 

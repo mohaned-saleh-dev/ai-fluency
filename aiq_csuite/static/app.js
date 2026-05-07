@@ -12,6 +12,8 @@
     lastDimCode: null,
     assessment: null,
     wrapCtaActive: false,
+    targetSec: 900,
+    progressTouched: [],
   };
   /** Persisted so reload / new tab / recovery after errors can continue the same server session. */
   const STORAGE_KEY = "aiq_csuite_active_session";
@@ -92,11 +94,13 @@
     if ($("#app")) $("#app").classList.remove("results-only");
     const sa = st.started_at;
     if (sa != null && typeof sa === "number" && sa > 1) {
-      sessionState.t0 = Date.now() - Math.max(0, Date.now() / 1000 - sa) * 1000;
+      sessionState.t0 = sa * 1000;
     } else {
       sessionState.t0 = Date.now();
     }
-    startTimer();
+    sessionState.targetSec = Number(st.target_duration_sec) || 900;
+    startTimer({ keepT0: true });
+    renderProgress(st.progress);
     return true;
   }
 
@@ -119,18 +123,6 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
-  }
-  function formatTimeTotalSec(total) {
-    const t = Math.max(0, Math.floor(Number(total) || 0));
-    const m = Math.floor(t / 60);
-    const r = t % 60;
-    return m + ":" + String(r).padStart(2, "0");
-  }
-  function formatShortMinApprox(sec) {
-    const s = Math.round(Math.max(0, Number(sec) || 0));
-    if (s < 50) return "<1 min";
-    const m = Math.max(1, Math.round(s / 60));
-    return "~" + m + " min";
   }
   function ensureTypingVisible() {
     const box = document.getElementById("msgBox");
@@ -165,9 +157,35 @@
       escapeHtml(shift.code) +
       "</span>" +
       '<span class="dim-lbl">' +
-      escapeHtml(shift.label || "") +
+      escapeHtml(shift.label || DIM_META[shift.code] || "") +
       "</span>";
     msgBox.appendChild(w);
+  }
+
+  function renderProgress(progress) {
+    const chips = document.getElementById("aiqProgressChips");
+    const count = document.getElementById("aiqProgressCount");
+    if (!chips) return;
+    const touched = (progress && Array.isArray(progress.touched)) ? progress.touched : sessionState.progressTouched;
+    sessionState.progressTouched = touched;
+    if (progress && progress.target_sec) sessionState.targetSec = Number(progress.target_sec) || sessionState.targetSec;
+    const current = (progress && progress.current) || (touched.length ? touched[touched.length - 1] : null);
+    const set = new Set(touched);
+    const html = DIM_ORDER.map((code) => {
+      const isOn = set.has(code);
+      const isCur = code === current;
+      const cls = "aiq-chip" + (isOn ? " is-on" : "") + (isCur ? " is-current" : "");
+      const labelTxt = DIM_META[code] || code;
+      return (
+        '<span class="' + cls + '" title="' + escapeHtml(code + " · " + labelTxt) +
+        '" aria-label="' + escapeHtml(code + " " + labelTxt + (isOn ? " covered" : " pending")) + '">' +
+        '<span class="aiq-chip__c">' + escapeHtml(code) + "</span>" +
+        '<span class="aiq-chip__l">' + escapeHtml(labelTxt) + "</span>" +
+        "</span>"
+      );
+    }).join("");
+    chips.innerHTML = html;
+    if (count) count.textContent = touched.length + " / 6";
   }
   function addBubble(text, me) {
     const d = document.createElement("div");
@@ -239,16 +257,24 @@
     el.classList.add("show");
   }
 
-  function startTimer() {
-    sessionState.t0 = Date.now();
+  function startTimer(opts) {
+    if (!opts || !opts.keepT0) sessionState.t0 = Date.now();
     if (sessionState.interval) clearInterval(sessionState.interval);
-    sessionState.interval = setInterval(() => {
-      const s = Math.floor((Date.now() - sessionState.t0) / 1000);
-      const m = Math.floor(s / 60);
-      const r = s % 60;
+    const tick = () => {
+      const elapsed = Math.max(0, Math.floor((Date.now() - sessionState.t0) / 1000));
+      const m = Math.floor(elapsed / 60);
+      const r = elapsed % 60;
       const el = $("#timer");
-      if (el) el.textContent = `${m}:${String(r).padStart(2, "0")} / ~10:00`;
-    }, 800);
+      if (el) el.textContent = `${m}:${String(r).padStart(2, "0")}`;
+      const fill = document.getElementById("aiqProgressFill");
+      if (fill) {
+        const tgt = Math.max(60, Number(sessionState.targetSec) || 900);
+        const pct = Math.min(100, Math.max(0, (elapsed / tgt) * 100));
+        fill.style.width = pct.toFixed(1) + "%";
+      }
+    };
+    tick();
+    sessionState.interval = setInterval(tick, 800);
   }
 
   function _focusEventPayload(visibilityHint) {
@@ -310,56 +336,6 @@
   }
   function openEndModal() {
     if (endModal) endModal.removeAttribute("hidden");
-  }
-
-  function buildEndModalBody(r) {
-    const n = r.dimensions_touched;
-    const pct = r.dimension_breadth_percent;
-    const gRem = r.guide_time_remaining_sec;
-    const extra = r.approx_time_for_remaining_angles_sec;
-    const wl = r.warning_level;
-    const guideM = Math.max(1, Math.round((r.target_sec || 600) / 60));
-    const tln = (r.topic_label_note || "")
-      ? "<p class='end-modal__tln'>" + escapeHtml(r.topic_label_note) + "</p>"
-      : "";
-    const stats =
-      '<div class="end-modal__stats" role="group" aria-label="At a glance">' +
-      '<div class="end-modal__stat"><span class="end-modal__n">' +
-      (r.has_coverage_signal ? n : "—") +
-      "/6" +
-      '</span><span class="end-modal__l">Topic labels (not a checklist)</span></div>' +
-      '<div class="end-modal__stat"><span class="end-modal__n">' +
-      (r.user_turns || 0) +
-      "</span><span class='end-modal__l'>Your replies</span></div>" +
-      '<div class="end-modal__stat"><span class="end-modal__n">' +
-      formatTimeTotalSec(gRem) +
-      "</span><span class='end-modal__l'>~ " +
-      guideM +
-      " min guide left</span></div></div>";
-    let lede;
-    if (!r.has_coverage_signal) {
-      lede =
-        "<p class='end-modal__lede hint'>We couldn’t count focus shifts in this run yet. Time-on-guide and replies still help you decide whether to <strong>continue</strong> or <strong>end here</strong>.</p>";
-    } else if (wl === "strong") {
-      lede =
-        "<p class='end-modal__lede end-modal__lede--warn'>You’re ending with <strong>only " +
-        n +
-        " of 6</strong> areas signalled so far (<strong>~" +
-        pct +
-        "%</strong> breadth). That’s fine — the summary is a snapshot.</p><p class='end-modal__hint'>More time often surfaces other angles: <strong>" +
-        formatShortMinApprox(extra) +
-        "</strong> — optional.</p>";
-    } else if (r.breadth_incomplete) {
-      lede =
-        "<p class='end-modal__lede'>About <strong>" +
-        (r.user_turns || 0) +
-        "</strong> reply turns. Roughly <strong>~" +
-        formatShortMinApprox(extra) +
-        "</strong> can surface more focus areas if you want them — or end here.</p>";
-    } else {
-      lede = "<p class='end-modal__lede'>The one-page view uses the answers you already gave in this session.</p>";
-    }
-    return stats + tln + lede;
   }
 
   function numScore(s) {
@@ -717,6 +693,8 @@
       sessionState.lastDimCode = null;
       sessionState.assessment = o.assessment || null;
       sessionState.wrapCtaActive = false;
+      sessionState.targetSec = Number(o.target_duration_sec) || 900;
+      sessionState.progressTouched = [];
       persistActiveSession(o.session_id);
       if (wrapCtaCountdown) {
         clearInterval(wrapCtaCountdown);
@@ -735,6 +713,7 @@
       if ($("#app")) $("#app").classList.remove("results-only");
       addBubble(o.opening, false);
       startTimer();
+      renderProgress(o.progress);
     } catch (e) {
       showErr(berr, e.message || "Could not start. Check API key / server logs.");
       this.disabled = false;
@@ -761,35 +740,19 @@
         }
       }
       addBubble(o.reply, false);
+      renderProgress(o.progress);
       if (o.session_suggests_complete) {
         const w = document.getElementById("wrapCta");
         const wtext = w && w.querySelector(".wrap-cta__text");
         if (w) w.removeAttribute("hidden");
-        if (wtext) wtext.textContent = "Session complete. Opening your report…";
+        if (wtext) {
+          wtext.textContent = "Whenever you’re ready, tap End session & view results below — or keep going.";
+        }
         const wtime = document.getElementById("wrapCtaTimer");
         if (wtime) {
           wtime.setAttribute("hidden", "");
           wtime.textContent = "";
         }
-        if (wrapCtaCountdown) {
-          clearInterval(wrapCtaCountdown);
-          wrapCtaCountdown = null;
-        }
-        if (t) t.disabled = true;
-        setTyping(true);
-        try {
-          await runCompleteAndShowResults();
-          setTyping(false);
-        } catch (e3) {
-          setTyping(false);
-          if (t) t.disabled = false;
-          $("#sendBtn").disabled = false;
-          showErr(
-            $("#chatErr"),
-            (e3 && e3.message) || "Couldn’t build your summary. Use View results to try again."
-          );
-        }
-        return;
       }
     } catch (e2) {
       setTyping(false);
@@ -809,42 +772,23 @@
     $("#sendBtn").disabled = false;
   };
 
-  $("#linkDone").onclick = async function (e) {
+  $("#linkDone").onclick = function (e) {
     e.preventDefault();
     if (!sessionState.id) return;
-    this.style.pointerEvents = "none";
-    let rj;
-    try {
-      rj = await apiGet("/api/session/" + sessionState.id + "/readiness");
-    } catch (err) {
-      this.style.pointerEvents = "auto";
-      showErr($("#chatErr"), err.message || "Could not load session");
-      return;
+    if (endModal) endModal.classList.remove("end-modal--warn-strong");
+    const tEl = document.getElementById("endModalTitle");
+    if (tEl) tEl.textContent = "End this session?";
+    const bEl = document.getElementById("endModalBody");
+    if (bEl) {
+      bEl.innerHTML =
+        "<p class='end-modal__lede'>Ending will close the chat and generate your one-page summary from this conversation. You can keep going if you’d rather continue.</p>";
     }
-    if (rj.warning_level === "strong") {
-      this.style.pointerEvents = "auto";
-      $("#endModalTitle").textContent = "You’re still early on breadth";
-      if (endModal) endModal.classList.add("end-modal--warn-strong");
-      const exm = document.getElementById("endModalError");
-      if (exm) {
-        exm.setAttribute("hidden", "");
-        exm.textContent = "";
-      }
-      $("#endModalBody").innerHTML = buildEndModalBody(rj);
-      openEndModal();
-      return;
+    const errEl = document.getElementById("endModalError");
+    if (errEl) {
+      errEl.setAttribute("hidden", "");
+      errEl.textContent = "";
     }
-    setTyping(true);
-    try {
-      await runCompleteAndShowResults();
-      setTyping(false);
-    } catch (err) {
-      setTyping(false);
-      this.style.pointerEvents = "auto";
-      showErr($("#chatErr"), (err && err.message) || "Couldn’t build your summary.");
-      return;
-    }
-    this.style.pointerEvents = "auto";
+    openEndModal();
   };
 
   (function resumeBoot() {

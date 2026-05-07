@@ -519,7 +519,93 @@ button:disabled {
   white-space: pre-wrap;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
-/* When the interviewer shifts to another AiQ dimension (optional line stripped server-side) */
+/* Top progress: 6 dim chips + thin time bar above the chat scroll area */
+.aiq-progress {
+  background: linear-gradient(180deg, #f4f1fd 0%, #ece6fa 100%);
+  border-bottom: 1px solid rgba(83, 0, 186, 0.14);
+  padding: 0.55rem 1rem 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.aiq-progress__row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+.aiq-progress__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--zingy-purple);
+  flex: 0 0 auto;
+}
+.aiq-progress__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.aiq-progress__count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--zingy-purple);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+.aiq-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fff;
+  border: 1px solid rgba(83, 0, 186, 0.18);
+  color: rgba(43, 18, 100, 0.55);
+  border-radius: 999px;
+  padding: 0.16rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.aiq-chip__c {
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.aiq-chip__l {
+  font-weight: 600;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 8rem;
+}
+.aiq-chip.is-on {
+  background: var(--zingy-purple);
+  color: #fff;
+  border-color: var(--zingy-purple);
+}
+.aiq-chip.is-current {
+  box-shadow: 0 0 0 2px rgba(150, 0, 241, 0.3);
+  transform: translateY(-1px);
+}
+.aiq-progress__bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(83, 0, 186, 0.12);
+  overflow: hidden;
+}
+.aiq-progress__bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--zingy-purple), var(--tam-lavender));
+  transition: width 0.6s ease;
+}
+
+/* When the interviewer shifts to another AiQ dimension */
 .aiq-dim-shift {
   align-self: center;
   max-width: 100%;
@@ -1582,6 +1668,12 @@ h2 {
   }
   .messages {
     max-height: min(52dvh, 28rem);
+  }
+  .aiq-progress {
+    padding: 0.5rem 0.7rem 0.3rem;
+  }
+  .aiq-chip__l {
+    display: none;
   }
   .wrap-cta {
     margin-left: 0.85rem;
