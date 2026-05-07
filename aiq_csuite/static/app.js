@@ -345,103 +345,60 @@
     return Math.max(0, Math.min(10, v));
   }
 
-  function buildRadarPath(S) {
-    const n = 6;
-    const cx = 100;
-    const cy = 100;
-    const maxR = 58;
-    const angles = Array.from({ length: n }, (_, i) => -Math.PI / 2 + (i * 2 * Math.PI) / n);
-    const pts = DIM_ORDER.map((code, i) => {
-      const v = numScore(S[code] && S[code].score);
-      const r = (maxR * v) / 10;
-      return [cx + r * Math.cos(angles[i]), cy + r * Math.sin(angles[i])];
-    });
-    const oPts = Array.from({ length: n }, (_, i) => {
-      const r = maxR;
-      return [cx + r * Math.cos(angles[i]), cy + r * Math.sin(angles[i])];
-    });
-    const ring =
-      "M " + oPts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L ") + " Z";
-    const inPts = "M " + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L ") + " Z";
-    return { fill: inPts, outline: ring, angles, cx, cy, maxR, pts };
-  }
-
-  function buildProfileChip(ass) {
-    if (!ass || !ass.level_label) return "";
-    return (
-      "<p class='profile-chip' role='note'>Scored for: <span class='profile-w'>" +
-      escapeHtml(ass.level_label) +
-      "</span> · <span class='profile-w'>" +
-      escapeHtml(ass.job_family_label || ass.job_family || "") +
-      "</span></p>"
-    );
-  }
-
   var TYPICAL_FALLBACK = { ic: [28, 50], people_manager: [36, 58], head_of: [45, 68], executive: [52, 75] };
 
   function getTypicalComposite(ass) {
     if (ass && ass.typical_composite && ass.typical_composite.low != null) return ass.typical_composite;
     var s = (ass && ass.level) || "head_of";
     var r = TYPICAL_FALLBACK[s] || [40, 60];
-    return {
-      low: r[0],
-      high: r[1],
-      mid: (r[0] + r[1]) / 2,
-      caption: "Directional band for this level in this experience — coaching, not a performance target.",
-    };
+    return { low: r[0], high: r[1], mid: (r[0] + r[1]) / 2 };
   }
 
   function positionVsTypicalScore(aiqN, low, high) {
-    if (aiqN == null || isNaN(aiqN)) return { key: "unknown", label: "—" };
+    if (aiqN == null || isNaN(aiqN)) return { key: "unknown" };
     var a = Math.max(0, Math.min(100, aiqN));
-    if (a < low - 8) return { key: "well_below", label: "Well below the typical range for your level", cl: "report-bmk-signal--amber" };
-    if (a < low) return { key: "below", label: "Below the typical range for your level", cl: "report-bmk-signal--amber" };
-    if (a <= high) return { key: "within", label: "Within the typical range for your level", cl: "report-bmk-signal--emerald" };
-    if (a <= high + 9) return { key: "above", label: "Above the typical range for your level", cl: "report-bmk-signal--violet" };
-    return { key: "well_above", label: "Well above the typical range for your level", cl: "report-bmk-signal--violet" };
+    if (a < low) return { key: "below", cl: "report-bmk-signal--amber" };
+    if (a <= high) return { key: "within", cl: "report-bmk-signal--emerald" };
+    return { key: "above", cl: "report-bmk-signal--violet" };
   }
 
-  function buildBenchmarkBlock(ass, aiqN) {
+  function buildBandRail(ass, aiqN) {
     if (!ass || !ass.level) return "";
-    var tc = getTypicalComposite(ass);
-    var lo = Number(tc.low);
-    var hi = Number(tc.high);
+    const tc = getTypicalComposite(ass);
+    const lo = Number(tc.low);
+    const hi = Number(tc.high);
     if (isNaN(lo) || isNaN(hi) || lo >= hi) return "";
-    var p = positionVsTypicalScore(Number(aiqN), lo, hi);
+    const p = positionVsTypicalScore(Number(aiqN), lo, hi);
     if (p.key === "unknown") return "";
-    var zl = lo;
-    var zw = Math.max(0, hi - lo);
-    var mlp = Math.max(0, Math.min(100, Number(aiqN) || 0));
-    var cap = tc.caption ? "<p class='report-bmk-cap'>" + escapeHtml(tc.caption) + "</p>" : "";
+    const mlp = Math.max(0, Math.min(100, Number(aiqN) || 0));
+    const verdictMap = {
+      well_below: "Below the typical range",
+      below: "Below the typical range",
+      within: "Within the typical range",
+      above: "Above the typical range",
+      well_above: "Above the typical range",
+    };
+    const verdict = verdictMap[p.key] || "";
     return (
-      '<div class="report-bmk" role="img" aria-label="Composite score versus typical band for this level">' +
-        '<h3 class="report-bmk-title">How this run compares (your level)</h3>' +
-        "<p class='report-bmk-lede'>For <strong>" +
-        escapeHtml(ass.level_label || "") +
-        "</strong>, a directional band on the 0–100 scale is <strong>" +
-        lo.toFixed(0) +
-        "–" +
-        hi.toFixed(0) +
-        "</strong> in this product. Your composite is marked on the line.</p>" +
-        '<div class="report-bmk-scale" aria-hidden="true">' +
-        "<span class='report-bmk-end'>0</span>" +
-        '<div class="report-bmk-rail"><div class="report-bmk-zone" style="left:' +
-        zl +
-        "%;width:" +
-        zw +
-        '%"></div><div class="report-bmk-tick" style="left:' +
-        mlp +
-        '%" title="Your result"></div></div>' +
-        "<span class='report-bmk-end'>100</span></div>" +
-        "<p class='report-bmk-signal " +
-        p.cl +
-        "'><span class='report-bmk-eyebrow'>Verdict</span> " +
-        aiqN.toFixed(1) +
-        " — " +
-        escapeHtml(p.label) +
-        "</p>" +
-        cap +
-        "</div>"
+      '<div class="report-bmk-scale" aria-hidden="true">' +
+      "<span class='report-bmk-end'>0</span>" +
+      '<div class="report-bmk-rail"><div class="report-bmk-zone" style="left:' +
+      lo +
+      "%;width:" +
+      Math.max(0, hi - lo) +
+      '%"></div><div class="report-bmk-tick" style="left:' +
+      mlp +
+      '%" title="Your result"></div></div>' +
+      "<span class='report-bmk-end'>100</span></div>" +
+      "<p class='report-bmk-signal " +
+      (p.cl || "") +
+      "'>" +
+      escapeHtml(verdict) +
+      " <span class='report-bmk-range'>(" +
+      lo.toFixed(0) +
+      "–" +
+      hi.toFixed(0) +
+      ")</span></p>"
     );
   }
 
@@ -455,91 +412,57 @@
         : "";
     const aiq = S.AiQ_0_100;
     const band = S.maturity_band || "—";
-    const R = 44;
-    const C = 2 * Math.PI * R;
     const aiqN = aiq == null || aiq === "" ? 0 : Math.max(0, Math.min(100, Number(aiq)));
-    const arc = C * (aiqN / 100);
-    const radar = buildRadarPath(S);
-    const axis = [];
-    for (let i = 0; i < 6; i++) {
-      const t = -Math.PI / 2 + (i * 2 * Math.PI) / 6;
-      axis.push(
-        "<line x1='100' y1='100' x2='" + (100 + 58 * Math.cos(t)).toFixed(1) + "' y2='" + (100 + 58 * Math.sin(t)).toFixed(1) + "' />"
-      );
-    }
-    const strip = DIM_ORDER.map((d) => {
+    const aiqOut = aiqN.toFixed(1);
+
+    const profileLine =
+      ass && ass.level_label
+        ? "<p class='report-section__sub'>For " +
+          escapeHtml(ass.level_label) +
+          (ass.job_family_label || ass.job_family
+            ? " · " + escapeHtml(ass.job_family_label || ass.job_family)
+            : "") +
+          "</p>"
+        : "";
+
+    const dimCards = DIM_ORDER.map((d) => {
       const o = S[d] || {};
       const sc = numScore(o.score);
       const pw = (sc * 10).toFixed(0);
-      const sw = ass && ass.weights && ass.weights[d] != null ? "<span class='rstrip-w'>" + (Number(ass.weights[d]) * 100).toFixed(0) + "% w</span>" : "";
       return (
-        '<div class="rstrip-c">' +
-        "<span class='rstrip-t'>" + dimStripTitle(d) + " " + sw + "</span>" +
-        "<span class='rstrip-s'>" + (o.score != null ? o.score : "—") + "/10</span>" +
-        '<div class="dim-bar rstrip-bar" role="presentation"><div class="dim-bar__fill" style="width:' + pw + '%"></div></div></div>'
+        '<div class="dim-card">' +
+        "<span class='dim-card__t'>" + escapeHtml(d) + " · " + escapeHtml(DIM_META[d] || "") + "</span>" +
+        "<span class='dim-card__s'>" + (o.score != null ? o.score : "—") + "<span class='dim-card__s-out'>/10</span></span>" +
+        '<div class="dim-bar dim-card__bar" role="presentation"><div class="dim-bar__fill" style="width:' + pw + '%"></div></div></div>'
       );
     }).join("");
 
-    let rlines = "";
-    DIM_ORDER.forEach((d) => {
-      const o = S[d] || {};
-      if (o.rationale_1line) {
-        rlines +=
-          '<p class="rline"><strong class="rline-d">' +
-          dimStripTitle(d) +
-          "</strong> " +
-          escapeHtml(o.rationale_1line) +
-          "</p>";
-      }
-    });
-    const pull = S.strength_1line
-      ? '<p class="report-pull">' + escapeHtml(S.strength_1line) + "</p>"
-      : "";
-    const caut = S.risk_1line
-      ? '<p class="report-caut"><span class="caut-l">Watch</span> ' + escapeHtml(S.risk_1line) + "</p>"
-      : "";
-    const aiqOut = aiqN.toFixed(1);
-
     return (
-      '<article class="report-onepage slide-plate no-hero-num" aria-label="Your AiQ one-page summary">' +
+      '<article class="report-simple slide-plate no-hero-num" aria-label="Your AiQ result">' +
       '<p class="report-print-actions no-print">' +
       savePdf +
       "</p>" +
-      '<div class="report-hero-row">' +
-      "<div class='report-gau'>" +
-      "<svg class='r-svg' viewBox='0 0 120 120' width='108' height='108' aria-hidden='true'>" +
-      "<circle cx='60' cy='60' r='" + R + "' fill='none' stroke='#e2daf5' stroke-width='7' />" +
-      "<circle transform='rotate(-90 60 60)' cx='60' cy='60' r='" + R + "' fill='none' stroke='var(--zingy-purple)' stroke-width='7' stroke-linecap='round' stroke-dasharray='" +
-      arc.toFixed(2) +
-      " " +
-      C.toFixed(2) +
-      "' />" +
-      "</svg><div class='r-num'>" + aiqOut + '</div><div class="r-subl">AiQ · 0–100</div></div>' +
-      "<div class='report-hero-words'>" +
-      "<span class='band-pill'>" + escapeHtml(String(band)) + "</span>" +
-      "<h2 class='report-ht'>Your AiQ snapshot</h2>" +
-      buildProfileChip(ass) +
-      buildBenchmarkBlock(ass, aiqN) +
-      pull + caut + "</div></div>" +
-      "<div class='rstrip' role='group' aria-label='Dimension scores'>" + strip + "</div>" +
-      '<div class="report-radar-embed" aria-label="Shape of scores">' +
-      ("<svg class='radar-compact' viewBox='0 0 200 200' style='height:8rem' role='img' aria-label='radar'>") +
-      (radar.outline ? "<path d='" + radar.outline + "' fill='none' stroke='#d1d0e0' />" : "") +
-      (axis.length ? "<g stroke='#e8e4f2' stroke-width='0.4'>" + axis.join("") + "</g>" : "") +
-      (radar.fill
-        ? "<path d='" + radar.fill + "' fill='rgba(150,0,241,0.12)' stroke='var(--zingy-purple)' stroke-width='1.2' />"
-        : "") +
-      (radar.pts
-        ? radar.pts
-            .map(
-              (p) => "<circle cx='" + p[0].toFixed(1) + "' cy='" + p[1].toFixed(1) + "' r='2' fill='var(--zingy-purple)' />"
-            )
-            .join("")
-        : "") +
-      "<circle cx='100' cy='100' r='1.5' fill='var(--ink)' />" +
-      "</svg></div>" +
-      (rlines ? "<div class='report-rlines'>" + rlines + "</div>" : "") +
-      '<p class="report-foot">Provisional · for reflection and coaching from this one chat, not a hiring score or final label.</p>' +
+      // 1. Overall result
+      '<section class="report-section report-section--hero">' +
+      '<h3 class="report-section__h">Your overall result</h3>' +
+      '<div class="report-hero-num"><span class="report-hero-num__n">' + aiqOut + "</span><span class='report-hero-num__u'>AiQ · 0–100</span></div>" +
+      "</section>" +
+      // 2. Where you're expected to be
+      '<section class="report-section">' +
+      '<h3 class="report-section__h">Where you’re expected to be</h3>' +
+      profileLine +
+      buildBandRail(ass, aiqN) +
+      "</section>" +
+      // 3. AiQ level (maturity band)
+      '<section class="report-section">' +
+      '<h3 class="report-section__h">Your AiQ level</h3>' +
+      "<span class='band-pill band-pill--lg'>" + escapeHtml(String(band)) + "</span>" +
+      "</section>" +
+      // 4. Per-dimension scores
+      '<section class="report-section">' +
+      '<h3 class="report-section__h">Score per dimension</h3>' +
+      "<div class='dim-card-grid'>" + dimCards + "</div>" +
+      "</section>" +
       "</article>"
     );
   }
