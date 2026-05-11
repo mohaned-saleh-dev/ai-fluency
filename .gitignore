@@ -62,5 +62,7 @@ contentful-export/
 .DS_Store
 Thumbs.db
 
+# Standalone Strategy & Ops dashboard repo (see strategy-ops-dashboard/README.md)
+strategy-ops-dashboard/
 
 
