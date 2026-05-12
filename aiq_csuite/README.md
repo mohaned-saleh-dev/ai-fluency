@@ -41,6 +41,8 @@ python app.py
   DATABASE_URL='postgresql://...' python3 scripts/migrate_sqlite_to_postgres.py
   ```
 
+**Supabase / PostgREST security:** Tables live in `public`, so Supabase’s Data API can see them unless locked down. On every `init_db()` with Postgres, the app **enables Row Level Security** on `sessions`, `messages`, and `events` (no permissive policies ⇒ **default deny** for `anon` / `authenticated`). Your server uses the **`postgres` DB role** from `DATABASE_URL`; as **table owner** it **bypasses RLS**, so Flask behaviour is unchanged. For **existing** projects created before this change, run `sql/supabase_harden_aiq_tables.sql` once in the Supabase SQL Editor (or trigger any deploy that runs `init_db`). Do **not** expose the Supabase **anon** key in a public browser app pointed at these tables unless you add explicit, reviewed RLS policies.
+
 ## Production notes
 
 - **Secrets:** Never check `.env` in. Set `AIQ_ADMIN_SECRET` to a long random value. Optional: `AIQ_ADMIN_SECRETS` to allow multiple admin codes (comma/semicolon/newline separated).
@@ -54,4 +56,5 @@ python app.py
 - `knowledge/scenario_variants.json` – one random hook per dimension per session.
 - `gemini_service.py` – model calls.
 - `db.py` – DB adapter (SQLite or Postgres via `DATABASE_URL`).
+- `sql/supabase_harden_aiq_tables.sql` – one-shot RLS + revoke for Supabase (also applied automatically from `init_db()` on Postgres).
 - `scripts/migrate_sqlite_to_postgres.py` – one-off copier from local SQLite to Postgres.

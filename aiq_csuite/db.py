@@ -71,6 +71,36 @@ def get_conn() -> DBConn:
     return DBConn()
 
 
+def _harden_postgres_public_tables(c: DBConn) -> None:
+    """
+    Supabase exposes `public` via PostgREST (anon JWT + authenticated users).
+
+    Enable RLS on AiQ tables with **no permissive policies** ⇒ default deny for
+    roles subject to RLS. The Flask server connects as `postgres` (table owner);
+    owners bypass RLS in PostgreSQL, so application CRUD is unchanged.
+
+    Also REVOKE from PUBLIC/anon/authenticated where those roles exist (defense
+    in depth). Failures are ignored so local Postgres without `anon` still works.
+    """
+    if c.backend != "postgres":
+        return
+    for tbl in ("sessions", "messages", "events"):
+        try:
+            c.execute(f"ALTER TABLE {tbl} ENABLE ROW LEVEL SECURITY")
+        except Exception:
+            pass
+    for tbl in ("sessions", "messages", "events"):
+        try:
+            c.execute(f"REVOKE ALL ON TABLE {tbl} FROM PUBLIC")
+        except Exception:
+            pass
+        for role in ("anon", "authenticated"):
+            try:
+                c.execute(f"REVOKE ALL ON TABLE {tbl} FROM {role}")
+            except Exception:
+                pass
+
+
 def init_db():
     ensure_instance()
     with get_conn() as c:
@@ -117,6 +147,7 @@ def init_db():
             )
             c.execute("CREATE INDEX IF NOT EXISTS idx_msg_sess ON messages(session_id)")
             c.execute("CREATE INDEX IF NOT EXISTS idx_ev_sess ON events(session_id)")
+            _harden_postgres_public_tables(c)
         else:
             c.executescript(
                 """
