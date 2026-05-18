@@ -462,7 +462,14 @@ def _build_coverage_block(coverage_state: Optional[dict]) -> str:
     """Inject server-tracked dim coverage into the prompt so the model knows where to go next.
 
     coverage_state shape:
-      { "touched": ["D1","D3"], "current": "D3", "current_streak": 2, "model_turns": 7 }
+      { "touched": ["D1","D3"], "current": "D3", "current_streak": 2, "model_turns": 7,
+        "engagement": "engaged"|"light", "max_streak": 3|4,
+        "force_dim": "D2", "force_label": "Prompts & comms", "must_switch_now": True }
+
+    The server computes the engagement-aware question budget (3 turns per dim when the
+    user is engaging actively, up to 4 when terse). If the server marks
+    ``must_switch_now`` and the model still doesn't comply, the route handler injects
+    the banner so the UI keeps advancing.
     """
     if not isinstance(coverage_state, dict):
         return ""
@@ -470,6 +477,12 @@ def _build_coverage_block(coverage_state: Optional[dict]) -> str:
     current = coverage_state.get("current") if coverage_state.get("current") in _DIM_SHORT_NAMES else None
     streak = int(coverage_state.get("current_streak") or 0)
     model_turns = int(coverage_state.get("model_turns") or 0)
+    engagement = str(coverage_state.get("engagement") or "engaged").lower()
+    max_streak = int(coverage_state.get("max_streak") or (3 if engagement == "engaged" else 4))
+    force_dim = coverage_state.get("force_dim") if coverage_state.get("force_dim") in _DIM_SHORT_NAMES else None
+    force_label = str(coverage_state.get("force_label") or (_DIM_SHORT_NAMES.get(force_dim, "") if force_dim else ""))
+    must_switch_now = bool(coverage_state.get("must_switch_now"))
+
     pending = [c for c in ("D1", "D2", "D3", "D4", "D5", "D6") if c not in set(touched)]
     touched_str = ", ".join(f"{c} ({_DIM_SHORT_NAMES[c]})" for c in touched) or "none yet"
     pending_str = ", ".join(f"{c} ({_DIM_SHORT_NAMES[c]})" for c in pending) or "none — all six covered"
@@ -478,19 +491,27 @@ def _build_coverage_block(coverage_state: Optional[dict]) -> str:
         if current
         else "none yet (you have not signalled any dim)"
     )
-    must_switch_now = bool(current and streak >= 3 and pending)
-    near_full = (model_turns >= 4) and pending
-    # Keep this block short — it is re-sent every turn and inflates latency/token cost.
+    engagement_str = (
+        "the participant is engaging — budget is **3** of your questions per dim before switching"
+        if engagement == "engaged"
+        else "replies are short / terse — budget is up to **4** of your questions per dim before switching"
+    )
     lines = [
         "**Dim coverage (server, do not invent):** "
         f"touched [{touched_str}] · pending [{pending_str}] · current **{cur_str}** · model turns **{model_turns}**. "
-        "New dim → first line `[Dim: Dx — short name]`; max ~2 your turns per dim then switch if pending remain; "
-        "emit banner when unsure.",
+        f"Engagement: **{engagement}** — {engagement_str}. "
+        "First turn on a new dim **must** start with `[Dim: Dx — short name]`; emit banner whenever unsure.",
     ]
-    if must_switch_now:
-        lines.append("**This turn:** switch to a pending dim (banner required).")
-    elif near_full:
-        lines.append("**Now:** prefer breadth — pick a pending dim.")
+    if must_switch_now and force_dim and force_label:
+        lines.append(
+            "**HARD SWITCH (this turn, mandatory):** the previous dim has used its full question budget. "
+            f"Your next reply **MUST** begin with the exact line `[Dim: {force_dim} — {force_label}]`, "
+            f"then a blank line, then **one** new question grounded in *{force_label.lower()}* — do **not** "
+            "ask another follow-up about the previous topic. If you keep drilling the previous dim, the "
+            "server will overwrite your turn with the pending dim banner and the participant will see the switch anyway."
+        )
+    elif pending and (model_turns >= 4):
+        lines.append("**Now:** prefer breadth — pick a pending dim and emit its banner.")
     return "\n".join(lines)
 
 
@@ -538,9 +559,9 @@ def run_interviewer_reply(
 - **Quality gate (mandatory):** on every turn until the closing turn, the visible message must include a **complete question** in full sentences (using **?**) about their AI *use, judgment, or how they work with models*. Do not end with only a metric, label, or compliment — e.g. "That's a clear metric" must be followed by a follow-up question in the *same* message. Do not leave phrases like "how" or "how do" **unfinished**.
 - Plain text. No "Assistant:". No bullet lists. No "labels" in speech like "From a governance perspective…" as a filler.
 
-**Depth / follow-up limit (strict):**  
-- On the *same* user turn, at most **2** of your follow-up questions before you **change angle** (new hook or another dimension) — *not* seven nested refinements.  
-- Within the *same* AiQ dimension, at most **3** of your questions total before you move breadth-wise (unless the user is still only clarifying your wording).  
+**Depth / follow-up limit (strict, server-enforced):**  
+- On the *same* user turn, at most **1** follow-up before you **change angle** (new hook or another dimension) — *not* seven nested refinements.  
+- Within the *same* AiQ dimension, the server tells you the budget in the **Dim coverage** block below: **3** of your questions when the participant is engaging, **up to 4** when replies are terse. After that, the server marks **HARD SWITCH** and your next reply must open with the new dim banner. If you keep drilling the same dim past the budget, the server will rewrite your turn with the pending-dim banner so the participant still sees the switch.  
 - Do not chain long “part (a) / part (b) / part (c)” scaffolds; one clear question, then let them answer.
 
 **Tooling & stack (maps to D1 *Awareness & opportunity* + D2 *Prompts & comms* — not a separate “seventh” score, but a required line of evidence):**  
@@ -559,7 +580,7 @@ def run_interviewer_reply(
   `[Dim: D2 — <short name>]`  
   Allowed short names exactly: D1 *Awareness & opportunity*, D2 *Prompts & comms*, D3 *Critical judgment*, D4 *Workflows & org design*, D5 *Clarity, craft & output fit*, D6 *Risk & responsible use.*  
 - If you are clearly **still on the same dim as the previous model turn**, omit the line. **If unsure, EMIT the banner.**  
-- Stay on a dim for **at most 2 of your turns** when the user is being collaborative; switch on the 3rd. After 4–5 model turns total, prefer breadth — touch a still-pending dim with one well-aimed question rather than going deeper on the current one.
+- Stay on a dim for **up to 3 of your turns** when the participant is engaging actively (≥ ~15-word answers), **up to 4** when answers are terse; on the next turn, switch to a pending dim. The server tracks this in the **Dim coverage** block — heed its **HARD SWITCH** signal verbatim.
 - **Role fit (COO / exec default):** Do **not** fall into contact-center, “agent QA,” or “the AI that scores support chats” framing **unless** the participant has already said they own that surface. Default to **P&L, org design, portfolio, board / leadership trade-offs, and how they set expectations for others**. For D3 evidence, ask for a **concrete leadership moment** (pushback, trade-off, “we said no because…”) — not a generic “name an AI output you would challenge in the abstract” homework exercise. Keep early questions **one level up** from frontline ops minutiae.
 
 **What this session is (non-negotiable) — *AiQ* = AI *fluency* in *their* work:**  

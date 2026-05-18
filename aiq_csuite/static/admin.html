@@ -923,16 +923,31 @@
       function renderGapBoard(items) {
         if (!Array.isArray(items) || !items.length) return "<p class='muted'>No scored gap data yet.</p>";
         const rows = items.map((g) => {
-          const delta = Number(g.gap || 0);
-          const cls = delta > 1.3 ? "bad" : delta > 0.6 ? "warn" : "good";
           const actual = Number(g.actual || 0);
           const target = Number(g.target || 0);
+          // Prefer the server-supplied signed delta + status. Fall back to derived
+          // values for older payloads (which only carried unsigned `gap`).
+          const delta = (g.delta_vs_target != null) ? Number(g.delta_vs_target) : (actual - target);
+          const shortfall = (g.gap != null) ? Math.max(0, Number(g.gap)) : Math.max(0, target - actual);
+          const status = g.status || (delta > 0.1 ? "above" : (delta < -0.1 ? "below" : "on"));
+          let badgeCls, badgeText;
+          if (status === "above") {
+            badgeCls = "good";
+            badgeText = "+" + num(Math.abs(delta), 2) + " above target";
+          } else if (status === "on") {
+            badgeCls = "good";
+            badgeText = "On target";
+          } else {
+            badgeCls = shortfall > 1.3 ? "bad" : "warn";
+            badgeText = "Below target by " + num(shortfall, 2);
+          }
           const aw = Math.max(2, Math.min(100, (actual / 10) * 100));
           const tw = Math.max(2, Math.min(100, (target / 10) * 100));
           return (
             "<div class='gap-row'>" +
             "<div class='gap-row-head'><b>" + esc(g.code + " · " + g.label) + "</b>" +
-            "<span>Actual <b>" + esc(num(actual, 1)) + "</b> · Target <b>" + esc(num(target, 1)) + "</b> · Gap <span class='" + cls + "'>" + esc(num(delta, 2)) + "</span></span></div>" +
+            "<span>Actual <b>" + esc(num(actual, 1)) + "</b> · Target <b>" + esc(num(target, 1)) +
+            "</b> · <span class='" + badgeCls + "'>" + esc(badgeText) + "</span></span></div>" +
             "<div class='bar-track' aria-hidden='true'>" +
             "<div class='bar-fill target' style='width:" + tw.toFixed(1) + "%'></div>" +
             "<div class='bar-fill actual' style='width:" + aw.toFixed(1) + "%;opacity:0.92'></div>" +
@@ -943,9 +958,9 @@
         return (
           "<div class='gap-hero'>" +
           "<div class='gap-hero__title has-hint'>" +
-          "<h3>Relative gaps vs expected</h3>" +
+          "<h3>Score vs expected target</h3>" +
           "<button type='button' class='hint-ico' aria-label='What does this section show?'>?</button>" +
-          "<div class='hint-pop' role='tooltip'>" + hintMarkup({ title: "What this means", lines: ["This section ranks shortfalls against the expected target for this role level.", "Higher gap = bigger priority to improve.", "Different from the capability visual below, which shows only current strength (actual score) and does not compare to target."] }) + "</div>" +
+          "<div class='hint-pop' role='tooltip'>" + hintMarkup({ title: "What this means", lines: ["Each row compares the participant's score on a dimension to the expected target for their role level.", "Above target = scored higher than expected. On target = met expectation. Below target = there is a shortfall to close.", "This is different from the capability visual below, which shows only current strength (actual score) without a target line."] }) + "</div>" +
           "</div>" +
           rows +
           "</div>"

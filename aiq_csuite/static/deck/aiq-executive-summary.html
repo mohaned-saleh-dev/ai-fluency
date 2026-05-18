@@ -32,11 +32,15 @@ li{font-size:0.82rem;color:var(--ts);font-weight:400;line-height:1.65;margin-bot
 li strong{color:var(--text);font-weight:600;}
 
 .cover-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--purple);font-weight:600;margin-bottom:16px;}
-.cover-sub{font-size:1.1rem;color:var(--ts);font-weight:400;line-height:1.55;margin-bottom:28px;max-width:640px;}
+.cover-sub{font-size:1.1rem;color:var(--ts);font-weight:400;line-height:1.55;margin-bottom:20px;max-width:640px;}
 .cover-meta{font-size:0.72rem;color:var(--tm);}
 .cover-center{display:flex;flex-direction:column;justify-content:center;height:100%;}
 
-.scope-box{margin-top:28px;padding:14px 20px;border:1px solid var(--border);border-radius:8px;background:var(--bg);display:grid;grid-template-columns:1fr 1fr;gap:6px 32px;max-width:620px;}
+/* AI assistance disclosure (aligned with white paper wording) */
+.ai-disclaimer{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:0.62rem;color:var(--tm);line-height:1.55;max-width:720px;}
+.ai-disclaimer strong{color:var(--text);font-weight:600;}
+
+.scope-box{margin-top:18px;padding:14px 20px;border:1px solid var(--border);border-radius:8px;background:var(--bg);display:grid;grid-template-columns:1fr 1fr;gap:6px 32px;max-width:620px;}
 .scope-item{font-size:0.68rem;color:var(--ts);font-weight:400;display:flex;align-items:center;gap:6px;}
 .scope-item .si-icon{font-size:0.72rem;flex-shrink:0;}
 .scope-item .si-icon.yes{color:var(--green);}
@@ -120,6 +124,9 @@ td.high{font-weight:600;color:var(--text);background:var(--blue-bg);}
 <!-- ==================== SLIDE 1: COVER ==================== -->
 <div class="slide" style="display:flex;align-items:center;">
   <div class="cover-center">
+    <div class="ai-disclaimer">
+      <strong>Disclosure:</strong> This document was researched, drafted, and formatted with the assistance of AI (Claude 4, Anthropic &mdash; April 2026). All strategic decisions, frameworks, and editorial judgments are the author&rsquo;s own. Content has been reviewed for originality and accuracy.
+    </div>
     <div class="cover-label">Executive Summary</div>
     <h1>The AiQ Framework</h1>
     <p class="cover-sub">A structured framework for defining, assessing, and measuring AI fluency across the workforce.</p>
@@ -133,7 +140,6 @@ td.high{font-weight:600;color:var(--text);background:var(--blue-bg);}
       <div class="scope-item"><span class="si-icon yes">&#10003;</span> Role-specific weighting</div>
       <div class="scope-item"><span class="si-icon no">&#10005;</span> Tool-specific recommendations</div>
     </div>
-    <p style="font-size:0.66rem;color:var(--tm);margin-top:10px;margin-bottom:0;">Full framework details available in the AiQ White Paper.</p>
   </div>
   <div class="slide-num">1</div>
 </div>

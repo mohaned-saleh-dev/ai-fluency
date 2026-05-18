@@ -333,8 +333,41 @@ def _model_turn_count(session_id: str) -> int:
     return sum(1 for m in msgs if (m.get("role") or "") == "model")
 
 
+_DIM_LABELS_BY_CODE: Dict[str, str] = {code: label for code, label in DIMENSION_ORDER}
+
+
+def _engagement_signal(msgs: List[dict], lookback: int = 3) -> str:
+    """Light heuristic: are the last few user replies substantive (engaged) or terse (light)?
+
+    Used to gate the per-dim question budget — engaged users get a hard switch at 3 model
+    turns on a dim; terse / disengaged users get one extra turn (4) before forced rotation.
+    """
+    recent = [m for m in msgs if (m.get("role") or "") == "user"][-lookback:]
+    if not recent:
+        return "light"
+    avg_words = sum(
+        len([w for w in str(m.get("content") or "").strip().split() if w]) for m in recent
+    ) / float(len(recent))
+    return "engaged" if avg_words >= 15.0 else "light"
+
+
+def _next_pending_dim(touched: List[str]) -> Optional[str]:
+    """First D-code (in canonical order) that has not yet shown up as a dim_shift."""
+    seen = set(touched or [])
+    for code, _ in DIMENSION_ORDER:
+        if code not in seen:
+            return code
+    return None
+
+
 def _coverage_state_for_session(session_id: str) -> dict:
-    """What the interviewer should know about dim coverage *before* picking its next dim."""
+    """What the interviewer should know about dim coverage *before* picking its next dim.
+
+    Carries a server-side **hard switch** signal (`must_switch_now` + `force_dim`) so the
+    interviewer can't keep drilling the same area: at 3 model turns on a dim for an
+    engaged user (or 4 for a terse one), we instruct the model to switch — and if it
+    still doesn't, the route handler injects the banner so the chat advances.
+    """
     codes = get_dimension_shift_codes(session_id)
     current = codes[-1] if codes else None
     streak = 0
@@ -345,17 +378,33 @@ def _coverage_state_for_session(session_id: str) -> dict:
                 (session_id,),
             ).fetchall()
         last_shift_at = float(rows[-1]["created_at"]) if rows else 0.0
-        msgs = list_messages(session_id)
+        msgs_all = list_messages(session_id)
         streak = sum(
             1
-            for m in msgs
+            for m in msgs_all
             if (m.get("role") or "") == "model" and float(m.get("created_at") or 0.0) >= last_shift_at
         )
+    else:
+        msgs_all = list_messages(session_id)
+
+    engagement = _engagement_signal(msgs_all, lookback=3)
+    max_streak = 3 if engagement == "engaged" else 4
+    pending_codes = [c for c, _ in DIMENSION_ORDER if c not in set(codes)]
+    force_dim = _next_pending_dim(codes)
+    must_switch_now = bool(
+        force_dim and (streak >= max_streak or (current is None and len(msgs_all) >= 2))
+    )
     return {
         "touched": codes,
         "current": current,
         "current_streak": streak,
-        "model_turns": _model_turn_count(session_id),
+        "model_turns": sum(1 for m in msgs_all if (m.get("role") or "") == "model"),
+        "engagement": engagement,
+        "max_streak": max_streak,
+        "pending": pending_codes,
+        "force_dim": force_dim,
+        "force_label": _DIM_LABELS_BY_CODE.get(force_dim or "", ""),
+        "must_switch_now": must_switch_now,
     }
 
 
@@ -539,6 +588,7 @@ def send_message(session_id: str):
         return jsonify({"error": "State error"}), 500
     hist = [{"role": m["role"], "content": m["content"]} for m in all_m[:-1]]
 
+    coverage_state = _coverage_state_for_session(session_id)
     try:
         reply = gs.run_interviewer_reply(
             rag,
@@ -546,7 +596,7 @@ def send_message(session_id: str):
             hist,
             user_text,
             ctx,
-            coverage_state=_coverage_state_for_session(session_id),
+            coverage_state=coverage_state,
         )
     except Exception as e:
         err = str(e)
@@ -558,6 +608,22 @@ def send_message(session_id: str):
     reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
     if not (reply and reply.strip()):
         return jsonify({"error": "Empty model response"}), 502
+
+    # Server-side hard guardrail: if we asked the model to rotate dim and it still didn't
+    # emit a new banner (or it banner-ed the *current* dim again), inject the banner
+    # ourselves so the chat advances and the progress chips/UI don't stick on D1.
+    current_dim = coverage_state.get("current")
+    force_dim = coverage_state.get("force_dim")
+    must_switch_now = bool(coverage_state.get("must_switch_now"))
+    shifted_code = (dimension_shift or {}).get("code") if dimension_shift else None
+    if (
+        must_switch_now
+        and force_dim
+        and (not shifted_code or shifted_code == current_dim)
+    ):
+        forced_label = coverage_state.get("force_label") or _DIM_LABELS_BY_CODE.get(force_dim, "")
+        dimension_shift = {"code": force_dim, "label": forced_label}
+
     insert_message(session_id, "model", reply)
     if dimension_shift and dimension_shift.get("code"):
         insert_event(
@@ -1228,9 +1294,29 @@ def _recommendations(scores: Dict[str, Any], assessment: Optional[dict], user_an
         block = scores.get(code) if isinstance(scores.get(code), dict) else {}
         actual = float(block.get("score") or 0.0)
         target = float(targets.get(code) or 6.0)
-        gap = round(target - actual, 2)
-        gaps.append({"code": code, "label": label, "actual": actual, "target": target, "gap": gap})
-    gaps.sort(key=lambda x: x["gap"], reverse=True)
+        # `delta_vs_target` is signed (positive = above target). `gap` is the **shortfall**
+        # only — non-negative — so a participant scoring above their target reads as
+        # "on / above target" in the UI instead of a misleading negative "Gap -0.95".
+        delta = round(actual - target, 2)
+        shortfall = round(max(0.0, target - actual), 2)
+        if delta > 0.1:
+            status = "above"
+        elif delta < -0.1:
+            status = "below"
+        else:
+            status = "on"
+        gaps.append({
+            "code": code,
+            "label": label,
+            "actual": actual,
+            "target": target,
+            "gap": shortfall,
+            "delta_vs_target": delta,
+            "status": status,
+        })
+    # Sort by shortfall desc so the largest improvement opportunity appears first; ties
+    # broken by signed delta so above-target rows fall to the bottom rather than mixing in.
+    gaps.sort(key=lambda x: (x["gap"], -x["delta_vs_target"]), reverse=True)
     top_gaps = gaps[:6]
 
     job_tech = is_technical_product_family(ass.get("job_family"))
