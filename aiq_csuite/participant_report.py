@@ -26,6 +26,150 @@ BAND_BLURBS: Dict[str, str] = {
     "AiQ4": "Strategist level: strong personal fluency; emphasis shifts to setting expectations, governance, and how others adopt AI in the function.",
 }
 
+# One concrete, dimension-specific action per area (never the generic “pick a deliverable” line).
+# Keys: below (under band), stretch (in band), maintain (above band). Optional cluster overrides.
+_DIM_NEXT_STEP: Dict[str, Dict[str, Any]] = {
+    "D1": {
+        "below": "List every gen-AI or copilot tool your team actually opens in a normal week; for each, write one real task it supports and one task where you would still not use it.",
+        "stretch": "Pick one workflow that should use AI but does not yet; name the tool, the owner, and the first small pilot you will run in the next two weeks.",
+        "maintain": "Keep a short living inventory of tools and use cases; review quarterly so new hires and partners see what is approved in practice, not only on slides.",
+        "product": {
+            "below": "Map three shipped or in-flight product/data surfaces that call a model; for each, who owns the prompt, the eval, and the rollback if quality drops.",
+            "stretch": "Run a 30-minute review with eng/design: which backlog items truly need a model vs. a script or dashboard — retire one “AI for AI’s sake” item.",
+        },
+        "ops": {
+            "below": "For each customer- or ops-facing AI touchpoint, document which queue owns it and one metric that proves it is working.",
+        },
+        "gtm": {
+            "below": "Have GTM, brand, and sales each name one live AI-assisted workflow (not a pilot deck) and who signs off external-facing output.",
+        },
+    },
+    "D2": {
+        "below": "Choose one recurring task (e.g. weekly report, spec, or customer reply); write a reusable prompt template with role, inputs, constraints, and a “bad answer” test before anyone uses it.",
+        "stretch": "Add a one-line quality check to an existing prompt library entry you already use — what must be true before you paste the output anywhere.",
+        "maintain": "When you improve a prompt that others copy, post the before/after and why it changed so the team does not drift back to vague asks.",
+        "people": {
+            "below": "Create one shared prompt shell for a people-facing artifact (policy note, manager email, job description) with a mandatory human review line.",
+        },
+        "risk": {
+            "below": "For legal/policy answers assisted by a model, fix a prompt footer: what must be escalated to counsel and what must never be pasted into the tool.",
+        },
+    },
+    "D3": {
+        "below": "Write one explicit rule for your role: “I do not send output type X without check Y”; log two real cases this week where you applied or overrode it.",
+        "stretch": "Take one model draft you almost shipped; list three factual or logic checks you ran and one you wish you had run earlier.",
+        "maintain": "Share one short story in team forum: a time you pushed back on model output and what signal made you stop — not a generic “be careful” reminder.",
+        "fin": {
+            "below": "For the next deck or model-backed number, require a second source or reviewer before it leaves your desk; note who that is.",
+        },
+    },
+    "D4": {
+        "below": "Draw one end-to-end workflow on a single page (request → AI step → human review → delivery); circle the weakest handoff and assign one owner and SLA.",
+        "stretch": "Identify one process where AI runs in parallel to the official path; merge or kill the shadow path so there is a single system of record.",
+        "maintain": "In your next operating review, ask one question per function: where does AI sit in the cadence, and who is accountable when it fails.",
+        "people": {
+            "below": "For HR/people cases touching a model, document who may run the tool, who approves, and where the record lives.",
+        },
+    },
+    "D5": {
+        "below": "Pick one audience (exec, customer, or cross-functional); take a model draft, mark three edits you required (tone, facts, names), and turn that into a mini checklist for that audience.",
+        "stretch": "Before the next shared document goes out, add a “good enough to ship” line: what a reader must still verify even if the draft looks polished.",
+        "maintain": "When output quality is already strong, mentor someone else: review their model-assisted draft once and annotate what you would change.",
+        "gtm": {
+            "below": "Align with brand/legal on one external channel: what the model may draft vs. what must stay human-only; publish in the channel’s playbook.",
+        },
+    },
+    "D6": {
+        "below": "List three data types that must never enter your approved tools; post the list where your team looks daily and run one 15-minute “what if we pasted this?” tabletop.",
+        "stretch": "Rehearse one escalation path: harmful or wrong model line reaches a stakeholder — first three human actions, with names if possible.",
+        "maintain": "Once a quarter, spot-check that vendor/tool settings (retention, logging, regions) still match policy; fix one gap you find.",
+        "risk": {
+            "below": "Translate one policy paragraph into a front-line rule: what can go into which tool, in language your team uses in standup.",
+        },
+    },
+}
+
+
+def _resolve_dim_next_step(
+    code: str,
+    status: str,
+    fam_label: str,
+    fam_cl: str,
+    rationale: str = "",
+) -> str:
+    """Return one actionable sentence for this dimension; never duplicate generic copy."""
+    block = _DIM_NEXT_STEP.get(code) or {}
+    tier = "below" if status == "below" else ("maintain" if status == "above" else "stretch")
+    cluster_block = block.get(fam_cl)
+    if isinstance(cluster_block, dict):
+        text = cluster_block.get(tier) or cluster_block.get("stretch") or cluster_block.get("below")
+    else:
+        text = block.get(tier) or block.get("stretch") or block.get("below")
+    if not text:
+        text = (
+            f"Pick one concrete habit in {fam_label} tied to {code} this week; "
+            "write what you will do, who sees the output, and how you will know it worked."
+        )
+    rat = (rationale or "").strip()
+    if rat and len(rat) > 20 and status == "below":
+        short = rat if len(rat) <= 120 else rat[:117].rstrip() + "…"
+        return f"{text} (From this chat: {short})"
+    return text
+
+
+def _pick_dims_for_next_steps(gaps: List[dict], max_n: int = 5) -> List[dict]:
+    """Prioritize real gaps first, then weakest in-band areas — never repeat one generic line."""
+    below = [g for g in gaps if g.get("status") == "below"]
+    on_band = [g for g in gaps if g.get("status") == "on"]
+    # Weakest relative performance among “on” (smallest positive or negative delta).
+    on_band.sort(key=lambda x: float(x.get("delta_vs_target") or 0))
+    above = [g for g in gaps if g.get("status") == "above"]
+    above.sort(key=lambda x: float(x.get("delta_vs_target") or 0))
+
+    picked: List[dict] = []
+    seen: set = set()
+    for g in below:
+        if g["code"] not in seen:
+            picked.append(g)
+            seen.add(g["code"])
+        if len(picked) >= max_n:
+            return picked
+    for g in on_band:
+        if g["code"] not in seen:
+            picked.append(g)
+            seen.add(g["code"])
+        if len(picked) >= max_n:
+            return picked
+    for g in above[:2]:
+        if g["code"] not in seen and len(picked) < max_n:
+            picked.append(g)
+            seen.add(g["code"])
+    return picked
+
+
+def _build_next_steps_list(
+    gaps: List[dict],
+    fam_label: str,
+    fam_cl: str,
+    coaching_rows: List[dict],
+    max_n: int = 5,
+) -> List[str]:
+    """Dimension-distinct next steps for the PDF (label + action, no copy-paste)."""
+    row_by_code = {r.get("code"): r for r in coaching_rows if r.get("code")}
+    out: List[str] = []
+    for g in _pick_dims_for_next_steps(gaps, max_n=max_n):
+        code = g["code"]
+        label = g["label"]
+        status = g.get("status") or "on"
+        rationale = g.get("rationale") or (row_by_code.get(code) or {}).get("rationale") or ""
+        action = _resolve_dim_next_step(code, status, fam_label, fam_cl, rationale)
+        if status == "below":
+            exs = (row_by_code.get(code) or {}).get("exercises") or []
+            if exs and exs[0] and exs[0] not in action:
+                action = f"{action} This week: {exs[0]}"
+        out.append(f"{code} · {label}: {action}")
+    return out
+
 
 def expected_dim_targets(level: str, assessment: Optional[dict]) -> Dict[str, float]:
     base = {
@@ -126,25 +270,9 @@ def build_report_enrichment(
             row["rationale"] = g["rationale"]
         coaching_rows.append(row)
 
-    next_steps: List[str] = []
-    for row in coaching_rows:
-        if row.get("status") != "below":
-            continue
-        code = row.get("code") or ""
-        focus = (row.get("focus") or "").strip()
-        exs = row.get("exercises") or []
-        if focus:
-            next_steps.append(f"{code}: {focus}")
-        if exs and len(next_steps) < 8:
-            next_steps.append(f"{code} (this week): {exs[0]}")
-
-    if not next_steps:
-        for row in coaching_rows:
-            exs = row.get("exercises") or []
-            if exs:
-                next_steps.append(f"{row.get('code')}: {exs[0]}")
-            if len(next_steps) >= 4:
-                break
+    next_steps = _build_next_steps_list(
+        gaps, str(fam_label), fam_cl, coaching_rows, max_n=5
+    )
 
     keep_doing: List[str] = []
     for g in ranked_above[:3]:

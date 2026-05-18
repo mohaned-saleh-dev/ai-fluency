@@ -77,17 +77,6 @@ def pick_one_course(
 def _standing_focus_ex(
     code: str, label: str, fam: str, cluster: str, actual: float, target: float, gnum: float
 ) -> Tuple[str, str, List[str]]:
-    if gnum < 0.15:
-        st = f"{label} ({code}): in band this run at {actual:.1f} vs a typical ~{target:.0f} for the level (gap {gnum:.1f} is small)."
-        fo = f"Keep the habit; once a month, spot-check one {fam} process where a model is involved so standards do not slip."
-        ex = [
-            f"Pick a routine {fam} deliverable; skim how models were used and add one “good/weak” line to a shared note.",
-            "Mention in standup one case where a human overrode the model, so the team remembers the bar.",
-        ]
-        return st, fo, ex
-
-    st = f"{label} ({code}): this run {actual:.1f} on the rubric, reference for the level is about {target:.0f} (gap {gnum:.1f} points). The focus below matches this {fam} area."
-
     f1: Dict[str, Any] = {
         "D1": {
             "default": f"Name real tools and live use cases in {fam} — not a slide of future possibilities.",
@@ -160,6 +149,19 @@ def _standing_focus_ex(
             f"1 {fam} month: 1 before/after where a human check changed a model line.",
             "15 minutes: one test next week, written in 2 sentences and dated.",
         ],
+    )
+
+    if gnum < 0.15:
+        st = (
+            f"{label} ({code}): in band this run at {actual:.1f} vs a typical ~{target:.0f} "
+            f"for the level (gap {gnum:.1f} is small)."
+        )
+        # Use dimension-specific focus/exercises — not one generic line copied for every D.
+        return st, fo, ex
+
+    st = (
+        f"{label} ({code}): this run {actual:.1f} on the rubric, reference for the level is about "
+        f"{target:.0f} (gap {gnum:.1f} points). The focus below matches this {fam} area."
     )
     return st, fo, ex
 
