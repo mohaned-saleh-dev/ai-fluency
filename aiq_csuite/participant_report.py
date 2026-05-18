@@ -205,8 +205,71 @@ def _status_label(status: str, delta: float, shortfall: float) -> str:
     return "In the typical band for your level"
 
 
+def _merge_llm_narrative(
+    enrich: Dict[str, Any], narrative: Optional[dict]
+) -> Dict[str, Any]:
+    """Overlay LLM-generated coaching copy when present (scenario-stack sessions)."""
+    if not narrative or not isinstance(narrative, dict):
+        return enrich
+    out = dict(enrich)
+    for key in (
+        "executive_summary",
+        "what_we_saw",
+        "strongest_habits",
+        "gaps_that_mattered",
+        "one_practice_drill",
+    ):
+        if narrative.get(key):
+            out[key] = narrative[key]
+    steps: List[str] = []
+    for item in narrative.get("next_steps") or []:
+        if isinstance(item, dict):
+            action = (item.get("action") or "").strip()
+            why = (item.get("why") or "").strip()
+            horizon = (item.get("horizon") or "").strip()
+            success = (item.get("success_looks_like") or "").strip()
+            line = action
+            if why:
+                line = f"{line} — {why}" if line else why
+            if horizon and line:
+                line = f"[{horizon}] {line}"
+            if success and line:
+                line = f"{line} (Success: {success})"
+            if line:
+                steps.append(line)
+        elif item:
+            steps.append(str(item))
+    if steps:
+        out["next_steps"] = steps
+    habits = narrative.get("strongest_habits") or []
+    if habits:
+        out["keep_doing"] = [str(h) for h in habits[:5]]
+    per = narrative.get("per_dimension") or {}
+    if isinstance(per, dict) and per:
+        rows = []
+        for code, label in DIMENSION_ORDER:
+            block = per.get(code) if isinstance(per.get(code), dict) else {}
+            nar = (block.get("narrative") or "").strip()
+            practice = (block.get("one_practice") or "").strip()
+            base = next((r for r in out.get("coaching_rows") or [] if r.get("code") == code), {})
+            row = dict(base)
+            row["code"] = code
+            row["label"] = label
+            if nar:
+                row["standing"] = nar
+            if practice:
+                row["focus"] = practice
+                row["exercises"] = []
+            rows.append(row)
+        if rows:
+            out["coaching_rows"] = rows
+    return out
+
+
 def build_report_enrichment(
-    scores: dict, assessment: Optional[dict] = None
+    scores: dict,
+    assessment: Optional[dict] = None,
+    session_enrichment: Optional[dict] = None,
 ) -> Dict[str, Any]:
     """Coaching rows, priority next steps, and copy blocks for the participant PDF."""
     ass = dict(assessment) if assessment else {}
@@ -283,7 +346,7 @@ def build_report_enrichment(
     band = str(scores.get("maturity_band") or "").strip()
     band_blurb = BAND_BLURBS.get(band, "")
 
-    return {
+    enrich = {
         "gaps": gaps,
         "coaching_rows": coaching_rows,
         "next_steps": next_steps[:8],
@@ -294,3 +357,7 @@ def build_report_enrichment(
             x for x in (ass.get("level_label") or "", ass.get("job_family_label") or "") if x
         ),
     }
+    narrative = None
+    if session_enrichment and isinstance(session_enrichment, dict):
+        narrative = session_enrichment.get("narrative")
+    return _merge_llm_narrative(enrich, narrative)

@@ -26,8 +26,12 @@ def _esc(s: Any) -> str:
     return html.escape(str(s) if s is not None else "", quote=True)
 
 
-def _build_report_html(scores: dict, assessment: Optional[dict]) -> str:
-    enrich = build_report_enrichment(scores, assessment)
+def _build_report_html(
+    scores: dict,
+    assessment: Optional[dict],
+    session_enrichment: Optional[dict] = None,
+) -> str:
+    enrich = build_report_enrichment(scores, assessment, session_enrichment)
     aiq = scores.get("AiQ_0_100")
     try:
         aiq_s = f"{float(aiq):.1f}" if aiq is not None and aiq != "" else "—"
@@ -111,8 +115,7 @@ def _build_report_html(scores: dict, assessment: Optional[dict]) -> str:
         ns_html = (
             '<section class="section page-break">'
             '<h2 class="sec-h">Suggested next steps</h2>'
-            '<p class="sec-lede">Practical moves for the next 2–4 weeks, grounded in where this conversation showed the most room to grow. '
-            "Pick one or two to start; you do not need to do everything at once.</p>"
+            '<p class="sec-lede">Personalized from your scenario interview — pick one or two to start this week.</p>'
             "<ol class='steps'>"
             + "".join(f"<li>{_esc(s)}</li>" for s in next_steps)
             + "</ol></section>"
@@ -156,12 +159,41 @@ def _build_report_html(scores: dict, assessment: Optional[dict]) -> str:
             f"</section>"
         )
 
+    llm_summary = (enrich.get("executive_summary") or "").strip()
+    what_saw = enrich.get("what_we_saw") or []
+    what_html = ""
+    if what_saw:
+        what_html = "<ul class='saw-list'>" + "".join(
+            f"<li>{_esc(x)}</li>" for x in what_saw[:6]
+        ) + "</ul>"
+    gaps_m = enrich.get("gaps_that_mattered") or []
+    gaps_html = ""
+    if gaps_m:
+        gaps_html = (
+            "<p class='sec-lede'><b>Where to grow:</b></p><ul>"
+            + "".join(f"<li>{_esc(x)}</li>" for x in gaps_m[:5])
+            + "</ul>"
+        )
+    drill = (enrich.get("one_practice_drill") or "").strip()
+    drill_html = (
+        f'<p class="drill"><b>Quick drill:</b> {_esc(drill)}</p>' if drill else ""
+    )
+    overview_lede = (
+        f'<p class="sec-lede">{_esc(llm_summary)}</p>'
+        if llm_summary
+        else (
+            '<p class="sec-lede">This report summarizes one AiQ chat — how you described using AI in real work, '
+            "scored against six fluency dimensions with weights for your seniority and job family. "
+            "It is meant for reflection and coaching, not a hiring decision or final label.</p>"
+        )
+    )
     overview = (
         '<section class="section">'
         '<h2 class="sec-h">What this conversation suggests</h2>'
-        '<p class="sec-lede">This report summarizes one AiQ chat — how you described using AI in real work, '
-        "scored against six fluency dimensions with weights for your seniority and job family. "
-        "It is meant for reflection and coaching, not a hiring decision or final label.</p>"
+        + overview_lede
+        + what_html
+        + gaps_html
+        + drill_html
         + pull
         + watch
         + "</section>"
@@ -251,8 +283,12 @@ h1 {{ font-size: 17pt; font-weight: 800; margin: 0 0 2mm; letter-spacing: -0.02e
 </body></html>"""
 
 
-def _build_reportlab_fallback(scores: dict, assessment: Optional[dict]) -> bytes:
-    enrich = build_report_enrichment(scores, assessment)
+def _build_reportlab_fallback(
+    scores: dict,
+    assessment: Optional[dict],
+    session_enrichment: Optional[dict] = None,
+) -> bytes:
+    enrich = build_report_enrichment(scores, assessment, session_enrichment)
     st0 = getSampleStyleSheet()
     st0.add(ParagraphStyle(name="T", parent=st0["Normal"], fontSize=8.5, spaceAfter=3, leading=11))
     st0.add(ParagraphStyle(name="H", parent=st0["Heading1"], fontSize=13, spaceAfter=5))
@@ -324,10 +360,14 @@ def _build_reportlab_fallback(scores: dict, assessment: Optional[dict]) -> bytes
     return buf.getvalue()
 
 
-def build_session_report_pdf_bytes(scores: dict, assessment: Optional[dict] = None) -> bytes:
+def build_session_report_pdf_bytes(
+    scores: dict,
+    assessment: Optional[dict] = None,
+    session_enrichment: Optional[dict] = None,
+) -> bytes:
     if not isinstance(scores, dict):
         scores = {}
-    html_s = _build_report_html(scores, assessment)
+    html_s = _build_report_html(scores, assessment, session_enrichment)
     fd, path = tempfile.mkstemp(suffix=".html")
     os.close(fd)
     try:
@@ -341,4 +381,4 @@ def build_session_report_pdf_bytes(scores: dict, assessment: Optional[dict] = No
             pass
     if pdf and len(pdf) > 500:
         return pdf
-    return _build_reportlab_fallback(scores, assessment)
+    return _build_reportlab_fallback(scores, assessment, session_enrichment)

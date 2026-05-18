@@ -1,0 +1,51 @@
+{
+  "product": {
+    "primary_title": "Ship-week spec pressure",
+    "primary_setup": "Your team wants to draft a product spec with a copilot by Friday. The feature touches payments and compliance review.",
+    "primary_stakes": "Wrong requirements or invented policy details could delay launch or create regulatory rework.",
+    "complication_inject": "Someone on the team pasted anonymized-but-real customer identifiers into a shared ChatGPT thread while iterating on the spec.",
+    "standards_prompt": "How you set the quality bar when PMs or engineers use AI on specs others will build from."
+  },
+  "ops": {
+    "primary_title": "Customer reply at scale",
+    "primary_setup": "A model suggests refund and apology wording for an angry VIP case. A frontline agent wants to send it in one click.",
+    "primary_stakes": "Tone, factual accuracy, and policy limits all matter; a bad send is visible and hard to unwind.",
+    "complication_inject": "The first draft sounds empathetic but cites the wrong refund amount and a policy exception you do not offer.",
+    "standards_prompt": "What agents may auto-send versus escalate, and how you coach prompts and review habits for the team."
+  },
+  "gtm": {
+    "primary_title": "External narrative draft",
+    "primary_setup": "Marketing wants a model-drafted campaign email and landing copy for a new product line by tomorrow.",
+    "primary_stakes": "Brand, legal, and factual claims must hold; generic AI voice is a reputational risk.",
+    "complication_inject": "The draft includes a performance claim that is directionally right but not approved for external use.",
+    "standards_prompt": "How brand, legal, and sales align on what the model may draft versus what stays human-only."
+  },
+  "people": {
+    "primary_title": "People-facing draft",
+    "primary_setup": "A manager wants to use a copilot to draft a sensitive policy note and a set of manager talking points.",
+    "primary_stakes": "Employee trust and consistency; wrong tone or half-true policy summaries create HR risk.",
+    "complication_inject": "The model confidently paraphrases a policy in a way that is softer than your actual rule.",
+    "standards_prompt": "Who may run AI on people content, who approves, and what must never be pasted into tools."
+  },
+  "risk": {
+    "primary_title": "Vendor and policy answer",
+    "primary_setup": "A business partner asks for a quick AI-generated summary of your data-handling posture for their vendor review.",
+    "primary_stakes": "Overstating controls or missing retention limits creates audit and regulatory exposure.",
+    "complication_inject": "The model draft says you delete all prompts within 24 hours, which is not true for the tool your team actually uses.",
+    "standards_prompt": "How you translate policy into front-line rules people can act on in standup, not buried PDFs."
+  },
+  "fin": {
+    "primary_title": "Board-ready numbers",
+    "primary_setup": "You need a deck section on unit economics; a colleague used a model to draft charts and narrative from a spreadsheet export.",
+    "primary_stakes": "A confident wrong number in a board pack is worse than a late slide.",
+    "complication_inject": "The model transposed two quarters in a growth chart; the narrative still reads convincingly.",
+    "standards_prompt": "Minimum verification before numbers or forecasts leave your desk."
+  },
+  "gm": {
+    "primary_title": "Portfolio trade-off",
+    "primary_setup": "Leadership asks you to pick one AI bet for the next half: support automation versus forecasting. Both teams sent model-written business cases.",
+    "primary_stakes": "Capital, risk, and org attention are finite; vendor demos often oversell.",
+    "complication_inject": "One vendor demo used synthetic success metrics that do not match how your data actually behaves.",
+    "standards_prompt": "How you test vendor claims and set kill criteria before scaling a model-assisted workflow."
+  }
+}

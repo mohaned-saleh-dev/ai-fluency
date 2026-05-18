@@ -10,6 +10,8 @@
     t0: null,
     interval: null,
     lastDimCode: null,
+    lastPhase: null,
+    progressMode: "dimension",
     assessment: null,
     wrapCtaActive: false,
     targetSec: 900,
@@ -74,17 +76,28 @@
     sessionState.lastDimCode = null;
     sessionState.wrapCtaActive = false;
     const shifts = st.dimension_shifts || [];
+    const phaseShifts = st.phase_shifts || [];
     const byIdx = {};
     shifts.forEach(function (s) {
+      if (s.insert_before_index != null) byIdx[s.insert_before_index] = s;
+    });
+    phaseShifts.forEach(function (s) {
       if (s.insert_before_index != null) byIdx[s.insert_before_index] = s;
     });
     if (shifts.length) {
       sessionState.lastDimCode = shifts[shifts.length - 1].code;
     }
+    if (phaseShifts.length) {
+      sessionState.lastPhase = phaseShifts[phaseShifts.length - 1].phase;
+      sessionState.progressMode = "scenario";
+    }
     persistActiveSession(st.session_id);
     msgBox.innerHTML = "";
     for (let i = 0; i < st.messages.length; i++) {
-      if (byIdx[i]) addDimBanner(byIdx[i]);
+      if (byIdx[i]) {
+        if (byIdx[i].phase) addPhaseBanner(byIdx[i]);
+        else addDimBanner(byIdx[i]);
+      }
       const m = st.messages[i];
       addBubble(m.content, (m.role || "") === "user");
     }
@@ -145,6 +158,20 @@
       })
       .join("");
   }
+  function addPhaseBanner(shift) {
+    if (!shift || !shift.phase) return;
+    const w = document.createElement("div");
+    w.className = "aiq-dim-shift aiq-phase-shift";
+    w.setAttribute("role", "status");
+    w.setAttribute("aria-label", "Scenario phase");
+    w.innerHTML =
+      '<span class="dim-next">Next part</span>' +
+      '<span class="dim-lbl">' +
+      escapeHtml(shift.label || shift.phase || "") +
+      "</span>";
+    msgBox.appendChild(w);
+  }
+
   function addDimBanner(shift) {
     if (!shift || !shift.code) return;
     const w = document.createElement("div");
@@ -166,11 +193,35 @@
     const chips = document.getElementById("aiqProgressChips");
     const count = document.getElementById("aiqProgressCount");
     if (!chips) return;
+    const mode = (progress && progress.mode) || sessionState.progressMode || "dimension";
+    sessionState.progressMode = mode;
     const touched = (progress && Array.isArray(progress.touched)) ? progress.touched : sessionState.progressTouched;
     sessionState.progressTouched = touched;
     if (progress && progress.target_sec) sessionState.targetSec = Number(progress.target_sec) || sessionState.targetSec;
     const current = (progress && progress.current) || (touched.length ? touched[touched.length - 1] : null);
     const set = new Set(touched);
+    if (mode === "scenario" && progress && progress.phases) {
+      const phases = progress.phases;
+      const total = progress.total_phases || phases.length || 5;
+      const html = phases
+        .map(function (p) {
+          const code = p.code;
+          const isOn = set.has(code);
+          const isCur = code === current;
+          const cls = "aiq-chip" + (isOn ? " is-on" : "") + (isCur ? " is-current" : "");
+          const labelTxt = p.label || code;
+          return (
+            '<span class="' + cls + '" title="' + escapeHtml(labelTxt) +
+            '" aria-label="' + escapeHtml(labelTxt + (isOn ? " done" : isCur ? " current" : " pending")) + '">' +
+            '<span class="aiq-chip__l">' + escapeHtml(labelTxt) + "</span>" +
+            "</span>"
+          );
+        })
+        .join("");
+      chips.innerHTML = html;
+      if (count) count.textContent = touched.length + " / " + total;
+      return;
+    }
     const html = DIM_ORDER.map((code) => {
       const isOn = set.has(code);
       const isCur = code === current;
@@ -635,6 +686,8 @@
       });
       sessionState.id = o.session_id;
       sessionState.lastDimCode = null;
+      sessionState.lastPhase = null;
+      sessionState.progressMode = (o.progress && o.progress.mode) || "scenario";
       sessionState.assessment = o.assessment || null;
       sessionState.wrapCtaActive = false;
       sessionState.targetSec = Number(o.target_duration_sec) || 900;
@@ -676,7 +729,13 @@
     try {
       const o = await api("/api/session/" + sessionState.id + "/message", { text: tx });
       setTyping(false);
-      if (o.dimension_shift) {
+      if (o.phase_shift && o.phase_shift.phase) {
+        const p = o.phase_shift.phase;
+        if (p && p !== sessionState.lastPhase) {
+          addPhaseBanner(o.phase_shift);
+          sessionState.lastPhase = p;
+        }
+      } else if (o.dimension_shift) {
         const c = o.dimension_shift.code;
         if (c && c !== sessionState.lastDimCode) {
           addDimBanner(o.dimension_shift);

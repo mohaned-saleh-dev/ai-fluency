@@ -210,6 +210,7 @@ def init_db():
             )
         # Idempotent migrations for pre-existing DBs (older rows lack newer columns).
         _ensure_session_column(c, "participant_name", "TEXT")
+        _ensure_session_column(c, "session_enrichment_json", "TEXT")
 
 
 def new_session(
@@ -269,6 +270,61 @@ def list_messages(session_id: str) -> List[Dict[str, Any]]:
             }
         )
     return out
+
+
+def get_phase_shift_codes(session_id: str) -> List[str]:
+    """First-seen order of phase codes from phase_shift events."""
+    with get_conn() as c:
+        rows = c.execute(
+            "SELECT payload_json FROM events WHERE session_id = ? AND type = 'phase_shift' ORDER BY created_at",
+            (session_id,),
+        ).fetchall()
+    seen: set = set()
+    out: List[str] = []
+    for r in rows:
+        p = json.loads(r[0] or "{}")
+        code = p.get("phase")
+        if code and code not in seen:
+            seen.add(code)
+            out.append(code)
+    return out
+
+
+def update_session_variation(session_id: str, variation: dict):
+    with get_conn() as c:
+        c.execute(
+            "UPDATE sessions SET variation_json = ? WHERE id = ?",
+            (json.dumps(variation), session_id),
+        )
+
+
+def update_session_enrichment(session_id: str, enrichment: dict):
+    with get_conn() as c:
+        c.execute(
+            "UPDATE sessions SET session_enrichment_json = ? WHERE id = ?",
+            (json.dumps(enrichment), session_id),
+        )
+
+
+def get_session_enrichment(session_id: str) -> dict:
+    with get_conn() as c:
+        row = c.execute(
+            "SELECT session_enrichment_json FROM sessions WHERE id = ?",
+            (session_id,),
+        ).fetchone()
+    if not row:
+        return {}
+    try:
+        raw = row["session_enrichment_json"]
+    except (KeyError, TypeError):
+        raw = row[0] if row else None
+    if not raw:
+        return {}
+    try:
+        o = json.loads(raw)
+        return o if isinstance(o, dict) else {}
+    except (json.JSONDecodeError, TypeError):
+        return {}
 
 
 def get_dimension_shift_codes(session_id: str) -> List[str]:

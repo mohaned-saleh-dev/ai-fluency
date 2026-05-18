@@ -75,15 +75,25 @@ def _read_rag() -> str:
     return p.read_text(encoding="utf-8") if p.exists() else ""
 
 
-def build_variation_for_session(client_seed: str) -> dict:
-    """Pick one scenario hook per dimension; stable enough per session, different across sessions."""
+def build_variation_for_session(
+    client_seed: str, assessment: Optional[dict] = None
+) -> dict:
+    """Scenario-stack plan per session (v2); legacy _theme keys kept for old scoring context."""
+    from scenario_engine import build_scenario_plan
+
     raw = (BASE_DIR / "knowledge" / "scenario_variants.json").read_text(encoding="utf-8")
     data = json.loads(raw)
     rng = random.Random(client_seed)
-    out: Dict[str, Any] = {f"{k}_theme": rng.choice(v) for k, v in data.items()}
+    out: Dict[str, Any] = {
+        "version": 2,
+        "scenario_plan": build_scenario_plan(assessment or {}, client_seed),
+    }
+    for k, v in data.items():
+        out[f"{k}_theme"] = rng.choice(v)
     n = len(OPENING_VARIANTS)
     if n:
         out["opening_id"] = rng.randrange(0, n)
+        out["scenario_plan"]["opening_id"] = out["opening_id"]
     return out
 
 
@@ -645,6 +655,10 @@ You aim for *breadth* across the six areas in the RAG without making it feel lik
 
 
 def opening_message(variation: dict) -> str:
+    if (variation or {}).get("version") == 2 or (variation or {}).get("scenario_plan"):
+        from scenario_engine import opening_message as scenario_opening
+
+        return scenario_opening(variation or {})
     i = int(variation.get("opening_id", 0) or 0) % max(1, len(OPENING_VARIANTS))
     return OPENING_VARIANTS[i]
 
@@ -808,7 +822,11 @@ def _apply_session_weights_to_composite(
     return out
 
 
-def score_transcript(msgs: List[dict], variation: dict) -> dict:
+def score_transcript(
+    msgs: List[dict],
+    variation: dict,
+    evidence: Optional[dict] = None,
+) -> dict:
     """Return dimension scores, composite AiQ, and band."""
     from assessment_profiles import default_assessment, scoring_context_block
 
@@ -834,6 +852,17 @@ def score_transcript(msgs: List[dict], variation: dict) -> dict:
     t_text = "\n\n".join(transcript)[-100000:]
 
     them = {k: val for k, val in v.items() if str(k).endswith("_theme")}
+    plan = v.get("scenario_plan") or {}
+    evidence_block = ""
+    if evidence and isinstance(evidence, dict):
+        evidence_block = (
+            "\n\n**Structured evidence (mandatory; score from this + transcript, not title alone):**\n"
+            + json.dumps(evidence, ensure_ascii=False)[:12000]
+            + "\n\nMap facets to dimensions: tools/opportunity→D1; prompts/directing models→D2; "
+            "verification/skepticism→D3; process/handoffs→D4; output bar for audience→D5; "
+            "data/vendor/escalation→D6. If evidence confidence is low for a facet, cap that dimension "
+            "unless the transcript clearly shows stronger behavior."
+        )
     prompt = f"""Score this AiQ *conversation* transcript. You **must** apply the assessment profile below when judging evidence. Each dimension 0-10 in 0.5 steps.
 
 {sctx}
@@ -844,7 +873,9 @@ RAG (shared definitions; interpret through the profile above):
 TRANSCRIPT:
 {t_text}
 
-Session scenario themes (context only): {json.dumps(them)}
+Scenario plan (context): {json.dumps(plan.get("primary") or plan, ensure_ascii=False)[:2000]}
+Session scenario themes (legacy context): {json.dumps(them)}
+{evidence_block}
 """
     prompt += f"""
 Return **one** JSON object only, **no** markdown, **no** code fences, **no** keys except those below. Maturity band must be one of: AiQ1, AiQ2, AiQ3, AiQ4.

@@ -39,6 +39,8 @@ DIMENSION_ORDER: List[Tuple[str, str]] = [
 from db import (
     get_conn,
     get_dimension_shift_codes,
+    get_phase_shift_codes,
+    get_session_enrichment,
     init_db,
     new_session,
     insert_message,
@@ -49,8 +51,11 @@ from db import (
     set_session_participant_name,
     delete_session,
     expire_stale_open_sessions,
+    update_session_enrichment,
+    update_session_variation,
 )
 import gemini_service as gs
+import scenario_engine as se
 from assessment_profiles import (
     DEFAULT_FAMILY,
     DEFAULT_LEVEL,
@@ -409,13 +414,32 @@ def _coverage_state_for_session(session_id: str) -> dict:
     }
 
 
-def _progress_payload_for_session(session_id: str) -> dict:
+def _uses_scenario_stack(var: Optional[dict]) -> bool:
+    v = var or {}
+    return v.get("version") == 2 or bool(v.get("scenario_plan"))
+
+
+def _progress_payload_for_session(session_id: str, var: Optional[dict] = None) -> dict:
     """Compact progress object the chat UI uses for the top progress bar."""
-    codes = get_dimension_shift_codes(session_id)
     st = session_stats(session_id)
     elapsed = float(st.get("duration_sec") or 0.0)
     target = int(TARGET_DURATION_SEC)
+    if var is None:
+        with get_conn() as c:
+            row = c.execute(
+                "SELECT variation_json FROM sessions WHERE id = ?", (session_id,)
+            ).fetchone()
+        var = json.loads((row[0] if row else None) or "{}") if row else {}
+    if _uses_scenario_stack(var):
+        phases = get_phase_shift_codes(session_id)
+        flow = se.compute_flow_state(list_messages(session_id), phases)
+        p = se.progress_payload_from_flow(flow, target)
+        p["user_turns"] = int(st.get("user_messages") or 0)
+        p["elapsed_sec"] = round(elapsed, 1)
+        return p
+    codes = get_dimension_shift_codes(session_id)
     return {
+        "mode": "dimension",
         "touched": codes,
         "current": codes[-1] if codes else None,
         "total": 6,
@@ -424,6 +448,32 @@ def _progress_payload_for_session(session_id: str) -> dict:
         "elapsed_sec": round(elapsed, 1),
         "target_sec": target,
     }
+
+
+def _resume_phase_shifts_for_client(messages: List[dict], ev_rows: List) -> List[dict]:
+    """Map phase_shift events to chat indices for scenario-stack UI banners."""
+    model_idxs = [i for i, m in enumerate(messages) if (m.get("role") or "") == "model"]
+    out: List[dict] = []
+    for k, r in enumerate(ev_rows):
+        try:
+            payload = json.loads(r["payload_json"] or "{}")
+        except (json.JSONDecodeError, TypeError, KeyError):
+            continue
+        phase = payload.get("phase")
+        if not phase:
+            continue
+        label = str(payload.get("label") or "")[:120]
+        idx_k = k + 1
+        if idx_k >= len(model_idxs):
+            break
+        out.append(
+            {
+                "insert_before_index": model_idxs[idx_k],
+                "phase": str(phase),
+                "label": label,
+            }
+        )
+    return out
 
 
 def _resume_dimension_shifts_for_client(messages: List[dict], ev_rows: List) -> List[dict]:
@@ -469,7 +519,12 @@ def get_session_resume(session_id: str):
             "SELECT payload_json FROM events WHERE session_id = ? AND type = ? ORDER BY created_at",
             (session_id, "dim_shift"),
         ).fetchall()
+        ev_phase = c.execute(
+            "SELECT payload_json FROM events WHERE session_id = ? AND type = ? ORDER BY created_at",
+            (session_id, "phase_shift"),
+        ).fetchall()
     shifts = _resume_dimension_shifts_for_client(msgs, ev_rows)
+    phase_shifts = _resume_phase_shifts_for_client(msgs, ev_phase)
     return jsonify(
         {
             "session_id": session_id,
@@ -477,9 +532,10 @@ def get_session_resume(session_id: str):
             "assessment": assessment,
             "messages": public_msgs,
             "dimension_shifts": shifts,
+            "phase_shifts": phase_shifts,
             "target_duration_sec": TARGET_DURATION_SEC,
             "started_at": started_at,
-            "progress": _progress_payload_for_session(session_id),
+            "progress": _progress_payload_for_session(session_id, var),
         }
     )
 
@@ -497,12 +553,18 @@ def start_session():
     job_family = body.get("job_family")
     init_db()
     ensure_instance()
-    var = gs.build_variation_for_session(client_seed)
     ass = build_assessment_block(level, job_family)
+    var = gs.build_variation_for_session(client_seed, ass)
     var["assessment"] = ass
     sid = new_session(
         user_agent, client_meta, var, target_role=ass.get("profile_id", "all_levels")
     )
+    if _uses_scenario_stack(var):
+        insert_event(
+            sid,
+            "phase_shift",
+            {"phase": "anchor", "label": "Context"},
+        )
     opening = gs.opening_message(var)
     insert_message(sid, "model", opening)
     return jsonify(
@@ -589,43 +651,61 @@ def send_message(session_id: str):
         return jsonify({"error": "State error"}), 500
     hist = [{"role": m["role"], "content": m["content"]} for m in all_m[:-1]]
 
-    coverage_state = _coverage_state_for_session(session_id)
+    dimension_shift = None
+    phase_shift = None
+    session_suggests_complete = False
     try:
-        reply = gs.run_interviewer_reply(
-            rag,
-            var,
-            hist,
-            user_text,
-            ctx,
-            coverage_state=coverage_state,
-        )
+        if _uses_scenario_stack(var):
+            phases = get_phase_shift_codes(session_id)
+            flow = se.compute_flow_state(all_m[:-1], phases)
+            turn = se.plan_and_render_turn(flow, var, hist, user_text, ctx)
+            reply = (turn.get("reply") or "").strip()
+            reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
+            phase_shift = turn.get("phase_shift")
+        else:
+            coverage_state = _coverage_state_for_session(session_id)
+            reply = gs.run_interviewer_reply(
+                rag,
+                var,
+                hist,
+                user_text,
+                ctx,
+                coverage_state=coverage_state,
+            )
+            if not (reply and reply.strip()):
+                return jsonify({"error": "Empty model response"}), 502
+            reply, dimension_shift = gs.parse_dimension_banner(reply)
+            reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
+            current_dim = coverage_state.get("current")
+            force_dim = coverage_state.get("force_dim")
+            must_switch_now = bool(coverage_state.get("must_switch_now"))
+            shifted_code = (dimension_shift or {}).get("code") if dimension_shift else None
+            if (
+                must_switch_now
+                and force_dim
+                and (not shifted_code or shifted_code == current_dim)
+            ):
+                forced_label = coverage_state.get("force_label") or _DIM_LABELS_BY_CODE.get(
+                    force_dim, ""
+                )
+                dimension_shift = {"code": force_dim, "label": forced_label}
     except Exception as e:
         err = str(e)
         code = 503 if "429" in err or "ResourceExhausted" in type(e).__name__ or "quota" in err.lower() else 502
         return jsonify({"error": err[:500]}), code
     if not (reply and reply.strip()):
         return jsonify({"error": "Empty model response"}), 502
-    reply, dimension_shift = gs.parse_dimension_banner(reply)
-    reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
-    if not (reply and reply.strip()):
-        return jsonify({"error": "Empty model response"}), 502
-
-    # Server-side hard guardrail: if we asked the model to rotate dim and it still didn't
-    # emit a new banner (or it banner-ed the *current* dim again), inject the banner
-    # ourselves so the chat advances and the progress chips/UI don't stick on D1.
-    current_dim = coverage_state.get("current")
-    force_dim = coverage_state.get("force_dim")
-    must_switch_now = bool(coverage_state.get("must_switch_now"))
-    shifted_code = (dimension_shift or {}).get("code") if dimension_shift else None
-    if (
-        must_switch_now
-        and force_dim
-        and (not shifted_code or shifted_code == current_dim)
-    ):
-        forced_label = coverage_state.get("force_label") or _DIM_LABELS_BY_CODE.get(force_dim, "")
-        dimension_shift = {"code": force_dim, "label": forced_label}
 
     insert_message(session_id, "model", reply)
+    if phase_shift and phase_shift.get("phase"):
+        insert_event(
+            session_id,
+            "phase_shift",
+            {
+                "phase": str(phase_shift.get("phase")),
+                "label": (phase_shift.get("label") or "")[:120],
+            },
+        )
     if dimension_shift and dimension_shift.get("code"):
         insert_event(
             session_id,
@@ -641,10 +721,11 @@ def send_message(session_id: str):
             "reply": reply,
             "session_suggests_complete": bool(session_suggests_complete),
             "dimension_shift": dimension_shift,
+            "phase_shift": phase_shift,
             "session_id": session_id,
             "model_flags": flags,
             "stats": st,
-            "progress": _progress_payload_for_session(session_id),
+            "progress": _progress_payload_for_session(session_id, var),
         }
     )
 
@@ -725,7 +806,19 @@ def complete(session_id: str):
     var = json.loads(row[0] or "{}")
     mlist = [{"role": m["role"], "content": m["content"]} for m in msgs]
     try:
-        scores = gs.score_transcript(mlist, var)
+        if _uses_scenario_stack(var):
+            pipeline = se.run_post_session_pipeline(mlist, var)
+            scores = pipeline.get("scores") or {}
+            enrichment = {
+                "version": 2,
+                "evidence": pipeline.get("evidence"),
+                "narrative": pipeline.get("narrative"),
+            }
+            var = {**var, "session_enrichment": enrichment}
+            update_session_variation(session_id, var)
+            update_session_enrichment(session_id, enrichment)
+        else:
+            scores = gs.score_transcript(mlist, var)
     except Exception as e:
         msg = (str(e) or "Scoring failed")[:500]
         user_msg = (
@@ -780,10 +873,11 @@ def session_report_pdf(session_id: str):
     scores = json.loads(row["last_scores_json"])
     var = json.loads((row["variation_json"] or "{}") or "{}")
     ass = (var or {}).get("assessment")
+    enrichment = get_session_enrichment(session_id) or (var or {}).get("session_enrichment")
     from session_report_pdf import build_session_report_pdf_bytes
 
     try:
-        data = build_session_report_pdf_bytes(scores, ass)
+        data = build_session_report_pdf_bytes(scores, ass, session_enrichment=enrichment)
     except Exception as e:
         return jsonify({"error": f"Could not build PDF: {e!s}"}), 500
     short = (session_id or "").replace("-", "")[:8] or "session"
@@ -1283,7 +1377,29 @@ def _coaching_to_summary_lines(rows: List[dict], limit: int = 12) -> List[str]:
     return out
 
 
-def _recommendations(scores: Dict[str, Any], assessment: Optional[dict], user_analyses: List[dict]) -> Dict[str, Any]:
+def _priority_steps_from_enrichment(enrichment: Optional[dict]) -> List[str]:
+    narrative = (enrichment or {}).get("narrative") if enrichment else None
+    if not isinstance(narrative, dict):
+        return []
+    out: List[str] = []
+    for item in narrative.get("next_steps") or []:
+        if isinstance(item, dict):
+            action = (item.get("action") or "").strip()
+            why = (item.get("why") or "").strip()
+            line = f"{action} — {why}" if action and why else (action or why)
+            if line:
+                out.append(line[:500])
+        elif item:
+            out.append(str(item)[:500])
+    return out
+
+
+def _recommendations(
+    scores: Dict[str, Any],
+    assessment: Optional[dict],
+    user_analyses: List[dict],
+    session_enrichment: Optional[dict] = None,
+) -> Dict[str, Any]:
     ass = assessment or {}
     level = str(ass.get("level") or "head_of")
     fam = ass.get("job_family_label") or str(ass.get("job_family") or "your role")
@@ -1359,7 +1475,9 @@ def _recommendations(scores: Dict[str, Any], assessment: Optional[dict], user_an
             )
         )
 
-    priority_next_steps = _coaching_to_summary_lines(coaching_by_dimension, limit=12)
+    priority_next_steps = _priority_steps_from_enrichment(session_enrichment)
+    if not priority_next_steps:
+        priority_next_steps = _coaching_to_summary_lines(coaching_by_dimension, limit=12)
     priority_actions: List[dict] = []
     tool_actions = [
         f"Reply signal: how often they named specific tools in their answers: avg {tool_avg:.1f} / 10 in this run (0 = almost none named)."
@@ -1726,7 +1844,13 @@ def _build_session_telemetry(
             ],
             "dimension_score_vs_target": dim_comparison,
         },
-        "actionable_insights": _recommendations(scores, assessment, user_turn_for_analysis),
+        "actionable_insights": _recommendations(
+            scores,
+            assessment,
+            user_turn_for_analysis,
+            get_session_enrichment(str(session_row["id"] or "")),
+        ),
+        "session_enrichment": get_session_enrichment(str(session_row["id"] or "")),
     }
     return telemetry
 
