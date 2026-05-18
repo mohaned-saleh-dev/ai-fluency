@@ -432,7 +432,7 @@ def _progress_payload_for_session(session_id: str, var: Optional[dict] = None) -
         var = json.loads((row[0] if row else None) or "{}") if row else {}
     if _uses_scenario_stack(var):
         phases = get_phase_shift_codes(session_id)
-        flow = se.compute_flow_state(list_messages(session_id), phases)
+        flow = se.compute_flow_state(list_messages(session_id), phases, last_user_message="")
         p = se.progress_payload_from_flow(flow, target)
         p["user_turns"] = int(st.get("user_messages") or 0)
         p["elapsed_sec"] = round(elapsed, 1)
@@ -657,7 +657,14 @@ def send_message(session_id: str):
     try:
         if _uses_scenario_stack(var):
             phases = get_phase_shift_codes(session_id)
-            flow = se.compute_flow_state(all_m[:-1], phases)
+            user_turn_n = sum(1 for m in all_m if (m.get("role") or "") == "user")
+            force_close = user_turn_n >= se.MAX_USER_TURNS
+            flow = se.compute_flow_state(
+                all_m[:-1],
+                phases,
+                last_user_message=user_text,
+                force_close=force_close,
+            )
             turn = se.plan_and_render_turn(flow, var, hist, user_text, ctx)
             reply = (turn.get("reply") or "").strip()
             reply, session_suggests_complete = gs.strip_session_complete_flag(reply)

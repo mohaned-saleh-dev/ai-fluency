@@ -1,4 +1,11 @@
 {
+  "coo_office": {
+    "primary_title": "COO memo under time pressure",
+    "primary_setup": "Your COO needs a cross-functional operating memo by tomorrow on a new AI-assisted planning cadence. You are tempted to have a model draft the whole thing from last quarter's deck and Slack threads.",
+    "primary_stakes": "Wrong owners, invented metrics, or a tone that bypasses Legal/Finance will land on the exec team and stick.",
+    "complication_inject": "Someone on your team pasted real customer identifiers and internal OKR text into a shared ChatGPT thread while 'cleaning up' the memo draft.",
+    "standards_prompt": "How you set expectations for leaders who use AI on memos, workflows, and decks that others will execute against."
+  },
   "product": {
     "primary_title": "Ship-week spec pressure",
     "primary_setup": "Your team wants to draft a product spec with a copilot by Friday. The feature touches payments and compliance review.",
