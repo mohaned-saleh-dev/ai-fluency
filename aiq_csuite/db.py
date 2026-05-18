@@ -101,6 +101,27 @@ def _harden_postgres_public_tables(c: DBConn) -> None:
                 pass
 
 
+def _ensure_session_column(c: DBConn, column: str, ddl_type: str) -> None:
+    """Idempotent ALTER TABLE ... ADD COLUMN for both backends.
+
+    SQLite lacks `ADD COLUMN IF NOT EXISTS`, so we probe `PRAGMA table_info` first.
+    Postgres uses its built-in idempotent form.
+    """
+    if c.backend == "postgres":
+        try:
+            c.execute(f"ALTER TABLE sessions ADD COLUMN IF NOT EXISTS {column} {ddl_type}")
+        except Exception:
+            pass
+        return
+    try:
+        rows = c.execute("PRAGMA table_info(sessions)").fetchall()
+        names = {str(r["name"]) for r in rows}
+        if column not in names:
+            c.execute(f"ALTER TABLE sessions ADD COLUMN {column} {ddl_type}")
+    except Exception:
+        pass
+
+
 def init_db():
     ensure_instance()
     with get_conn() as c:
@@ -118,7 +139,8 @@ def init_db():
                     last_scores_json TEXT,
                     completed INTEGER DEFAULT 0,
                     user_agent TEXT,
-                    client_meta_json TEXT
+                    client_meta_json TEXT,
+                    participant_name TEXT
                 )
                 """
             )
@@ -162,7 +184,8 @@ def init_db():
                     last_scores_json TEXT,
                     completed INTEGER DEFAULT 0,
                     user_agent TEXT,
-                    client_meta_json TEXT
+                    client_meta_json TEXT,
+                    participant_name TEXT
                 );
                 CREATE TABLE IF NOT EXISTS messages (
                     id TEXT PRIMARY KEY,
@@ -185,6 +208,8 @@ def init_db():
                 CREATE INDEX IF NOT EXISTS idx_ev_sess ON events(session_id);
                 """
             )
+        # Idempotent migrations for pre-existing DBs (older rows lack newer columns).
+        _ensure_session_column(c, "participant_name", "TEXT")
 
 
 def new_session(
@@ -288,6 +313,14 @@ def update_last_scores(session_id: str, scores: dict):
         c.execute("UPDATE sessions SET last_scores_json = ? WHERE id = ?", (json.dumps(scores), session_id))
 
 
+def _row_get(row, key, default=None):
+    """Tolerant accessor for sqlite Row / psycopg DictRow when a column may be missing."""
+    try:
+        return row[key]
+    except (KeyError, IndexError, TypeError):
+        return default
+
+
 def session_stats(session_id: str) -> Dict[str, Any]:
     with get_conn() as c:
         s = c.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
@@ -317,7 +350,22 @@ def session_stats(session_id: str) -> Dict[str, Any]:
         "last_scores": json.loads(s["last_scores_json"]) if s["last_scores_json"] else None,
         "user_agent": s["user_agent"],
         "client_meta": json.loads(s["client_meta_json"]) if s["client_meta_json"] else {},
+        "participant_name": _row_get(s, "participant_name") or "",
     }
+
+
+def set_session_participant_name(session_id: str, name: Optional[str]) -> bool:
+    """Set/clear the admin-only participant name. Returns False if id did not exist."""
+    cleaned = (name or "").strip()[:120] or None
+    with get_conn() as c:
+        row = c.execute("SELECT 1 FROM sessions WHERE id = ?", (session_id,)).fetchone()
+        if not row:
+            return False
+        c.execute(
+            "UPDATE sessions SET participant_name = ? WHERE id = ?",
+            (cleaned, session_id),
+        )
+    return True
 
 
 def expire_stale_open_sessions(max_age_sec: float) -> int:

@@ -349,6 +349,28 @@
     .status-ongoing { color: #f6b100; }
     .status-ended { color: #19c37d; }
     .sess-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .name-cell { min-width: 7rem; }
+    .admin-name-input {
+      width: 100%; max-width: 9.5rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: #f3eeff;
+      border: 1px solid rgba(167, 138, 230, 0.32);
+      border-radius: 6px;
+      padding: 0.18rem 0.4rem;
+      font: inherit;
+      font-size: 0.72rem;
+      outline: none;
+    }
+    .admin-name-input::placeholder { color: rgba(220, 205, 255, 0.42); }
+    .admin-name-input:focus { border-color: #a78ae6; box-shadow: 0 0 0 1px rgba(167, 138, 230, 0.45); }
+    .admin-name-input--lg { font-size: 0.82rem; max-width: 14rem; padding: 0.24rem 0.55rem; }
+    .admin-name-editor {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.1rem 0.5rem; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(167, 138, 230, 0.22);
+    }
+    .admin-name-editor__l { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #c4b0ee; font-weight: 700; }
     .resp-table th:nth-child(4), .resp-table td:nth-child(4) { width: 32%; }
     .resp-table th:nth-child(2), .resp-table td:nth-child(2) { min-width: 8rem; }
     .report-hero__label { margin: 0 0 0.35rem; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; color: #a894d4; }
@@ -431,6 +453,7 @@
               <tr>
                 <th>Started</th>
                 <th>Status</th>
+                <th>Name</th>
                 <th>Session</th>
                 <th>Dur</th>
                 <th>Msgs</th>
@@ -682,9 +705,16 @@
       function rowHtml(s) {
         const st = s.stats || {};
         const aiq = s.last_scores && s.last_scores.AiQ_0_100 != null ? Number(s.last_scores.AiQ_0_100).toFixed(1) : "—";
+        const nameVal = (s.participant_name != null ? String(s.participant_name) : "");
+        const nameCell =
+          "<td class='name-cell'>" +
+          "<input type='text' class='admin-name-input' data-sid='" + esc(s.id || "") + "' " +
+          "value='" + esc(nameVal) + "' placeholder='Add name' maxlength='120' " +
+          "aria-label='Test-taker name (admin reference)' /></td>";
         return (
           "<td>" + esc(ts(s.created_at)) + "</td>" +
           "<td style='width:5.5rem'>" + statusPill(s) + "</td>" +
+          nameCell +
           "<td><span class='sid'>" + esc((s.id || "").slice(0, 8)) + "</span></td>" +
           "<td>" + esc(st.duration_sec != null ? durHuman(st.duration_sec) : "—") + "</td>" +
           "<td>" + esc((st.user_messages || 0) + "/" + (st.model_messages || 0)) + "</td>" +
@@ -692,6 +722,40 @@
           "<td>" + (aiq === "—" ? "<span class='muted'>—</span>" : "<span class='pill'>" + esc(aiq) + "</span>") + "</td>" +
           "<td class='del-cell'><button type='button' class='btn btn-admin-del' aria-label='Delete session'>Delete</button></td>"
         );
+      }
+
+      async function saveParticipantName(sessionId, name, opts) {
+        if (!sessionId) return;
+        const t = token();
+        try {
+          const r = await fetch(withToken("/api/admin/sessions/" + encodeURIComponent(sessionId) + "/name"), {
+            method: "POST",
+            cache: "no-store",
+            headers: Object.assign(
+              { "Content-Type": "application/json" },
+              t ? { Authorization: "Bearer " + t, "X-Aiq-Admin-Token": t } : {}
+            ),
+            body: JSON.stringify({ name: name || "" }),
+          });
+          let j = {};
+          try { j = await r.json(); } catch (_) {}
+          if (!r.ok) {
+            window.alert((j && (j.hint || j.error)) || ("HTTP " + r.status));
+            return;
+          }
+          const cleaned = (j && typeof j.participant_name === "string") ? j.participant_name : (name || "");
+          const target = sessions.find((s) => s.id === sessionId);
+          if (target) target.participant_name = cleaned;
+          if (opts && opts.echoInputs !== false) {
+            document
+              .querySelectorAll("input.admin-name-input[data-sid='" + (window.CSS && CSS.escape ? CSS.escape(sessionId) : sessionId) + "']")
+              .forEach((el) => {
+                if (document.activeElement !== el) el.value = cleaned;
+              });
+          }
+        } catch (e) {
+          window.alert("Could not save the name. " + ((e && e.message) || ""));
+        }
       }
 
       async function deleteSessionById(id) {
@@ -720,12 +784,32 @@
           const tr = document.createElement("tr");
           tr.className = "srow" + (s.id === selected ? " active" : "");
           tr.innerHTML = rowHtml(s);
-          tr.onclick = () => openSession(s.id);
+          tr.onclick = (ev) => {
+            // Don't open detail when the user is editing the name field.
+            if (ev && ev.target && ev.target.closest && ev.target.closest("input.admin-name-input")) return;
+            openSession(s.id);
+          };
           const delBtn = tr.querySelector("button.btn-admin-del");
           if (delBtn) {
             delBtn.addEventListener("click", (e) => {
               e.stopPropagation();
               deleteSessionById(s.id);
+            });
+          }
+          const nameInp = tr.querySelector("input.admin-name-input");
+          if (nameInp) {
+            const stop = (e) => e.stopPropagation();
+            nameInp.addEventListener("click", stop);
+            nameInp.addEventListener("mousedown", stop);
+            nameInp.addEventListener("focus", stop);
+            nameInp.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                nameInp.blur();
+              }
+            });
+            nameInp.addEventListener("change", () => {
+              saveParticipantName(s.id, nameInp.value || "");
             });
           }
           tb.appendChild(tr);
@@ -1153,8 +1237,29 @@
             ? " <span class='pill' style='background:linear-gradient(90deg,#198754,#1fa76a)'>Scored</span>"
             : " <span class='pill' style='background:linear-gradient(90deg,#9a6a00,#c49100)'>Open</span> — end the run to load the scoreboard.";
 
+          const pname = (o.participant_name != null ? String(o.participant_name) : "");
+          const nameEditor =
+            "<label class='admin-name-editor' title='Free-text name (for your reference only)'>" +
+            "<span class='admin-name-editor__l'>Name</span>" +
+            "<input id='detailParticipantName' type='text' class='admin-name-input admin-name-input--lg' " +
+            "data-sid='" + esc(sess0.id || id) + "' value='" + esc(pname) + "' " +
+            "placeholder='Add name' maxlength='120' aria-label='Test-taker name (admin reference)' />" +
+            "</label>";
           $("sidMeta").innerHTML =
-            "<div class='sess-head'><span class='sid'>" + esc((sess0.id || id)) + "</span>" + statusNote + "</div>";
+            "<div class='sess-head'><span class='sid'>" + esc((sess0.id || id)) + "</span>" + statusNote +
+            nameEditor + "</div>";
+          (function wireDetailName() {
+            const el = document.getElementById("detailParticipantName");
+            if (!el) return;
+            const commit = () => saveParticipantName(sess0.id || id, el.value || "");
+            el.addEventListener("change", commit);
+            el.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                el.blur();
+              }
+            });
+          })();
           const evTotal = k.behavior_events_total != null ? k.behavior_events_total : "—";
           const evTypes = k.behavior_events_by_type || {};
           const awayCount = Number(evTypes.tab_blur || 0);

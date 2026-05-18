@@ -46,6 +46,7 @@ from db import (
     insert_event,
     end_session,
     session_stats,
+    set_session_participant_name,
     delete_session,
     expire_stale_open_sessions,
 )
@@ -1748,11 +1749,16 @@ def admin_sessions():
         ), 401
     with get_conn() as c:
         rows = c.execute(
-            "SELECT id, created_at, ended_at, last_scores_json, user_agent, completed, variation_json FROM sessions ORDER BY created_at DESC LIMIT 200"
+            "SELECT * FROM sessions ORDER BY created_at DESC LIMIT 200"
         ).fetchall()
     out = []
     for r in rows:
         s = session_stats(r["id"])
+        # Older DBs may not yet have participant_name; fall back via stats / empty string.
+        try:
+            pname = r["participant_name"] or ""
+        except (KeyError, IndexError, TypeError):
+            pname = s.get("participant_name") or ""
         out.append(
             {
                 "id": r["id"],
@@ -1762,6 +1768,7 @@ def admin_sessions():
                 "ended_at_iso": _iso(r["ended_at"]),
                 "completed": r["completed"],
                 "user_agent": r["user_agent"],
+                "participant_name": pname,
                 "last_scores": json.loads(r["last_scores_json"])
                 if r["last_scores_json"]
                 else None,
@@ -1826,12 +1833,17 @@ def admin_one(session_id: str):
     assessment = (variation or {}).get("assessment") or {}
     scores = json.loads(s["last_scores_json"] or "{}") if s["last_scores_json"] else {}
     telemetry = _build_session_telemetry(s, msgs, events, st, assessment, scores)
+    try:
+        participant_name = s["participant_name"] or ""
+    except (KeyError, IndexError, TypeError):
+        participant_name = st.get("participant_name") or ""
     return jsonify(
         {
             "session": {k: s[k] for k in s.keys()},
             "stats": st,
             "assessment": assessment,
             "scores": scores,
+            "participant_name": participant_name,
             "telemetry": telemetry,
         }
     )
@@ -1845,6 +1857,21 @@ def admin_delete_session(session_id: str):
     if delete_session(session_id):
         return jsonify({"ok": True})
     return jsonify({"error": "not found"}), 404
+
+
+@app.route("/api/admin/sessions/<session_id>/name", methods=["POST"])
+def admin_set_participant_name(session_id: str):
+    """Admin-only free-text label for who took this session (for the admin's own reference)."""
+    init_db()
+    if not _admin_ok():
+        return jsonify({"error": "unauthorized"}), 401
+    body = request.get_json(force=True, silent=True) or {}
+    name = body.get("name") if isinstance(body, dict) else None
+    if name is not None and not isinstance(name, str):
+        return jsonify({"error": "name must be a string"}), 400
+    if not set_session_participant_name(session_id, name):
+        return jsonify({"error": "not found"}), 404
+    return jsonify({"ok": True, "participant_name": (name or "").strip()[:120]})
 
 
 if __name__ == "__main__":
