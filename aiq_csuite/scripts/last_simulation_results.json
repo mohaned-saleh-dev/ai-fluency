@@ -7,6 +7,7 @@
     "generic_wording_turns": 0,
     "in_scenario_loop_turns": 0,
     "dim_banner_turns": 0,
+    "label_leak_turns": 0,
     "reached_complication": "12/12",
     "reached_close": "12/12",
     "avg_model_turns": 6.0,
@@ -61,6 +62,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -68,7 +70,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "Head of strategy and ops building the COO office. ChatGPT, Copilot, and our internal copilot for decks, workflow diagram",
-          "assistant": "**Scenario \u2014 COO memo under time pressure.** Your COO needs a cross-functional operating memo by tomorrow on a new AI-assisted planning cadence. You are tempted to have a model draft the whole thing from last quarter's deck and Slack threads. Why it matters: Wrong owners, invented metrics, or a tone that bypasses Legal/Finance will land on the exec team and stick.\n\nWhat specific checks do you implement to ensure the accuracy and appropriateness of the memo before it reaches the executive team?",
+          "assistant": "Here's a situation I'd like your take on. Your COO needs a short memo by tomorrow about a new way of planning that uses AI. You're thinking of letting an AI tool write the whole thing from last quarter's slides and old Slack messages. If it names the wrong people, makes up numbers, or skips Legal and Finance, the whole leadership team will see it.\n\nWhat specific steps would you take to verify the accuracy of the AI-generated memo before sharing it with the leadership team?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -76,6 +78,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -83,7 +86,7 @@
           "turn": 2,
           "phase": "complication",
           "user": "I'd paste anonymized requirements and API constraints, tell the model role=staff engineer reviewer, forbid inventing pol",
-          "assistant": "**Twist in the same scenario.** Someone on your team pasted real customer identifiers and internal OKR text into a shared ChatGPT thread while 'cleaning up' the memo draft.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. Someone on your team pasted real customer details and private company goals into a shared ChatGPT chat while cleaning up the draft.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -91,6 +94,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -98,7 +102,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Kill the thread, ping security, pull retention settings, send a one-pager on what never goes in shared GPT.",
-          "assistant": "What specific guidelines do you establish for your team regarding the use of AI tools in drafting sensitive documents to prevent future incidents like this one?",
+          "assistant": "What rule would you want your team to follow when using AI tools to avoid similar issues in the future?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -106,6 +110,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -113,7 +118,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "COO and I sign external specs; team leads run a 5-point checklist on any AI draft that leaves the function.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How you set expectations for leaders who use AI on memos, workflows, and decks that others will execute against.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about the leaders who use AI to write memos and plans that other people then act on.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -121,6 +126,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -128,7 +134,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -136,6 +142,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -166,6 +173,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -173,7 +181,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "COO office, strategy and ops. ChatGPT mostly.",
-          "assistant": "**Scenario \u2014 COO memo under time pressure.** Your COO needs a cross-functional operating memo by tomorrow on a new AI-assisted planning cadence. You are tempted to have a model draft the whole thing from last quarter's deck and Slack threads. Why it matters: Wrong owners, invented metrics, or a tone that bypasses Legal/Finance will land on the exec team and stick.\n\nWhat specific checks do you implement to ensure the accuracy and appropriateness of the memo before it reaches the executive team?",
+          "assistant": "Here's a situation I'd like your take on. Your COO needs a short memo by tomorrow about a new way of planning that uses AI. You're thinking of letting an AI tool write the whole thing from last quarter's slides and old Slack messages. If it names the wrong people, makes up numbers, or skips Legal and Finance, the whole leadership team will see it.\n\nIf the AI gives you a polished draft, what specific steps would you take to verify its accuracy before sharing it?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -181,6 +189,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -188,7 +197,7 @@
           "turn": 2,
           "phase": "complication",
           "user": "I'd use it for the spec I guess.",
-          "assistant": "**Twist in the same scenario.** Someone on your team pasted real customer identifiers and internal OKR text into a shared ChatGPT thread while 'cleaning up' the memo draft.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. Someone on your team pasted real customer details and private company goals into a shared ChatGPT chat while cleaning up the draft.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -196,6 +205,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -203,7 +213,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Nothing specific.",
-          "assistant": "Stay concrete: in the next hour, what is your first action, what do you stop immediately, and what data never goes into that tool again?",
+          "assistant": "What's the very first thing you'd do once you noticed this?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -211,6 +221,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -218,7 +229,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "Tell the team to be careful.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How you set expectations for leaders who use AI on memos, workflows, and decks that others will execute against.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about the leaders who use AI to write memos and plans that other people then act on.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -226,6 +237,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -233,7 +245,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -241,6 +253,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -271,6 +284,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -278,7 +292,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "I lead GTM! We use ALL the AI tools \u2014 so much faster, game changer for the team.",
-          "assistant": "**Scenario \u2014 COO memo under time pressure.** Your COO needs a cross-functional operating memo by tomorrow on a new AI-assisted planning cadence. You are tempted to have a model draft the whole thing from last quarter's deck and Slack threads. Why it matters: Wrong owners, invented metrics, or a tone that bypasses Legal/Finance will land on the exec team and stick.\n\nWhat specific checks do you implement to ensure the accuracy and appropriateness of the memo before it reaches the executive team?",
+          "assistant": "Here's a situation I'd like your take on. Your COO needs a short memo by tomorrow about a new way of planning that uses AI. You're thinking of letting an AI tool write the whole thing from last quarter's slides and old Slack messages. If it names the wrong people, makes up numbers, or skips Legal and Finance, the whole leadership team will see it.\n\nHow would you verify the accuracy of the AI-generated memo before sharing it with the leadership team?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -286,6 +300,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -293,7 +308,7 @@
           "turn": 2,
           "phase": "primary",
           "user": "I'd definitely use AI to write everything, it's amazing.",
-          "assistant": "You named speed but not a check \u2014 for this scenario, name one output you would **not** send without a human edit, and what you would verify line by line.",
+          "assistant": "Faster is good \u2014 but is there anything in that AI output you'd want to double-check by hand before you trusted it?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -301,14 +316,15 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
-            "has_question": false
+            "label_leak": false,
+            "has_question": true
           }
         },
         {
           "turn": 3,
           "phase": "complication",
           "user": "We just move fast and trust the tools.",
-          "assistant": "**Twist in the same scenario.** Someone on your team pasted real customer identifiers and internal OKR text into a shared ChatGPT thread while 'cleaning up' the memo draft.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. Someone on your team pasted real customer details and private company goals into a shared ChatGPT chat while cleaning up the draft.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -316,6 +332,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -323,7 +340,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "Everyone should use AI more!",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How you set expectations for leaders who use AI on memos, workflows, and decks that others will execute against.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about the leaders who use AI to write memos and plans that other people then act on.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -331,6 +348,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -338,7 +356,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -346,6 +364,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -355,7 +374,7 @@
       "id": "04",
       "profile": "Head of function / director / Product, engineering, design & data",
       "persona": "ic_product",
-      "scenario_title": "Ship-week spec pressure",
+      "scenario_title": "Spec due on Friday",
       "phases_seen": [
         "primary",
         "complication",
@@ -368,7 +387,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Product, engineering, design & data (\"Ship-week spec pressure\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Product, engineering, design & data (\"Spec due on Friday\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -376,6 +395,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -383,7 +403,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "Senior PM on payments. Cursor, ChatGPT, Figma AI for specs and user stories.",
-          "assistant": "**Scenario \u2014 Ship-week spec pressure.** Your team wants to draft a product spec with a copilot by Friday. The feature touches payments and compliance review. Why it matters: Wrong requirements or invented policy details could delay launch or create regulatory rework.\n\nWhat specific checks do you implement to ensure the accuracy of the AI-generated spec before sharing it with your team?",
+          "assistant": "Here's a situation I'd like your take on. Your team wants to use an AI tool to write a product spec by Friday. The feature touches payments and needs a compliance check. If the requirements are wrong, or the AI makes up a policy detail, the launch could slip or need rework.\n\nWhat specific steps would you take to verify the AI-generated spec before sharing it with the team?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -391,6 +411,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -398,7 +419,7 @@
           "turn": 2,
           "phase": "primary",
           "user": "Prompt: here's the retry API doc, output acceptance criteria only, do not invent fee amounts. I diff against the doc.",
-          "assistant": "Who needs to review the AI-generated spec before it goes to the wider team, and what specific criteria do you use to determine if it's ready for their eyes?",
+          "assistant": "Say the AI gives you something that looks polished. How would you check it's actually right before anyone else sees it?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -406,6 +427,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -413,7 +435,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Someone pasted customer IDs \u2014 revoke access, open incident, move to approved enterprise tenant.",
-          "assistant": "**Twist in the same scenario.** Someone on the team pasted anonymized-but-real customer identifiers into a shared ChatGPT thread while iterating on the spec.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. Someone on the team pasted real customer details into a shared ChatGPT chat while working on the spec.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -421,6 +443,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -428,7 +451,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "PMs can't ship AI specs without eng lead + compliance tag in Jira.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How you set the quality bar when PMs or engineers use AI on specs others will build from.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about how you'd set the quality bar when your team uses AI to write specs others will build from.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -436,6 +459,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -443,7 +467,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -451,6 +475,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -460,7 +485,7 @@
       "id": "05",
       "profile": "People manager / team lead / Growth, brand, sales & marketing",
       "persona": "strong_exec",
-      "scenario_title": "External narrative draft",
+      "scenario_title": "Marketing copy due tomorrow",
       "phases_seen": [
         "primary",
         "complication",
@@ -473,7 +498,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Growth, brand, sales & marketing (\"External narrative draft\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Growth, brand, sales & marketing (\"Marketing copy due tomorrow\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -481,6 +506,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -488,7 +514,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "Head of strategy and ops building the COO office. ChatGPT, Copilot, and our internal copilot for decks, workflow diagram",
-          "assistant": "**Scenario \u2014 External narrative draft.** Marketing wants a model-drafted campaign email and landing copy for a new product line by tomorrow. Why it matters: Brand, legal, and factual claims must hold; generic AI voice is a reputational risk.\n\nWhat specific checks do you implement to ensure the draft aligns with brand and legal standards before sharing it with your team?",
+          "assistant": "Here's a situation I'd like your take on. Marketing wants an AI tool to write a campaign email and landing page for a new product by tomorrow. The claims have to be true and brand-safe. Copy that sounds generic or off can hurt how people see you.\n\nHow do you ensure your team understands the importance of checking claims made in AI-generated content?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -496,6 +522,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -503,7 +530,7 @@
           "turn": 2,
           "phase": "complication",
           "user": "I'd paste anonymized requirements and API constraints, tell the model role=staff engineer reviewer, forbid inventing pol",
-          "assistant": "**Twist in the same scenario.** The draft includes a performance claim that is directionally right but not approved for external use.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. The draft includes a performance claim that's roughly true but hasn't been approved to use in public.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -511,6 +538,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -518,7 +546,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Kill the thread, ping security, pull retention settings, send a one-pager on what never goes in shared GPT.",
-          "assistant": "How do you coach your team to identify and escalate potential compliance issues in AI-generated content before it reaches external audiences?",
+          "assistant": "How do you coach your team to ensure they understand the importance of brand safety when using AI-generated content?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -526,6 +554,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -533,7 +562,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "COO and I sign external specs; team leads run a 5-point checklist on any AI draft that leaves the function.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How brand, legal, and sales align on what the model may draft versus what stays human-only.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about how brand, legal, and sales agree on what AI can draft and what stays human-written.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -541,6 +570,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -548,7 +578,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -556,6 +586,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -565,7 +596,7 @@
       "id": "06",
       "profile": "Head of function / director / Customer care, ops & service delivery",
       "persona": "terse",
-      "scenario_title": "Customer reply at scale",
+      "scenario_title": "Reply to an angry customer",
       "phases_seen": [
         "primary",
         "complication",
@@ -578,7 +609,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Customer care, ops & service delivery (\"Customer reply at scale\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Customer care, ops & service delivery (\"Reply to an angry customer\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -586,6 +617,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -593,7 +625,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "COO office, strategy and ops. ChatGPT mostly.",
-          "assistant": "**Scenario \u2014 Customer reply at scale.** A model suggests refund and apology wording for an angry VIP case. A frontline agent wants to send it in one click. Why it matters: Tone, factual accuracy, and policy limits all matter; a bad send is visible and hard to unwind.\n\nWhat specific checks do you implement to ensure the accuracy of refund amounts and policy exceptions before a message is sent to a VIP customer?",
+          "assistant": "Here's a situation I'd like your take on. An AI tool drafted a refund-and-apology reply for an upset VIP customer. A frontline agent wants to send it with one click. The tone, the facts, and the policy all have to be right. A bad reply is public and hard to take back.\n\nHow would you verify that the AI's draft reply is accurate before it goes out to the customer?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -601,6 +633,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -608,7 +641,7 @@
           "turn": 2,
           "phase": "complication",
           "user": "I'd use it for the spec I guess.",
-          "assistant": "**Twist in the same scenario.** The first draft sounds empathetic but cites the wrong refund amount and a policy exception you do not offer.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. The draft sounds kind, but it offers the wrong refund amount and promises an exception your policy doesn't allow.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -616,6 +649,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -623,7 +657,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Nothing specific.",
-          "assistant": "Stay concrete: in the next hour, what is your first action, what do you stop immediately, and what data never goes into that tool again?",
+          "assistant": "What's the very first thing you'd do once you noticed this?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -631,6 +665,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -638,7 +673,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "Tell the team to be careful.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** What agents may auto-send versus escalate, and how you coach prompts and review habits for the team.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about what agents can send on their own versus what they should pass up to someone else.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -646,6 +681,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -653,7 +689,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -661,6 +697,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -670,7 +707,7 @@
       "id": "07",
       "profile": "Executive (VP, C-suite, GM) / Finance, strategy, corp dev",
       "persona": "risk_focused",
-      "scenario_title": "Board-ready numbers",
+      "scenario_title": "Numbers for the board",
       "phases_seen": [
         "primary",
         "complication",
@@ -683,7 +720,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Finance, strategy, corp dev (\"Board-ready numbers\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Finance, strategy, corp dev (\"Numbers for the board\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -691,6 +728,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -698,7 +736,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "Compliance counsel. Copilot for internal drafts only on approved tenant.",
-          "assistant": "**Scenario \u2014 Board-ready numbers.** You need a deck section on unit economics; a colleague used a model to draft charts and narrative from a spreadsheet export. Why it matters: A confident wrong number in a board pack is worse than a late slide.\n\nWhat specific checks do you perform to ensure the accuracy of the numbers before they are presented to the board?",
+          "assistant": "Here's a situation I'd like your take on. You need a section of a board deck on the numbers. A colleague used an AI tool to draft the charts and the write-up from a spreadsheet. A confident wrong number in a board pack is worse than a slide that's a little late.\n\nIf the AI gives you polished numbers, what specific checks would you perform to ensure their accuracy?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -706,6 +744,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -713,7 +752,7 @@
           "turn": 2,
           "phase": "complication",
           "user": "Brief: cite only attached policy PDF, escalate if answer touches licensing. No external paste.",
-          "assistant": "**Twist in the same scenario.** The model transposed two quarters in a growth chart; the narrative still reads convincingly.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. The AI mixed up two quarters in a growth chart, but the write-up still reads as if it's correct.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -721,6 +760,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -728,7 +768,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Model draft said 24h deletion \u2014 false for our vendor. Correct before legal sends.",
-          "assistant": "What specific criteria do you use to determine who needs to be informed or involved in correcting the model before it goes to the board?",
+          "assistant": "What specific steps would you take to correct the mixed-up numbers before the board meeting?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -736,6 +776,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -743,7 +784,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "Front line gets a one-page allowed/not allowed list; anything else to counsel.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** Minimum verification before numbers or forecasts leave your desk.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about the checks you'd want before any numbers or forecasts leave your desk.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -751,6 +792,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -758,7 +800,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -766,6 +808,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -775,7 +818,7 @@
       "id": "08",
       "profile": "Head of function / director / Risk, legal, compliance & policy",
       "persona": "risk_focused",
-      "scenario_title": "Vendor and policy answer",
+      "scenario_title": "A quick answer about your data",
       "phases_seen": [
         "primary",
         "complication",
@@ -788,7 +831,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Risk, legal, compliance & policy (\"Vendor and policy answer\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Risk, legal, compliance & policy (\"A quick answer about your data\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -796,6 +839,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -803,7 +847,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "Compliance counsel. Copilot for internal drafts only on approved tenant.",
-          "assistant": "**Scenario \u2014 Vendor and policy answer.** A business partner asks for a quick AI-generated summary of your data-handling posture for their vendor review. Why it matters: Overstating controls or missing retention limits creates audit and regulatory exposure.\n\nWhat specific checks do you implement to ensure the AI-generated summary accurately reflects your data-handling posture before sharing it with the business partner?",
+          "assistant": "Here's a situation I'd like your take on. A business partner asks for a quick AI-written summary of how your company handles data, for their vendor review. Overstating what you do, or missing how long you keep data, can create audit and legal trouble.\n\nWho else in your team would you want to review the AI's summary before it goes out?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -811,6 +855,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -818,7 +863,7 @@
           "turn": 2,
           "phase": "complication",
           "user": "Brief: cite only attached policy PDF, escalate if answer touches licensing. No external paste.",
-          "assistant": "**Twist in the same scenario.** The model draft says you delete all prompts within 24 hours, which is not true for the tool your team actually uses.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. The AI draft says you delete all prompts within 24 hours. That isn't true for the tool your team actually uses.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -826,6 +871,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -833,7 +879,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Model draft said 24h deletion \u2014 false for our vendor. Correct before legal sends.",
-          "assistant": "What are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "What simple rule would you want your team to follow when using AI for compliance summaries?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -841,6 +887,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -848,7 +895,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "Front line gets a one-page allowed/not allowed list; anything else to counsel.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How you translate policy into front-line rules people can act on in standup, not buried PDFs.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about how you turn policy into simple rules people can actually follow day to day.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -856,6 +903,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -863,7 +911,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -871,6 +919,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -880,7 +929,7 @@
       "id": "09",
       "profile": "Individual contributor / Product, engineering, design & data",
       "persona": "ic_product",
-      "scenario_title": "Ship-week spec pressure",
+      "scenario_title": "Spec due on Friday",
       "phases_seen": [
         "primary",
         "complication",
@@ -893,7 +942,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Product, engineering, design & data (\"Ship-week spec pressure\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Product, engineering, design & data (\"Spec due on Friday\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -901,6 +950,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -908,7 +958,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "Senior PM on payments. Cursor, ChatGPT, Figma AI for specs and user stories.",
-          "assistant": "**Scenario \u2014 Ship-week spec pressure.** Your team wants to draft a product spec with a copilot by Friday. The feature touches payments and compliance review. Why it matters: Wrong requirements or invented policy details could delay launch or create regulatory rework.\n\nWhat specific checks do you perform to verify the accuracy of the AI-generated content before sharing it with your team?",
+          "assistant": "Here's a situation I'd like your take on. Your team wants to use an AI tool to write a product spec by Friday. The feature touches payments and needs a compliance check. If the requirements are wrong, or the AI makes up a policy detail, the launch could slip or need rework.\n\nHow would you verify that the AI-generated spec meets compliance requirements before sharing it with the team?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -916,6 +966,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -923,7 +974,7 @@
           "turn": 2,
           "phase": "primary",
           "user": "Prompt: here's the retry API doc, output acceptance criteria only, do not invent fee amounts. I diff against the doc.",
-          "assistant": "The output looks confident but may be wrong \u2014 what do you check before anyone else sees it?",
+          "assistant": "Say the AI gives you something that looks polished. How would you check it's actually right before anyone else sees it?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -931,6 +982,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -938,7 +990,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Someone pasted customer IDs \u2014 revoke access, open incident, move to approved enterprise tenant.",
-          "assistant": "**Twist in the same scenario.** Someone on the team pasted anonymized-but-real customer identifiers into a shared ChatGPT thread while iterating on the spec.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. Someone on the team pasted real customer details into a shared ChatGPT chat while working on the spec.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -946,6 +998,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -953,7 +1006,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "PMs can't ship AI specs without eng lead + compliance tag in Jira.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How you set the quality bar when PMs or engineers use AI on specs others will build from.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about how you'd set the quality bar when your team uses AI to write specs others will build from.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -961,6 +1014,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -968,7 +1022,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -976,6 +1030,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -985,7 +1040,7 @@
       "id": "10",
       "profile": "People manager / team lead / HR, people, workplace",
       "persona": "terse",
-      "scenario_title": "People-facing draft",
+      "scenario_title": "A sensitive note to staff",
       "phases_seen": [
         "primary",
         "complication",
@@ -998,7 +1053,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to HR, people, workplace (\"People-facing draft\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to HR, people, workplace (\"A sensitive note to staff\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -1006,6 +1061,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1013,7 +1069,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "COO office, strategy and ops. ChatGPT mostly.",
-          "assistant": "**Scenario \u2014 People-facing draft.** A manager wants to use a copilot to draft a sensitive policy note and a set of manager talking points. Why it matters: Employee trust and consistency; wrong tone or half-true policy summaries create HR risk.\n\nWhen reviewing the AI-generated draft, what specific elements do you verify to ensure the tone aligns with your company's values and policies?",
+          "assistant": "Here's a situation I'd like your take on. A manager wants to use an AI tool to draft a sensitive policy note and some talking points for managers. This affects employee trust. The wrong tone or a half-true summary of the policy can create real HR problems.\n\nHow would you ensure the AI-generated note aligns with the actual policy before sharing it with your team?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -1021,6 +1077,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1028,7 +1085,7 @@
           "turn": 2,
           "phase": "complication",
           "user": "I'd use it for the spec I guess.",
-          "assistant": "**Twist in the same scenario.** The model confidently paraphrases a policy in a way that is softer than your actual rule.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. The AI confidently rewrites the policy in a way that sounds softer than the rule actually is.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -1036,6 +1093,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1043,7 +1101,7 @@
           "turn": 3,
           "phase": "complication",
           "user": "Nothing specific.",
-          "assistant": "Stay concrete: in the next hour, what is your first action, what do you stop immediately, and what data never goes into that tool again?",
+          "assistant": "What's the very first thing you'd do once you noticed this?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -1051,6 +1109,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1058,7 +1117,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "Tell the team to be careful.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** Who may run AI on people content, who approves, and what must never be pasted into tools.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about who's allowed to use AI on people topics, who signs off, and what should never be pasted in.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -1066,6 +1125,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1073,7 +1133,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -1081,6 +1141,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -1090,7 +1151,7 @@
       "id": "11",
       "profile": "Head of function / director / Growth, brand, sales & marketing",
       "persona": "vague_enthusiast",
-      "scenario_title": "External narrative draft",
+      "scenario_title": "Marketing copy due tomorrow",
       "phases_seen": [
         "primary",
         "complication",
@@ -1103,7 +1164,7 @@
           "turn": 0,
           "phase": "anchor",
           "user": "",
-          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Growth, brand, sales & marketing (\"External narrative draft\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
+          "assistant": "This is a short AiQ conversation \u2014 about ten minutes. I'll walk you through one scenario tailored to Growth, brand, sales & marketing (\"Marketing copy due tomorrow\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\nFirst, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -1111,6 +1172,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1118,7 +1180,7 @@
           "turn": 1,
           "phase": "primary",
           "user": "I lead GTM! We use ALL the AI tools \u2014 so much faster, game changer for the team.",
-          "assistant": "**Scenario \u2014 External narrative draft.** Marketing wants a model-drafted campaign email and landing copy for a new product line by tomorrow. Why it matters: Brand, legal, and factual claims must hold; generic AI voice is a reputational risk.\n\nWhat specific checks do you implement to ensure that the output aligns with brand standards and legal requirements before sharing it with your team?",
+          "assistant": "Here's a situation I'd like your take on. Marketing wants an AI tool to write a campaign email and landing page for a new product by tomorrow. The claims have to be true and brand-safe. Copy that sounds generic or off can hurt how people see you.\n\nWho else would you want to review the AI-generated copy before it goes out?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -1126,6 +1188,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1133,7 +1196,7 @@
           "turn": 2,
           "phase": "primary",
           "user": "I'd definitely use AI to write everything, it's amazing.",
-          "assistant": "You named speed but not a check \u2014 for this scenario, name one output you would **not** send without a human edit, and what you would verify line by line.",
+          "assistant": "Faster is good \u2014 but is there anything in that AI output you'd want to double-check by hand before you trusted it?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -1141,14 +1204,15 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
-            "has_question": false
+            "label_leak": false,
+            "has_question": true
           }
         },
         {
           "turn": 3,
           "phase": "complication",
           "user": "We just move fast and trust the tools.",
-          "assistant": "**Twist in the same scenario.** The draft includes a performance claim that is directionally right but not approved for external use.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
+          "assistant": "Now something goes wrong. The draft includes a performance claim that's roughly true but hasn't been approved to use in public.\n\nWhat's the first thing you'd do right now to deal with this?",
           "phase_shift": "complication",
           "flags": {
             "soft_opener": false,
@@ -1156,6 +1220,7 @@
             "has_twist": true,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1163,7 +1228,7 @@
           "turn": 4,
           "phase": "standards",
           "user": "Everyone should use AI more!",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How brand, legal, and sales align on what the model may draft versus what stays human-only.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "assistant": "Let's step back from your own work for a moment. Think about how brand, legal, and sales agree on what AI can draft and what stays human-written.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -1171,6 +1236,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
@@ -1178,7 +1244,7 @@
           "turn": 5,
           "phase": "close",
           "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -1186,6 +1252,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }
@@ -1193,8 +1260,8 @@
     },
     {
       "id": "12",
-      "profile": "Executive (VP, C-suite, GM) / General management / P&L",
-      "persona": "terse",
+      "profile": "Head of function / director / General management / P&L",
+      "persona": "asks_clarify",
       "scenario_title": "COO memo under time pressure",
       "phases_seen": [
         "primary",
@@ -1216,14 +1283,15 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
         {
           "turn": 1,
           "phase": "primary",
-          "user": "COO office, strategy and ops. ChatGPT mostly.",
-          "assistant": "**Scenario \u2014 COO memo under time pressure.** Your COO needs a cross-functional operating memo by tomorrow on a new AI-assisted planning cadence. You are tempted to have a model draft the whole thing from last quarter's deck and Slack threads. Why it matters: Wrong owners, invented metrics, or a tone that bypasses Legal/Finance will land on the exec team and stick.\n\nWhat specific checks do you implement to ensure the accuracy and appropriateness of the AI-generated content before it reaches the e",
+          "user": "Head of ops. We use ChatGPT and Copilot for memos and planning.",
+          "assistant": "Here's a situation I'd like your take on. Your COO needs a short memo by tomorrow about a new way of planning that uses AI. You're thinking of letting an AI tool write the whole thing from last quarter's slides and old Slack messages. If it names the wrong people, makes up numbers, or skips Legal and Finance, the whole leadership team will see it.\n\nWhat specific checks would you put in place to ensure the AI-generated memo is accurate and reliable before sharing it with the leadership team?",
           "phase_shift": "primary",
           "flags": {
             "soft_opener": false,
@@ -1231,29 +1299,15 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
         {
           "turn": 2,
-          "phase": "complication",
-          "user": "I'd use it for the spec I guess.",
-          "assistant": "**Twist in the same scenario.** Someone on your team pasted real customer identifiers and internal OKR text into a shared ChatGPT thread while 'cleaning up' the memo draft.\n\nWhat are your first three moves in the next hour \u2014 who do you call, what do you stop, and what never goes into the tool again?",
-          "phase_shift": "complication",
-          "flags": {
-            "soft_opener": false,
-            "has_scenario_brief": false,
-            "has_twist": true,
-            "dim_banner": false,
-            "generic_wording": false,
-            "has_question": true
-          }
-        },
-        {
-          "turn": 3,
-          "phase": "complication",
-          "user": "Nothing specific.",
-          "assistant": "Stay concrete: in the next hour, what is your first action, what do you stop immediately, and what data never goes into that tool again?",
+          "phase": "primary",
+          "user": "What do you mean?",
+          "assistant": "Imagine your boss needs a quick note about using AI for planning by tomorrow. What steps would you take to make sure the AI note is correct and safe to share with the team?",
           "phase_shift": null,
           "flags": {
             "soft_opener": false,
@@ -1261,14 +1315,31 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
+            "has_question": true
+          }
+        },
+        {
+          "turn": 3,
+          "phase": "complication",
+          "user": "Oh, got it. I'd ask it to draft the memo from last quarter's deck, then check the numbers myself.",
+          "assistant": "Now something goes wrong. Someone on your team pasted real customer details and private company goals into a shared ChatGPT chat while cleaning up the draft.\n\nWhat's the first thing you'd do right now to deal with this?",
+          "phase_shift": "complication",
+          "flags": {
+            "soft_opener": false,
+            "has_scenario_brief": false,
+            "has_twist": true,
+            "dim_banner": false,
+            "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
         {
           "turn": 4,
           "phase": "standards",
-          "user": "Tell the team to be careful.",
-          "assistant": "**Stepping back from your own work \u2014 bar for others.** How you set expectations for leaders who use AI on memos, workflows, and decks that others will execute against.\n\nWho else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?",
+          "user": "I'd tell people not to paste customer data into it.",
+          "assistant": "Let's step back from your own work for a moment. Think about the leaders who use AI to write memos and plans that other people then act on.\n\nWhat's one simple rule you'd want everyone on your team to follow before they use AI for this?",
           "phase_shift": "standards",
           "flags": {
             "soft_opener": false,
@@ -1276,14 +1347,15 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         },
         {
           "turn": 5,
           "phase": "close",
-          "user": "That's all from my side.",
-          "assistant": "**One last reflection.**\n\nWhat is one habit you would change next week in how you work with AI on this kind of task?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
+          "user": "Have the team lead read it before it goes to the COO.",
+          "assistant": "Looking back, what's one thing you'd do differently next time you use AI for something like this?\n\nWhen you are ready, tap **End session & view results** below \u2014 that opens your summary from this chat.\n[SESSION_COMPLETE]",
           "phase_shift": "close",
           "flags": {
             "soft_opener": false,
@@ -1291,6 +1363,7 @@
             "has_twist": false,
             "dim_banner": false,
             "generic_wording": false,
+            "label_leak": false,
             "has_question": true
           }
         }

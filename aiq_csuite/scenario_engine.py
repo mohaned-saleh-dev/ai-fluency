@@ -62,25 +62,44 @@ _IN_SCENARIO_LOOP = re.compile(
     r"automation (versus|vs\.?) forecasting|supporting automation)\b",
     re.I,
 )
+_CLARIFY_PATTERNS = re.compile(
+    r"(what do you mean|i don'?t (understand|get it|follow|know what you)|"
+    r"not sure what you (mean|are asking)|can you (clarify|explain|rephrase|simplify|elaborate|repeat|be more specific)|"
+    r"could you (clarify|explain|rephrase|simplify|repeat)|come again|say that again|"
+    r"rephrase|repeat the question|don'?t understand( the| your)? question|"
+    r"unclear|confus(ed|ing)|explain (that|the question|what)|in plain|simpl(er|y that)|"
+    r"didn'?t (get|understand)|lost me|what'?s that mean|meaning of|"
+    r"^huh\b|^sorry\?|^what\?|too (complex|complicated|technical))",
+    re.I,
+)
+
+
+def _is_clarification_request(text: str) -> bool:
+    """True when the user is asking us to explain/rephrase, not answering the question."""
+    t = (text or "").strip()
+    if not t:
+        return False
+    if t and set(t) <= {"?", " "}:
+        return True
+    if len(t.split()) > 16:
+        return False
+    return bool(_CLARIFY_PATTERNS.search(t))
 
 _THIN_PROBE_BY_PHASE: Dict[str, str] = {
     "primary": (
-        "You gave a light answer — in three bullets, what would you paste into the model as input, "
-        "what must it never invent, and who must read the output before anyone else acts on it?"
+        "Let's make it concrete: what would you actually type into the AI tool to get started here?"
     ),
     "complication": (
-        "Stay concrete: in the next hour, what is your first action, what do you stop immediately, "
-        "and what data never goes into that tool again?"
+        "What's the very first thing you'd do once you noticed this?"
     ),
     "standards": (
-        "Who on your team must follow this bar, and what is the one check you require before "
-        "AI-assisted work leaves your function?"
+        "What's one simple rule you'd want everyone on your team to follow before they use AI for this?"
     ),
 }
 
 _PUSHBACK_VAGUE = (
-    "You named speed but not a check — for this scenario, name one output you would "
-    "**not** send without a human edit, and what you would verify line by line."
+    "Faster is good — but is there anything in that AI output you'd want to "
+    "double-check by hand before you trusted it?"
 )
 
 FACETS = (
@@ -139,9 +158,9 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
             "focus": base.get("standards_prompt", ""),
         },
         "probe_bank": [
-            "Walk through the first thing you would ask a model to do here — role, inputs, and what must not be invented.",
-            "The output looks confident but may be wrong — what do you check before anyone else sees it?",
-            "Who else must be in the loop before this ships, and what is the minimum bar?",
+            "How would you start? What's the first thing you'd ask the AI to do here?",
+            "Say the AI gives you something that looks polished. How would you check it's actually right before anyone else sees it?",
+            "Who else would you want to look at this before it goes out?",
         ],
         "opening_id": rng.randrange(0, 6),
     }
@@ -214,15 +233,11 @@ def _pick_probe(phase: str, plan: dict, slot: int) -> str:
     if phase == "primary" and bank:
         return bank[slot % len(bank)]
     if phase == "complication":
-        return (
-            "What are your first three moves in the next hour — who do you call, what do you stop, "
-            "and what never goes into the tool again?"
-        )
+        return "What's the first thing you'd do right now to deal with this?"
     if phase == "standards":
-        focus = (plan.get("standards") or {}).get("focus", "")
-        return focus or _THIN_PROBE_BY_PHASE["standards"]
+        return _THIN_PROBE_BY_PHASE["standards"]
     if phase == "close":
-        return "What is one habit you would change next week in how you work with AI on this kind of task?"
+        return "Looking back, what's one thing you'd do differently next time you use AI for something like this?"
     return bank[slot % len(bank)] if bank else _fallback_question(phase, plan, "")
 
 
@@ -261,6 +276,17 @@ def compute_flow_state(
     idx = next((i for i, (c, _) in enumerate(PHASES) if c == current), 0)
     model_turns_in_phase = _model_turns_in_current_phase(messages, phase_history)
 
+    clarifying = _is_clarification_request(last_user_message)
+    prior_clarify = 0
+    for m in reversed(messages):
+        if (m.get("role") or "") != "user":
+            continue
+        if _is_clarification_request(m.get("content") or ""):
+            prior_clarify += 1
+        else:
+            break
+    clarify_streak = (prior_clarify + 1) if clarifying else 0
+
     max_turns = PHASE_MAX_TURNS.get(current, 2)
     user_turns = sum(1 for m in messages if (m.get("role") or "") == "user")
     must_advance = model_turns_in_phase >= max_turns
@@ -270,10 +296,15 @@ def compute_flow_state(
         must_advance = True
     if force_close:
         must_advance = True
+    # A clarification request is not an answer — hold the current question, don't advance.
+    if clarifying and not force_close:
+        must_advance = False
     pending = [c for c, _ in PHASES[idx + 1 :]]
     next_phase = pending[0] if pending else None
     if force_close:
         next_phase = "close" if current != "close" else None
+    elif clarifying:
+        next_phase = None
     elif _user_signals_complication(last_user_message) and current == "primary":
         next_phase = "complication"
     next_label = dict(PHASES).get(next_phase or "", "")
@@ -292,6 +323,8 @@ def compute_flow_state(
         "user_turns": user_turns,
         "all_phases_done": current == "close" and must_advance,
         "force_close": force_close,
+        "clarifying": clarifying,
+        "clarify_streak": clarify_streak,
     }
 
 
@@ -322,26 +355,23 @@ def _strip_soft_opener(s: str) -> str:
 
 
 def _scenario_brief_for(phase: str, plan: dict) -> str:
+    """Natural narration for a phase entry — no stage-direction labels shown to the user."""
     if phase == "primary":
         primary = plan.get("primary") or {}
-        title = primary.get("title", "Work scenario")
-        setup = primary.get("setup", "")
-        stakes = primary.get("stakes", "")
-        body = f"**Scenario — {title}.** {setup}".strip()
+        setup = (primary.get("setup", "") or "").strip()
+        stakes = (primary.get("stakes", "") or "").strip()
+        body = f"Here's a situation I'd like your take on. {setup}".strip()
         if stakes:
-            body = f"{body} Why it matters: {stakes}"
+            body = f"{body} {stakes}"
         return body
     if phase == "complication":
-        comp = plan.get("complication") or {}
-        inject = comp.get("inject", "")
+        inject = ((plan.get("complication") or {}).get("inject", "") or "").strip()
         if inject:
-            return f"**Twist in the same scenario.** {inject}"
+            return f"Now something goes wrong. {inject}"
     if phase == "standards":
-        focus = (plan.get("standards") or {}).get("focus", "")
+        focus = ((plan.get("standards") or {}).get("focus", "") or "").strip()
         if focus:
-            return f"**Stepping back from your own work — bar for others.** {focus}"
-    if phase == "close":
-        return "**One last reflection.**"
+            return f"Let's step back from your own work for a moment. {focus}"
     return ""
 
 
@@ -364,6 +394,24 @@ def plan_and_render_turn(
     thin = _is_thin_answer(user_message)
     vague = _is_vague_hype(user_message)
     probe_slot = int(flow.get("model_turns_in_phase") or 0)
+
+    # The user asked us to explain — restate the SAME question simply; never advance or score this as an answer.
+    if flow.get("clarifying"):
+        last_q = _last_assistant_question(history)
+        simpler = _rephrase_simpler(
+            last_q, current_phase, plan, simplest=int(flow.get("clarify_streak") or 0) >= 3
+        )
+        return {
+            "reply": simpler,
+            "phase_shift": None,
+            "session_suggests_complete": False,
+            "planner_meta": {
+                "phase": current_phase,
+                "is_phase_entry": False,
+                "clarifying": True,
+                "clarify_streak": int(flow.get("clarify_streak") or 0),
+            },
+        }
 
     if must_adv and next_phase:
         phase = next_phase
@@ -414,17 +462,18 @@ def plan_and_render_turn(
 
 **Hard rules (must follow exactly):**
 - Output JSON only: `question`, `session_complete`, `internal_tags`, `missing_facets`.
-- `question`: ONE short question ending with `?`. Max 45 words. No bullet lists.
+- `question`: ONE short, plain-English question ending with `?`. Max 30 words. No bullet lists.
+- **Plain language:** write the way you'd speak to a smart colleague who isn't technical. Everyday words, short sentences. No jargon or buzzwords (avoid: "guardrails", "minimum bar", "kill criteria", "verification step", "forbidden inventions", "what never goes into the tool"). Ask about ONE thing, not three things at once.
 - **FORBIDDEN openers:** That's, It sounds like, Understood, Great, Nice, In the scenario where, In the context of the scenario, In light of the vendor.
-- **FORBIDDEN:** repeating automation-vs-forecasting framing if already asked. Ask a NEW concrete angle (prompt text, check, owner, escalation).
-- Phase rules:
-  - `anchor`: role + tools they actually use. No scenario body.
-  - `primary` (entry): how they handle the scenario — first prompt, inputs, forbidden inventions.
-  - `primary` (follow-up): ONE different angle — verification step OR who signs off OR what they refuse to paste.
-  - `complication`: next-hour actions only (who, stop, never-in-tool).
-  - `standards`: bar for others — owners, minimum check.
-  - `close`: one reflection; session_complete true.
-- If thin reply: ask for three bullets (input / forbid / who reads), do not ask another trade-off question.
+- **FORBIDDEN:** repeating the same framing you already asked. Ask a NEW, simple angle.
+- Phase rules (keep each as one simple question):
+  - `anchor`: their role + which AI tools they actually use. No scenario yet.
+  - `primary` (entry): how they'd start handling the situation — what they'd ask the AI to do.
+  - `primary` (follow-up): ONE new angle — how they'd check it's right, OR who else should look at it, OR what they wouldn't share with the AI.
+  - `complication`: what they'd do first, right now, about the problem.
+  - `standards`: one simple rule they'd want others to follow.
+  - `close`: one thing they'd do differently next time; session_complete true.
+- If the reply is thin: ask one simple, concrete follow-up. Don't pile on another question.
 - Never mention dimensions or [Dim: Dx].
 """
         try:
@@ -482,16 +531,47 @@ def plan_and_render_turn(
     }
 
 
+def _last_assistant_question(history: List[dict]) -> str:
+    for m in reversed(history):
+        if (m.get("role") or "") == "model":
+            return (m.get("content") or "").strip()
+    return ""
+
+
+def _rephrase_simpler(last_q: str, phase: str, plan: dict, *, simplest: bool) -> str:
+    """Re-ask the previous question in plainer words. Falls back to a simple phase question."""
+    fallback = _fallback_question(phase, plan, "")
+    if simplest or not last_q:
+        return fallback
+    prompt = f"""A person in an interview said they did not understand the last question. Rewrite it in much simpler, everyday language so anyone can understand it. Keep the same meaning. Be warm and brief.
+
+Last question:
+{last_q[:700]}
+
+Rules:
+- You may add one short plain-language sentence of context, then ONE simple question ending with `?`.
+- Max 40 words total. No jargon, no buzzwords, no preamble like "Sure" or "Of course".
+Return JSON only: {{"question": "..."}}"""
+    try:
+        out = llm_json(prompt, temperature=0.2, max_tokens=200)
+        q = _strip_soft_opener((out.get("question") or "").strip())
+        if q and "?" in q:
+            return q
+    except Exception:
+        pass
+    return fallback
+
+
 def _fallback_question(phase: str, plan: dict, user_message: str) -> str:
     if phase == "anchor":
-        return "Which AI tools do you actually open in a normal week, and for what kind of work?"
+        return "Which AI tools do you actually use in a normal week, and what do you use them for?"
     if phase == "primary":
-        return "In this scenario, what is the very first prompt you would give a model — role, inputs, and what would you forbid it to invent?"
+        return "How would you start? What's the first thing you'd ask the AI to do here?"
     if phase == "complication":
-        return "What do you do in the next hour, in order: first call, what you stop, and what never goes into the tool again?"
+        return "What's the first thing you'd do right now to deal with this?"
     if phase == "standards":
-        return "Who else must follow this bar on your team, and what is the minimum check before AI-assisted work goes out?"
-    return "What is one thing you would do differently next week in how you work with AI on this kind of task?"
+        return "What's one simple rule you'd want your team to follow before they use AI for this?"
+    return "Looking back, what's one thing you'd do differently next time?"
 
 
 def extract_session_evidence(

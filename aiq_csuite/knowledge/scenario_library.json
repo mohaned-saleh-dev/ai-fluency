@@ -1,58 +1,58 @@
 {
   "coo_office": {
     "primary_title": "COO memo under time pressure",
-    "primary_setup": "Your COO needs a cross-functional operating memo by tomorrow on a new AI-assisted planning cadence. You are tempted to have a model draft the whole thing from last quarter's deck and Slack threads.",
-    "primary_stakes": "Wrong owners, invented metrics, or a tone that bypasses Legal/Finance will land on the exec team and stick.",
-    "complication_inject": "Someone on your team pasted real customer identifiers and internal OKR text into a shared ChatGPT thread while 'cleaning up' the memo draft.",
-    "standards_prompt": "How you set expectations for leaders who use AI on memos, workflows, and decks that others will execute against."
+    "primary_setup": "Your COO needs a short memo by tomorrow about a new way of planning that uses AI. You're thinking of letting an AI tool write the whole thing from last quarter's slides and old Slack messages.",
+    "primary_stakes": "If it names the wrong people, makes up numbers, or skips Legal and Finance, the whole leadership team will see it.",
+    "complication_inject": "Someone on your team pasted real customer details and private company goals into a shared ChatGPT chat while cleaning up the draft.",
+    "standards_prompt": "Think about the leaders who use AI to write memos and plans that other people then act on."
   },
   "product": {
-    "primary_title": "Ship-week spec pressure",
-    "primary_setup": "Your team wants to draft a product spec with a copilot by Friday. The feature touches payments and compliance review.",
-    "primary_stakes": "Wrong requirements or invented policy details could delay launch or create regulatory rework.",
-    "complication_inject": "Someone on the team pasted anonymized-but-real customer identifiers into a shared ChatGPT thread while iterating on the spec.",
-    "standards_prompt": "How you set the quality bar when PMs or engineers use AI on specs others will build from."
+    "primary_title": "Spec due on Friday",
+    "primary_setup": "Your team wants to use an AI tool to write a product spec by Friday. The feature touches payments and needs a compliance check.",
+    "primary_stakes": "If the requirements are wrong, or the AI makes up a policy detail, the launch could slip or need rework.",
+    "complication_inject": "Someone on the team pasted real customer details into a shared ChatGPT chat while working on the spec.",
+    "standards_prompt": "Think about how you'd set the quality bar when your team uses AI to write specs others will build from."
   },
   "ops": {
-    "primary_title": "Customer reply at scale",
-    "primary_setup": "A model suggests refund and apology wording for an angry VIP case. A frontline agent wants to send it in one click.",
-    "primary_stakes": "Tone, factual accuracy, and policy limits all matter; a bad send is visible and hard to unwind.",
-    "complication_inject": "The first draft sounds empathetic but cites the wrong refund amount and a policy exception you do not offer.",
-    "standards_prompt": "What agents may auto-send versus escalate, and how you coach prompts and review habits for the team."
+    "primary_title": "Reply to an angry customer",
+    "primary_setup": "An AI tool drafted a refund-and-apology reply for an upset VIP customer. A frontline agent wants to send it with one click.",
+    "primary_stakes": "The tone, the facts, and the policy all have to be right. A bad reply is public and hard to take back.",
+    "complication_inject": "The draft sounds kind, but it offers the wrong refund amount and promises an exception your policy doesn't allow.",
+    "standards_prompt": "Think about what agents can send on their own versus what they should pass up to someone else."
   },
   "gtm": {
-    "primary_title": "External narrative draft",
-    "primary_setup": "Marketing wants a model-drafted campaign email and landing copy for a new product line by tomorrow.",
-    "primary_stakes": "Brand, legal, and factual claims must hold; generic AI voice is a reputational risk.",
-    "complication_inject": "The draft includes a performance claim that is directionally right but not approved for external use.",
-    "standards_prompt": "How brand, legal, and sales align on what the model may draft versus what stays human-only."
+    "primary_title": "Marketing copy due tomorrow",
+    "primary_setup": "Marketing wants an AI tool to write a campaign email and landing page for a new product by tomorrow.",
+    "primary_stakes": "The claims have to be true and brand-safe. Copy that sounds generic or off can hurt how people see you.",
+    "complication_inject": "The draft includes a performance claim that's roughly true but hasn't been approved to use in public.",
+    "standards_prompt": "Think about how brand, legal, and sales agree on what AI can draft and what stays human-written."
   },
   "people": {
-    "primary_title": "People-facing draft",
-    "primary_setup": "A manager wants to use a copilot to draft a sensitive policy note and a set of manager talking points.",
-    "primary_stakes": "Employee trust and consistency; wrong tone or half-true policy summaries create HR risk.",
-    "complication_inject": "The model confidently paraphrases a policy in a way that is softer than your actual rule.",
-    "standards_prompt": "Who may run AI on people content, who approves, and what must never be pasted into tools."
+    "primary_title": "A sensitive note to staff",
+    "primary_setup": "A manager wants to use an AI tool to draft a sensitive policy note and some talking points for managers.",
+    "primary_stakes": "This affects employee trust. The wrong tone or a half-true summary of the policy can create real HR problems.",
+    "complication_inject": "The AI confidently rewrites the policy in a way that sounds softer than the rule actually is.",
+    "standards_prompt": "Think about who's allowed to use AI on people topics, who signs off, and what should never be pasted in."
   },
   "risk": {
-    "primary_title": "Vendor and policy answer",
-    "primary_setup": "A business partner asks for a quick AI-generated summary of your data-handling posture for their vendor review.",
-    "primary_stakes": "Overstating controls or missing retention limits creates audit and regulatory exposure.",
-    "complication_inject": "The model draft says you delete all prompts within 24 hours, which is not true for the tool your team actually uses.",
-    "standards_prompt": "How you translate policy into front-line rules people can act on in standup, not buried PDFs."
+    "primary_title": "A quick answer about your data",
+    "primary_setup": "A business partner asks for a quick AI-written summary of how your company handles data, for their vendor review.",
+    "primary_stakes": "Overstating what you do, or missing how long you keep data, can create audit and legal trouble.",
+    "complication_inject": "The AI draft says you delete all prompts within 24 hours. That isn't true for the tool your team actually uses.",
+    "standards_prompt": "Think about how you turn policy into simple rules people can actually follow day to day."
   },
   "fin": {
-    "primary_title": "Board-ready numbers",
-    "primary_setup": "You need a deck section on unit economics; a colleague used a model to draft charts and narrative from a spreadsheet export.",
-    "primary_stakes": "A confident wrong number in a board pack is worse than a late slide.",
-    "complication_inject": "The model transposed two quarters in a growth chart; the narrative still reads convincingly.",
-    "standards_prompt": "Minimum verification before numbers or forecasts leave your desk."
+    "primary_title": "Numbers for the board",
+    "primary_setup": "You need a section of a board deck on the numbers. A colleague used an AI tool to draft the charts and the write-up from a spreadsheet.",
+    "primary_stakes": "A confident wrong number in a board pack is worse than a slide that's a little late.",
+    "complication_inject": "The AI mixed up two quarters in a growth chart, but the write-up still reads as if it's correct.",
+    "standards_prompt": "Think about the checks you'd want before any numbers or forecasts leave your desk."
   },
   "gm": {
-    "primary_title": "Portfolio trade-off",
-    "primary_setup": "Leadership asks you to pick one AI bet for the next half: support automation versus forecasting. Both teams sent model-written business cases.",
-    "primary_stakes": "Capital, risk, and org attention are finite; vendor demos often oversell.",
-    "complication_inject": "One vendor demo used synthetic success metrics that do not match how your data actually behaves.",
-    "standards_prompt": "How you test vendor claims and set kill criteria before scaling a model-assisted workflow."
+    "primary_title": "Pick one AI bet",
+    "primary_setup": "Leadership asks you to pick one AI project for the next six months: automating support, or improving forecasting. Both teams sent you business cases written by AI.",
+    "primary_stakes": "Money, risk, and attention are limited, and vendor demos often promise more than they deliver.",
+    "complication_inject": "One vendor's demo used made-up success numbers that don't match how your real data behaves.",
+    "standards_prompt": "Think about how you'd test a vendor's claims and decide when to stop a project before scaling it."
   }
 }

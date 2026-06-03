@@ -27,8 +27,9 @@ _SOFT = re.compile(
     r"^\s*(that[’']?s|it sounds like|understood|great\b|nice\b|i appreciate|thanks for sharing|makes sense)",
     re.I,
 )
-_SCENARIO_MARK = re.compile(r"\*\*Scenario\s*[—–-]", re.I)
-_TWIST_MARK = re.compile(r"\*\*Twist", re.I)
+_SCENARIO_MARK = re.compile(r"here'?s a situation", re.I)
+_TWIST_MARK = re.compile(r"now something goes wrong", re.I)
+_LABEL_LEAK = re.compile(r"\*\*(scenario\s*[—–-]|twist|stepping back|one last reflection)", re.I)
 _DIM_BANNER = re.compile(r"\[Dim:\s*D[1-6]", re.I)
 _IN_SCENARIO_LOOP = re.compile(
     r"\b(in the scenario where you|when evaluating the model-written|"
@@ -95,6 +96,13 @@ PERSONAS: Dict[str, List[str]] = {
         "Model draft said 24h deletion — false for our vendor. Correct before legal sends.",
         "Front line gets a one-page allowed/not allowed list; anything else to counsel.",
     ],
+    "asks_clarify": [
+        "Head of ops. We use ChatGPT and Copilot for memos and planning.",
+        "What do you mean?",
+        "Oh, got it. I'd ask it to draft the memo from last quarter's deck, then check the numbers myself.",
+        "I'd tell people not to paste customer data into it.",
+        "Have the team lead read it before it goes to the COO.",
+    ],
 }
 
 PROFILES = [
@@ -109,7 +117,7 @@ PROFILES = [
     ("ic", "product_engineering", "ic_product"),
     ("people_manager", "hr_people", "terse"),
     ("head_of", "go_to_market", "vague_enthusiast"),
-    ("executive", "general_management", "terse"),
+    ("head_of", "general_management", "asks_clarify"),
 ]
 
 
@@ -120,6 +128,7 @@ def _analyze_reply(text: str) -> Dict[str, bool]:
         "has_twist": bool(_TWIST_MARK.search(text or "")),
         "dim_banner": bool(_DIM_BANNER.search(text or "")),
         "generic_wording": bool(_GENERIC.search(text or "")),
+        "label_leak": bool(_LABEL_LEAK.search(text or "")),
         "has_question": "?" in (text or ""),
     }
 
@@ -222,6 +231,16 @@ def regression_gates(agg: Dict[str, Any], results: List[SimResult]) -> List[str]
         fails.append(f"scenario not shown in all sims: {agg.get('scenario_shown_rate')}")
     if int(agg.get("soft_opener_turns") or 0) > 0:
         fails.append(f"soft openers: {agg.get('soft_opener_turns')}")
+    if int(agg.get("label_leak_turns") or 0) > 0:
+        fails.append(f"internal labels leaked to user: {agg.get('label_leak_turns')}")
+    for r in results:
+        if r.persona != "asks_clarify":
+            continue
+        clar = next((t for t in r.turns if t.user.strip().lower() == "what do you mean?"), None)
+        if clar is None:
+            continue
+        if clar.phase_shift is not None:
+            fails.append(f"sim {r.sim_id}: clarification advanced the phase ({clar.phase_shift})")
     if int(agg.get("in_scenario_loop_turns") or 0) > n:
         fails.append(f"too many 'In the scenario where' loops: {agg.get('in_scenario_loop_turns')}")
     reached_close = str(agg.get("reached_close", "0/0"))
@@ -245,6 +264,7 @@ def aggregate(results: List[SimResult]) -> Dict[str, Any]:
     generic_count = 0
     loop_stem_count = 0
     dim_banner_count = 0
+    label_leak_count = 0
     reached_primary = 0
     reached_complication = 0
     reached_close = 0
@@ -267,6 +287,8 @@ def aggregate(results: List[SimResult]) -> Dict[str, Any]:
                 loop_stem_count += 1
             if t.flags.get("dim_banner"):
                 dim_banner_count += 1
+            if t.flags.get("label_leak"):
+                label_leak_count += 1
         if "primary" in r.phases_seen or any(t.flags.get("has_scenario_brief") for t in r.turns):
             reached_primary += 1
         if "complication" in r.phases_seen or any(t.flags.get("has_twist") for t in r.turns):
@@ -283,6 +305,7 @@ def aggregate(results: List[SimResult]) -> Dict[str, Any]:
         "generic_wording_turns": generic_count,
         "in_scenario_loop_turns": loop_stem_count,
         "dim_banner_turns": dim_banner_count,
+        "label_leak_turns": label_leak_count,
         "reached_complication": f"{reached_complication}/{n}",
         "reached_close": f"{reached_close}/{n}",
         "avg_model_turns": round(avg_model_turns / max(1, n), 1),
