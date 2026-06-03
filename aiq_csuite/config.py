@@ -69,7 +69,23 @@ def _resolve_instance_dir() -> Path:
 INSTANCE_DIR = _resolve_instance_dir()
 KNOWLEDGE_DIR = BASE_DIR / "knowledge"
 DB_PATH = Path(os.environ.get("AIQ_SQLITE_PATH", str(INSTANCE_DIR / "aiq_csuite.db"))).expanduser().resolve()
-DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
+
+
+def _normalize_database_url(raw: Optional[str]) -> str:
+    u = ("" if raw is None else str(raw)).replace("\ufeff", "").strip()
+    if not u:
+        return ""
+    if u.startswith("postgres://"):
+        u = "postgresql://" + u[len("postgres://") :]
+    return u
+
+
+# Pooler URI in DATABASE_URL; optional DATABASE_DIRECT_URL for db.<ref>.supabase.co (Render-friendly).
+_pool = _normalize_database_url(os.environ.get("DATABASE_URL"))
+_direct = _normalize_database_url(
+    os.environ.get("DATABASE_DIRECT_URL") or os.environ.get("DIRECT_DATABASE_URL")
+)
+DATABASE_URL = _direct or _pool
 DB_BACKEND = "postgres" if DATABASE_URL else "sqlite"
 
 GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY", "")

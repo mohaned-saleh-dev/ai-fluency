@@ -39,6 +39,7 @@ DIMENSION_ORDER: List[Tuple[str, str]] = [
 from db import (
     _row_get,
     check_db_health,
+    db_unavailable_payload,
     get_conn,
     get_dimension_shift_codes,
     get_phase_shift_codes,
@@ -122,6 +123,15 @@ def _expire_stale_sessions() -> int:
     return expire_stale_open_sessions(SESSION_MAX_AGE_SEC)
 
 
+def _init_db_or_response():
+    """Run init_db(); on failure return (json_response, status_code) for API routes."""
+    try:
+        init_db()
+        return None
+    except Exception:
+        return jsonify(db_unavailable_payload()), 503
+
+
 _DECK_DIR = os.path.join(HERE, "static", "deck")
 
 # —— Executive AiQ deck (Slideshow HTML + generated PDF) — not the in-chat one-page session report. ——
@@ -187,7 +197,9 @@ def orchestrator_page():
 @app.route("/api/orchestrator/state", methods=["GET"])
 def orchestrator_state():
     ensure_instance()
-    init_db()
+    db_err = _init_db_or_response()
+    if db_err:
+        return db_err
     if not _admin_ok():
         return (
             jsonify(
@@ -1872,7 +1884,9 @@ def _build_session_telemetry(
 
 @app.route("/api/admin/sessions", methods=["GET"])
 def admin_sessions():
-    init_db()
+    db_err = _init_db_or_response()
+    if db_err:
+        return db_err
     _expire_stale_sessions()
     if not _admin_ok():
         return jsonify(

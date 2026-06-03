@@ -3,6 +3,7 @@ import sqlite3
 import time
 import uuid
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse, unquote
 
 from config import DATABASE_URL, DB_BACKEND, DB_PATH, ensure_instance
 
@@ -222,8 +223,64 @@ def init_db():
             _ensure_postgres_app_grants(c)
 
 
+def parse_database_url_meta(url: Optional[str] = None) -> Dict[str, Any]:
+    """Safe summary of DATABASE_URL for /api/health/db (no password)."""
+    raw = (url if url is not None else DATABASE_URL) or ""
+    if not raw.strip():
+        return {"configured": False}
+    u = raw.strip()
+    if u.startswith("postgres://"):
+        u = "postgresql://" + u[len("postgres://") :]
+    try:
+        p = urlparse(u)
+        user = unquote(p.username or "")
+        host = p.hostname or ""
+        ref = ""
+        if user.startswith("postgres."):
+            ref = user.split(".", 1)[1]
+        elif host.startswith("db.") and host.endswith(".supabase.co"):
+            ref = host[3 : -len(".supabase.co")]
+        return {
+            "configured": True,
+            "mode": "direct"
+            if host.startswith("db.") and user == "postgres"
+            else ("pooler" if "pooler.supabase.com" in host else "postgres"),
+            "host": host,
+            "port": p.port,
+            "user": user,
+            "project_ref": ref or None,
+            "database": (p.path or "").lstrip("/") or "postgres",
+            "has_sslmode": "sslmode" in (p.query or "").lower(),
+        }
+    except Exception as ex:
+        return {"configured": True, "parse_error": str(ex)[:120]}
+
+
+def db_connectivity_hint(error: str, meta: Optional[Dict[str, Any]] = None) -> str:
+    err = (error or "").lower()
+    m = meta or parse_database_url_meta()
+    if "tenant" in err and "not found" in err:
+        ref = m.get("project_ref") or "YOUR_PROJECT_REF"
+        return (
+            "Supabase pooler rejected postgres.{ref} on {host}. Copy the URI from "
+            "Supabase → Connect (do not guess aws-0 vs aws-1). For Render, prefer "
+            "Direct connection: postgresql://postgres:PASSWORD@db.{ref}.supabase.co:5432/postgres"
+            "?sslmode=require (set as DATABASE_URL or DATABASE_DIRECT_URL).".format(
+                ref=ref, host=m.get("host") or "pooler host"
+            )
+        )
+    if "password authentication failed" in err:
+        return "Database password is wrong. Reset in Supabase → Database → Reset password, URL-encode special chars in DATABASE_URL."
+    if "could not translate host" in err or "name or service not known" in err:
+        return "DATABASE_URL host is invalid. Copy host exactly from Supabase Connect."
+    if not m.get("configured"):
+        return "DATABASE_URL is empty on this server; app is using SQLite or misconfigured env."
+    return "Verify DATABASE_URL in Render matches Supabase Connect, then Manual Deploy."
+
+
 def check_db_health() -> Dict[str, Any]:
     """Lightweight connectivity probe for /api/health/db (no admin token)."""
+    conn = parse_database_url_meta()
     try:
         init_db()
         with get_conn() as c:
@@ -232,9 +289,27 @@ def check_db_health() -> Dict[str, Any]:
             "ok": True,
             "backend": DB_BACKEND,
             "session_count": _count_from_row(row, 0),
+            "connection": conn,
         }
     except Exception as e:
-        return {"ok": False, "backend": DB_BACKEND, "error": str(e)[:400]}
+        err = str(e)[:400]
+        return {
+            "ok": False,
+            "backend": DB_BACKEND,
+            "error": err,
+            "connection": conn,
+            "hint": db_connectivity_hint(err, conn),
+        }
+
+
+def db_unavailable_payload() -> Dict[str, Any]:
+    h = check_db_health()
+    return {
+        "error": "database_unavailable",
+        "message": h.get("error") or "database connection failed",
+        "hint": h.get("hint"),
+        "connection": h.get("connection"),
+    }
 
 
 def new_session(
