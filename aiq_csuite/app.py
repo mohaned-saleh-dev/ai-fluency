@@ -37,6 +37,8 @@ DIMENSION_ORDER: List[Tuple[str, str]] = [
     ("D6", "Risk & responsible use"),
 ]
 from db import (
+    _row_get,
+    check_db_health,
     get_conn,
     get_dimension_shift_codes,
     get_phase_shift_codes,
@@ -309,6 +311,12 @@ def health():
     )
 
 
+@app.route("/api/health/db", methods=["GET"])
+def health_db():
+    """Postgres/SQLite probe — use after setting DATABASE_URL on Render."""
+    return jsonify(check_db_health())
+
+
 @app.route("/api/assessment/options", methods=["GET"])
 def assessment_options():
     """Level × job family choices; weights are fixed in code (see `assessment_profiles.py`)."""
@@ -429,7 +437,7 @@ def _progress_payload_for_session(session_id: str, var: Optional[dict] = None) -
             row = c.execute(
                 "SELECT variation_json FROM sessions WHERE id = ?", (session_id,)
             ).fetchone()
-        var = json.loads((row[0] if row else None) or "{}") if row else {}
+        var = json.loads(_row_get(row, "variation_json") or "{}") if row else {}
     if _uses_scenario_stack(var):
         phases = get_phase_shift_codes(session_id)
         flow = se.compute_flow_state(list_messages(session_id), phases, last_user_message="")
@@ -508,10 +516,10 @@ def get_session_resume(session_id: str):
         ).fetchone()
     if not row:
         return jsonify({"error": "Unknown session"}), 404
-    var = json.loads(row[0] or "{}")
+    var = json.loads(_row_get(row, "variation_json") or "{}")
     assessment = (var or {}).get("assessment") if isinstance(var, dict) else None
-    ended = row[1] is not None and row[1] != 0
-    started_at = float(row[2] or row[3] or 0.0)
+    ended = _row_get(row, "ended_at") is not None and _row_get(row, "ended_at") != 0
+    started_at = float(_row_get(row, "started_at") or _row_get(row, "created_at") or 0.0)
     msgs = list_messages(session_id)
     public_msgs = [{"role": m["role"], "content": m["content"]} for m in msgs]
     with get_conn() as c:
@@ -587,7 +595,7 @@ def track_event(session_id: str):
         s = c.execute("SELECT ended_at FROM sessions WHERE id = ?", (session_id,)).fetchone()
     if not s:
         return jsonify({"ok": False, "error": "Unknown session"}), 404
-    if s[0] is not None and s[0] != 0:
+    if _row_get(s, "ended_at") is not None and _row_get(s, "ended_at") != 0:
         return jsonify(
             {
                 "ok": False,
@@ -621,14 +629,14 @@ def send_message(session_id: str):
         ).fetchone()
     if not row:
         return jsonify({"error": "Unknown session"}), 404
-    if row[1] is not None and row[1] != 0:
+    if _row_get(row, "ended_at") is not None and _row_get(row, "ended_at") != 0:
         return jsonify(
             {
                 "error": "This session has ended (time limit or completed). Start a new assessment.",
                 "code": "session_ended",
             }
         ), 410
-    var = json.loads(row[0] or "{}")
+    var = json.loads(_row_get(row, "variation_json") or "{}")
     if not (var or {}).get("assessment"):
         a = build_assessment_block(
             (var or {}).get("level") or DEFAULT_LEVEL, (var or {}).get("job_family") or DEFAULT_FAMILY
@@ -810,7 +818,7 @@ def complete(session_id: str):
         ).fetchone()
     if not row:
         return jsonify({"error": "not found"}), 404
-    var = json.loads(row[0] or "{}")
+    var = json.loads(_row_get(row, "variation_json") or "{}")
     mlist = [{"role": m["role"], "content": m["content"]} for m in msgs]
     try:
         if _uses_scenario_stack(var):

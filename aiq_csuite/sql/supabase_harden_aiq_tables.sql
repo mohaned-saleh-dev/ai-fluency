@@ -17,10 +17,9 @@ ALTER TABLE IF EXISTS public.sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.events ENABLE ROW LEVEL SECURITY;
 
--- Defense in depth: strip API role grants if they were inherited from defaults.
-REVOKE ALL ON TABLE public.sessions FROM PUBLIC;
-REVOKE ALL ON TABLE public.messages FROM PUBLIC;
-REVOKE ALL ON TABLE public.events FROM PUBLIC;
+-- Defense in depth: strip Supabase Data API role grants only (not PUBLIC — that can
+-- break pooler logins that are not table owners). Re-apply app grants if needed:
+--   GRANT ALL ON TABLE public.sessions TO CURRENT_USER;  (repeat for messages, events)
 
 DO $$
 BEGIN
@@ -35,3 +34,8 @@ BEGIN
     EXECUTE 'REVOKE ALL ON TABLE public.events FROM authenticated';
   END IF;
 END $$;
+
+-- If admin/API routes return 500 after RLS hardening, restore app role access:
+GRANT ALL ON TABLE public.sessions TO postgres;
+GRANT ALL ON TABLE public.messages TO postgres;
+GRANT ALL ON TABLE public.events TO postgres;

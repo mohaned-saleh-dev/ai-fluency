@@ -71,16 +71,26 @@ def get_conn() -> DBConn:
     return DBConn()
 
 
+def _ensure_postgres_app_grants(c: DBConn) -> None:
+    """Ensure the DATABASE_URL role can read/write AiQ tables (Supabase pooler user may not be owner)."""
+    if c.backend != "postgres":
+        return
+    for tbl in ("sessions", "messages", "events"):
+        try:
+            c.execute(f"GRANT ALL PRIVILEGES ON TABLE {tbl} TO CURRENT_USER")
+        except Exception:
+            pass
+
+
 def _harden_postgres_public_tables(c: DBConn) -> None:
     """
     Supabase exposes `public` via PostgREST (anon JWT + authenticated users).
 
     Enable RLS on AiQ tables with **no permissive policies** ⇒ default deny for
-    roles subject to RLS. The Flask server connects as `postgres` (table owner);
-    owners bypass RLS in PostgreSQL, so application CRUD is unchanged.
+    roles subject to RLS. Table owners bypass RLS; non-owner app roles need GRANT.
 
-    Also REVOKE from PUBLIC/anon/authenticated where those roles exist (defense
-    in depth). Failures are ignored so local Postgres without `anon` still works.
+    Revoke only from Supabase API roles (anon/authenticated), not PUBLIC — revoking
+    PUBLIC can strip pooler login access when that role is not the table owner.
     """
     if c.backend != "postgres":
         return
@@ -90,15 +100,12 @@ def _harden_postgres_public_tables(c: DBConn) -> None:
         except Exception:
             pass
     for tbl in ("sessions", "messages", "events"):
-        try:
-            c.execute(f"REVOKE ALL ON TABLE {tbl} FROM PUBLIC")
-        except Exception:
-            pass
         for role in ("anon", "authenticated"):
             try:
                 c.execute(f"REVOKE ALL ON TABLE {tbl} FROM {role}")
             except Exception:
                 pass
+    _ensure_postgres_app_grants(c)
 
 
 def _ensure_session_column(c: DBConn, column: str, ddl_type: str) -> None:
@@ -211,6 +218,23 @@ def init_db():
         # Idempotent migrations for pre-existing DBs (older rows lack newer columns).
         _ensure_session_column(c, "participant_name", "TEXT")
         _ensure_session_column(c, "session_enrichment_json", "TEXT")
+        if DB_BACKEND == "postgres":
+            _ensure_postgres_app_grants(c)
+
+
+def check_db_health() -> Dict[str, Any]:
+    """Lightweight connectivity probe for /api/health/db (no admin token)."""
+    try:
+        init_db()
+        with get_conn() as c:
+            row = c.execute("SELECT COUNT(*) AS session_count FROM sessions").fetchone()
+        return {
+            "ok": True,
+            "backend": DB_BACKEND,
+            "session_count": _count_from_row(row, 0),
+        }
+    except Exception as e:
+        return {"ok": False, "backend": DB_BACKEND, "error": str(e)[:400]}
 
 
 def new_session(
@@ -282,7 +306,7 @@ def get_phase_shift_codes(session_id: str) -> List[str]:
     seen: set = set()
     out: List[str] = []
     for r in rows:
-        p = json.loads(r[0] or "{}")
+        p = json.loads(_row_get(r, "payload_json") or "{}")
         code = p.get("phase")
         if code and code not in seen:
             seen.add(code)
@@ -337,7 +361,7 @@ def get_dimension_shift_codes(session_id: str) -> List[str]:
     seen: set = set()
     out: List[str] = []
     for r in rows:
-        p = json.loads(r[0] or "{}")
+        p = json.loads(_row_get(r, "payload_json") or "{}")
         code = p.get("code")
         if code and code not in seen:
             seen.add(code)
@@ -370,10 +394,43 @@ def update_last_scores(session_id: str, scores: dict):
 
 
 def _row_get(row, key, default=None):
-    """Tolerant accessor for sqlite Row / psycopg DictRow when a column may be missing."""
+    """Tolerant accessor for sqlite Row and psycopg2 DictRow (name or index)."""
+    if row is None:
+        return default
+    if isinstance(key, int):
+        try:
+            return row[key]
+        except (KeyError, IndexError, TypeError):
+            return default
     try:
         return row[key]
     except (KeyError, IndexError, TypeError):
+        pass
+    try:
+        if hasattr(row, "keys"):
+            kl = str(key).lower()
+            for k in row.keys():
+                if str(k).lower() == kl:
+                    return row[k]
+    except (KeyError, IndexError, TypeError, AttributeError):
+        pass
+    return default
+
+
+def _count_from_row(row, default: int = 0) -> int:
+    """COUNT(*) result row — sqlite uses index 0; postgres DictRow uses a column name."""
+    if row is None:
+        return default
+    for key in ("blur_count", "session_count", "count", "COUNT(*)", "count_1"):
+        v = _row_get(row, key, None)
+        if v is not None:
+            try:
+                return int(v)
+            except (TypeError, ValueError):
+                pass
+    try:
+        return int(row[0])
+    except (KeyError, IndexError, TypeError, ValueError):
         return default
 
 
@@ -384,12 +441,13 @@ def session_stats(session_id: str) -> Dict[str, Any]:
             return {}
         msgs = c.execute("SELECT role FROM messages WHERE session_id = ?", (session_id,)).fetchall()
         blurs = c.execute(
-            "SELECT COUNT(*) FROM events WHERE session_id = ? AND type IN ('tab_blur', 'window_blur')",
+            "SELECT COUNT(*) AS blur_count FROM events WHERE session_id = ? AND type IN ('tab_blur', 'window_blur')",
             (session_id,),
         ).fetchone()
+    blur_n = _count_from_row(blurs, 0)
     first = s["started_at"] or s["created_at"]
     end = s["ended_at"] or time.time()
-    user_left = blurs[0] > 0 if blurs else False
+    user_left = blur_n > 0
     return {
         "session_id": session_id,
         "created_at": s["created_at"],
@@ -400,7 +458,7 @@ def session_stats(session_id: str) -> Dict[str, Any]:
         "model_messages": len(
             [1 for m in msgs if m["role"] in ("model", "assistant", "ai")]
         ),
-        "tab_blur_count": int(blurs[0]) if blurs else 0,
+        "tab_blur_count": blur_n,
         "user_switched_tab_yes_no": "Y" if user_left else "N",
         "variation": json.loads(s["variation_json"]) if s["variation_json"] else {},
         "last_scores": json.loads(s["last_scores_json"]) if s["last_scores_json"] else None,
