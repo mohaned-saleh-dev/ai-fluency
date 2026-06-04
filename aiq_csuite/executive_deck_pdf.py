@@ -40,6 +40,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 def _chrome_binary_paths() -> List[str]:
     p: List[str] = []
+    env_bin = (os.environ.get("CHROME_BIN") or os.environ.get("CHROMIUM_BIN") or "").strip()
+    if env_bin:
+        p.append(env_bin)
     if os.name == "nt":
         p.append(
             os.path.join(
