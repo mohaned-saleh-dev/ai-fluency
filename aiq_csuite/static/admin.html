@@ -472,6 +472,7 @@
           <h2>This run</h2>
           <div class="card-h-actions">
             <span id="sidMeta" class="meta">select a session</span>
+            <a id="downloadPdfBtn" class="btn hidden" href="#" target="_blank" rel="noopener" title="Download this candidate's PDF result (same as the participant gets)">Download PDF</a>
             <button type="button" id="deleteSessionBtn" class="btn btn-admin-del hidden" title="Delete this session">Delete</button>
           </div>
         </div>
@@ -1226,6 +1227,8 @@
         renderRows();
         const delTop = $("deleteSessionBtn");
         if (delTop) delTop.classList.add("hidden");
+        const pdfTop = $("downloadPdfBtn");
+        if (pdfTop) pdfTop.classList.add("hidden");
         $("sidMeta").innerHTML = "<span class='sid'>" + esc(id) + "</span>";
         $("detail").innerHTML = "<div class='detail-loading' role='status'>Loading analysis…</div>";
         try {
@@ -1466,8 +1469,21 @@
           $("detail").innerHTML =
             runHero + reportToc(onToc) + s1 + s2 + s3 + s4 + s5;
           if (delTop) delTop.classList.remove("hidden");
+          if (pdfTop) {
+            if (evalConcluded) {
+              pdfTop.href = "/api/session/" + encodeURIComponent(sess0.id || id) + "/report.pdf";
+              pdfTop.setAttribute(
+                "download",
+                "AiQ-result-" + (sess0.id || id) + ".pdf"
+              );
+              pdfTop.classList.remove("hidden");
+            } else {
+              pdfTop.classList.add("hidden");
+            }
+          }
         } catch (e) {
           if (delTop) delTop.classList.add("hidden");
+          if (pdfTop) pdfTop.classList.add("hidden");
           $("detail").innerHTML = "<p class='err'>" + esc(e.message || "Failed to load session") + "</p>";
         }
       }
@@ -1499,6 +1515,7 @@
         if (!sessions.length) {
           selected = "";
           if ($("deleteSessionBtn")) $("deleteSessionBtn").classList.add("hidden");
+          if ($("downloadPdfBtn")) $("downloadPdfBtn").classList.add("hidden");
           $("detail").innerHTML =
             "<p class='muted'>No sessions in this database.</p>" +
             "<p class='muted' style='margin-top:0.5rem;font-size:0.82rem'>If you ran the interview on another host/port or lost disk on redeploy, runs live only where that SQLite file was written.</p>";
@@ -1547,6 +1564,7 @@
         selected = "";
         sessions = [];
         if ($("deleteSessionBtn")) $("deleteSessionBtn").classList.add("hidden");
+        if ($("downloadPdfBtn")) $("downloadPdfBtn").classList.add("hidden");
         $("tb").innerHTML = "";
         if ($("dbMeta")) $("dbMeta").innerHTML = "";
         $("detail").innerHTML = "<p class='muted'>Select a run in the list.</p>";

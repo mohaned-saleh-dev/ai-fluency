@@ -818,6 +818,14 @@ def session_readiness(session_id: str):
     return jsonify(payload)
 
 
+def _with_typical_composite(ass):
+    if ass and isinstance(ass, dict) and "typical_composite" not in ass and ass.get("level"):
+        from assessment_profiles import typical_composite_for_level
+
+        return {**ass, "typical_composite": typical_composite_for_level(str(ass.get("level")))}
+    return ass
+
+
 @app.route("/api/session/<session_id>/complete", methods=["POST"])
 def complete(session_id: str):
     init_db()
@@ -825,26 +833,45 @@ def complete(session_id: str):
     msgs = list_messages(session_id)
     with get_conn() as c:
         row = c.execute(
-            "SELECT variation_json FROM sessions WHERE id = ?",
+            "SELECT variation_json, last_scores_json FROM sessions WHERE id = ?",
             (session_id,),
         ).fetchone()
     if not row:
         return jsonify({"error": "not found"}), 404
     var = json.loads(_row_get(row, "variation_json") or "{}")
+
+    # Idempotent: if this run is already scored, return the stored scores immediately.
+    # A slow first pass can time out at the browser/edge while the server still finished
+    # and persisted; the client's automatic retry then returns instantly from here.
+    stored_raw = _row_get(row, "last_scores_json")
+    if stored_raw:
+        try:
+            stored = json.loads(stored_raw)
+        except (json.JSONDecodeError, TypeError):
+            stored = None
+        if stored:
+            return jsonify(
+                {
+                    "scores": stored,
+                    "session_id": session_id,
+                    "assessment": _with_typical_composite((var or {}).get("assessment")),
+                    "cached": True,
+                }
+            )
+
     mlist = [{"role": m["role"], "content": m["content"]} for m in msgs]
+    is_v2 = _uses_scenario_stack(var)
+
+    # Step 1 — essential: evidence (best-effort) + dimension scores.
     try:
-        if _uses_scenario_stack(var):
-            pipeline = se.run_post_session_pipeline(mlist, var)
-            scores = pipeline.get("scores") or {}
-            enrichment = {
-                "version": 2,
-                "evidence": pipeline.get("evidence"),
-                "narrative": pipeline.get("narrative"),
-            }
-            var = {**var, "session_enrichment": enrichment}
-            update_session_variation(session_id, var)
-            update_session_enrichment(session_id, enrichment)
+        if is_v2:
+            try:
+                evidence = se.extract_session_evidence(mlist, var)
+            except Exception:
+                evidence = {}
+            scores = gs.score_transcript(mlist, var, evidence=evidence)
         else:
+            evidence = None
             scores = gs.score_transcript(mlist, var)
     except Exception as e:
         msg = (str(e) or "Scoring failed")[:500]
@@ -858,6 +885,14 @@ def complete(session_id: str):
                 "If the problem repeats, try again in a few minutes."
             )
         return jsonify({"error": user_msg, "detail": msg}), 500
+
+    # Step 2 — persist scores NOW so the run is marked complete even if the (slow)
+    # narrative step below times out or fails.
+    if is_v2:
+        enrichment = {"version": 2, "evidence": evidence, "narrative": None}
+        var = {**var, "session_enrichment": enrichment}
+        update_session_variation(session_id, var)
+        update_session_enrichment(session_id, enrichment)
     st_done = session_stats(session_id)
     n_dims = len(get_dimension_shift_codes(session_id))
     insert_event(
@@ -869,16 +904,26 @@ def complete(session_id: str):
         },
     )
     end_session(session_id, scores=scores)
-    ass = (var or {}).get("assessment")
-    if ass and isinstance(ass, dict) and "typical_composite" not in ass and ass.get("level"):
-        from assessment_profiles import typical_composite_for_level
 
-        ass = {**ass, "typical_composite": typical_composite_for_level(str(ass.get("level")))}
+    # Step 3 — best-effort coaching narrative. Never let a failure here lose the score.
+    if is_v2:
+        try:
+            narrative = se.generate_participant_narrative(
+                mlist, evidence or {}, scores, (var or {}).get("assessment") or {}
+            )
+            if narrative:
+                enrichment = {"version": 2, "evidence": evidence, "narrative": narrative}
+                var = {**var, "session_enrichment": enrichment}
+                update_session_variation(session_id, var)
+                update_session_enrichment(session_id, enrichment)
+        except Exception:
+            pass
+
     return jsonify(
         {
             "scores": scores,
             "session_id": session_id,
-            "assessment": ass,
+            "assessment": _with_typical_composite((var or {}).get("assessment")),
         }
     )
 

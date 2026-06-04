@@ -587,9 +587,22 @@
     }
   }
 
+  async function postCompleteWithRetry() {
+    const path = "/api/session/" + sessionState.id + "/complete";
+    try {
+      return await api(path, {});
+    } catch (e1) {
+      // A slow first pass can time out in the browser/edge even though the server
+      // finished and saved the score. Wait, then retry — the server returns the
+      // stored result instantly (idempotent), so the user still sees their summary.
+      await new Promise((r) => setTimeout(r, 3000));
+      return await api(path, {});
+    }
+  }
+
   async function runCompleteAndShowResults() {
     if (!sessionState.id) return;
-    const o = await api("/api/session/" + sessionState.id + "/complete", {});
+    const o = await postCompleteWithRetry();
     clearActiveSession();
     if (o.assessment) sessionState.assessment = o.assessment;
     if (sessionState.interval) clearInterval(sessionState.interval);
@@ -625,7 +638,7 @@
     }
     if (btn) {
       btn.disabled = true;
-      btn.textContent = "Scoring…";
+      btn.textContent = "Scoring… (up to a minute)";
     }
     if (cont) cont.disabled = true;
     setEndModalScoringState(true);

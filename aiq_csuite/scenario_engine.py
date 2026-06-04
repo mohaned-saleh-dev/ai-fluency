@@ -648,7 +648,7 @@ Return JSON only:
 }}
 Rules: 3-5 next_steps, each action must reference something they said or did not show. No phrase "pick a routine deliverable". Strings: no unescaped double quotes inside values."""
     try:
-        return llm_json(prompt, temperature=0.25, max_tokens=4000)
+        return llm_json(prompt, temperature=0.25, max_tokens=2400)
     except Exception:
         return {}
 
