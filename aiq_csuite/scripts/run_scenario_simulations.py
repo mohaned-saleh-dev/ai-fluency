@@ -27,8 +27,8 @@ _SOFT = re.compile(
     r"^\s*(that[’']?s|it sounds like|understood|great\b|nice\b|i appreciate|thanks for sharing|makes sense)",
     re.I,
 )
-_SCENARIO_MARK = re.compile(r"here'?s a situation", re.I)
-_TWIST_MARK = re.compile(r"now something goes wrong", re.I)
+_SCENARIO_MARK = re.compile(r"picture this", re.I)
+_TWIST_MARK = re.compile(r"something goes wrong", re.I)
 _LABEL_LEAK = re.compile(r"\*\*(scenario\s*[—–-]|twist|stepping back|one last reflection)", re.I)
 _DIM_BANNER = re.compile(r"\[Dim:\s*D[1-6]", re.I)
 _IN_SCENARIO_LOOP = re.compile(

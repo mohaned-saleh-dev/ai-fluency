@@ -87,7 +87,7 @@ def _is_clarification_request(text: str) -> bool:
 
 _THIN_PROBE_BY_PHASE: Dict[str, str] = {
     "primary": (
-        "Let's make it concrete: what would you actually type into the AI tool to get started here?"
+        "Let's make it concrete — what would you actually do first here?"
     ),
     "complication": (
         "What's the very first thing you'd do once you noticed this?"
@@ -158,9 +158,9 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
             "focus": base.get("standards_prompt", ""),
         },
         "probe_bank": [
-            "How would you start? What's the first thing you'd ask the AI to do here?",
-            "Say the AI gives you something that looks polished. How would you check it's actually right before anyone else sees it?",
-            "Who else would you want to look at this before it goes out?",
+            "What would you do first to handle this?",
+            "The draft looks good at first glance. What would you check before anyone else sees it?",
+            "Who else needs to read or sign off on this before it goes out?",
         ],
         "opening_id": rng.randrange(0, 6),
     }
@@ -360,18 +360,18 @@ def _scenario_brief_for(phase: str, plan: dict) -> str:
         primary = plan.get("primary") or {}
         setup = (primary.get("setup", "") or "").strip()
         stakes = (primary.get("stakes", "") or "").strip()
-        body = f"Here's a situation I'd like your take on. {setup}".strip()
+        body = f"Picture this. {setup}".strip()
         if stakes:
             body = f"{body} {stakes}"
         return body
     if phase == "complication":
         inject = ((plan.get("complication") or {}).get("inject", "") or "").strip()
         if inject:
-            return f"Now something goes wrong. {inject}"
+            return f"Something goes wrong. {inject}"
     if phase == "standards":
         focus = ((plan.get("standards") or {}).get("focus", "") or "").strip()
         if focus:
-            return f"Let's step back from your own work for a moment. {focus}"
+            return focus
     return ""
 
 
@@ -463,7 +463,7 @@ def plan_and_render_turn(
 **Hard rules (must follow exactly):**
 - Output JSON only: `question`, `session_complete`, `internal_tags`, `missing_facets`.
 - `question`: ONE short, plain-English question ending with `?`. Max 30 words. No bullet lists.
-- **Plain language:** write the way you'd speak to a smart colleague who isn't technical. Everyday words, short sentences. No jargon or buzzwords (avoid: "guardrails", "minimum bar", "kill criteria", "verification step", "forbidden inventions", "what never goes into the tool"). Ask about ONE thing, not three things at once.
+- **Plain language:** write the way you'd speak to a smart colleague who isn't technical. Everyday words, short sentences. Name the real artifact (email, deck, refund reply) — not "AI output" or "policy note". No jargon or buzzwords (avoid: "guardrails", "minimum bar", "kill criteria", "verification step", "forbidden inventions", "AI-generated", "sensitive policy note", "talking points"). Ask about ONE thing, not three things at once.
 - **FORBIDDEN openers:** That's, It sounds like, Understood, Great, Nice, In the scenario where, In the context of the scenario, In light of the vendor.
 - **FORBIDDEN:** repeating the same framing you already asked. Ask a NEW, simple angle.
 - Phase rules (keep each as one simple question):
@@ -566,7 +566,7 @@ def _fallback_question(phase: str, plan: dict, user_message: str) -> str:
     if phase == "anchor":
         return "Which AI tools do you actually use in a normal week, and what do you use them for?"
     if phase == "primary":
-        return "How would you start? What's the first thing you'd ask the AI to do here?"
+        return "What would you do first to handle this?"
     if phase == "complication":
         return "What's the first thing you'd do right now to deal with this?"
     if phase == "standards":

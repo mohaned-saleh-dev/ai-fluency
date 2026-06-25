@@ -1,58 +1,58 @@
 {
   "coo_office": {
-    "primary_title": "COO memo under time pressure",
-    "primary_setup": "Your COO needs a short memo by tomorrow about a new way of planning that uses AI. You're thinking of letting an AI tool write the whole thing from last quarter's slides and old Slack messages.",
-    "primary_stakes": "If it names the wrong people, makes up numbers, or skips Legal and Finance, the whole leadership team will see it.",
-    "complication_inject": "Someone on your team pasted real customer details and private company goals into a shared ChatGPT chat while cleaning up the draft.",
-    "standards_prompt": "Think about the leaders who use AI to write memos and plans that other people then act on."
+    "primary_title": "COO memo by tomorrow",
+    "primary_setup": "Your COO needs a one-page memo by tomorrow on how your team will use AI in quarterly planning. You are about to ask ChatGPT to write the first draft from last quarter's slides and a Slack export.",
+    "primary_stakes": "The whole leadership team will read it. Wrong names, made-up numbers, or skipping Legal and Finance will be embarrassing and hard to walk back.",
+    "complication_inject": "While polishing the draft, someone on your team pasted real customer names and next year's targets into a shared ChatGPT thread.",
+    "standards_prompt": "If everyone in your function starts using ChatGPT on memos and plans that others act on, what would you want them to check before they hit send?"
   },
   "product": {
-    "primary_title": "Spec due on Friday",
-    "primary_setup": "Your team wants to use an AI tool to write a product spec by Friday. The feature touches payments and needs a compliance check.",
-    "primary_stakes": "If the requirements are wrong, or the AI makes up a policy detail, the launch could slip or need rework.",
-    "complication_inject": "Someone on the team pasted real customer details into a shared ChatGPT chat while working on the spec.",
-    "standards_prompt": "Think about how you'd set the quality bar when your team uses AI to write specs others will build from."
+    "primary_title": "Spec due Friday",
+    "primary_setup": "Your product manager wants ChatGPT to write the spec for a new checkout change by Friday. The feature handles card payments and needs Compliance sign-off.",
+    "primary_stakes": "If the requirements are wrong, or the draft invents a rule that does not exist, you slip the launch or ship something Compliance has not approved.",
+    "complication_inject": "Someone pasted real customer account numbers into a shared ChatGPT chat while working on the spec.",
+    "standards_prompt": "When your team uses ChatGPT on specs that engineers will build, what quality bar would you set before anyone commits to the work?"
   },
   "ops": {
-    "primary_title": "Reply to an angry customer",
-    "primary_setup": "An AI tool drafted a refund-and-apology reply for an upset VIP customer. A frontline agent wants to send it with one click.",
-    "primary_stakes": "The tone, the facts, and the policy all have to be right. A bad reply is public and hard to take back.",
-    "complication_inject": "The draft sounds kind, but it offers the wrong refund amount and promises an exception your policy doesn't allow.",
-    "standards_prompt": "Think about what agents can send on their own versus what they should pass up to someone else."
+    "primary_title": "Angry VIP customer",
+    "primary_setup": "ChatGPT drafted a refund apology for an upset VIP customer. Your frontline agent wants to send it in one click from the helpdesk.",
+    "primary_stakes": "The tone, the facts, and what you are offering have to match policy. A wrong reply goes straight to the customer and is hard to undo.",
+    "complication_inject": "The draft sounds warm, but it offers a bigger refund than policy allows and promises an exception your team cannot honor.",
+    "standards_prompt": "What can frontline agents send on their own, and what should they escalate before a customer sees it?"
   },
   "gtm": {
-    "primary_title": "Marketing copy due tomorrow",
-    "primary_setup": "Marketing wants an AI tool to write a campaign email and landing page for a new product by tomorrow.",
-    "primary_stakes": "The claims have to be true and brand-safe. Copy that sounds generic or off can hurt how people see you.",
-    "complication_inject": "The draft includes a performance claim that's roughly true but hasn't been approved to use in public.",
-    "standards_prompt": "Think about how brand, legal, and sales agree on what AI can draft and what stays human-written."
+    "primary_title": "Launch copy due tomorrow",
+    "primary_setup": "Marketing wants ChatGPT to write tomorrow's launch email and landing page for a new savings product.",
+    "primary_stakes": "Every claim has to be true and on-brand. Generic or overstated copy hurts trust and can create compliance issues.",
+    "complication_inject": "The draft includes a performance number that is roughly true internally but has never been approved for public use.",
+    "standards_prompt": "How would brand, legal, and sales agree on what ChatGPT can draft versus what stays fully human-written?"
   },
   "people": {
-    "primary_title": "A sensitive note to staff",
-    "primary_setup": "A manager wants to use an AI tool to draft a sensitive policy note and some talking points for managers.",
-    "primary_stakes": "This affects employee trust. The wrong tone or a half-true summary of the policy can create real HR problems.",
-    "complication_inject": "The AI confidently rewrites the policy in a way that sounds softer than the rule actually is.",
-    "standards_prompt": "Think about who's allowed to use AI on people topics, who signs off, and what should never be pasted in."
+    "primary_title": "Return-to-office email",
+    "primary_setup": "Your company announces a return-to-office policy next week. Someone in People Ops used ChatGPT to draft the company-wide email and a short guide for line managers on how to explain it to their teams.",
+    "primary_stakes": "If the email makes hybrid sound more flexible than the rule really is, employees will act on the wrong expectation and HR will field angry messages.",
+    "complication_inject": "The ChatGPT draft reads friendly, but it says people can work from home twice a week. The approved policy is one day.",
+    "standards_prompt": "Before any people-related email goes to staff, who has to read it, and what would you tell your team about putting employee details into ChatGPT?"
   },
   "risk": {
-    "primary_title": "A quick answer about your data",
-    "primary_setup": "A business partner asks for a quick AI-written summary of how your company handles data, for their vendor review.",
-    "primary_stakes": "Overstating what you do, or missing how long you keep data, can create audit and legal trouble.",
-    "complication_inject": "The AI draft says you delete all prompts within 24 hours. That isn't true for the tool your team actually uses.",
-    "standards_prompt": "Think about how you turn policy into simple rules people can actually follow day to day."
+    "primary_title": "Vendor security questionnaire",
+    "primary_setup": "A partner bank sends a vendor security form. Your colleague used ChatGPT to fill in the section on how you store customer data and how long you keep it.",
+    "primary_stakes": "If you overstate what you do, or miss how long data is retained, you create audit and legal exposure.",
+    "complication_inject": "The draft says you delete all prompts within 24 hours. That is not true for the tool your team actually uses.",
+    "standards_prompt": "How would you turn your data-retention policy into simple day-to-day rules people can follow when they answer forms like this?"
   },
   "fin": {
-    "primary_title": "Numbers for the board",
-    "primary_setup": "You need a section of a board deck on the numbers. A colleague used an AI tool to draft the charts and the write-up from a spreadsheet.",
-    "primary_stakes": "A confident wrong number in a board pack is worse than a slide that's a little late.",
-    "complication_inject": "The AI mixed up two quarters in a growth chart, but the write-up still reads as if it's correct.",
-    "standards_prompt": "Think about the checks you'd want before any numbers or forecasts leave your desk."
+    "primary_title": "Board deck numbers",
+    "primary_setup": "You owe a section of next week's board deck on revenue and growth. A colleague used ChatGPT to draft the charts and narrative from a spreadsheet.",
+    "primary_stakes": "A confident wrong number in a board pack is worse than a slide that lands a day late.",
+    "complication_inject": "The chart swaps Q2 and Q3 growth, but the write-up still sounds sure of itself.",
+    "standards_prompt": "What checks would you want before any number or forecast leaves your desk, whether or not ChatGPT helped write it?"
   },
   "gm": {
     "primary_title": "Pick one AI bet",
-    "primary_setup": "Leadership asks you to pick one AI project for the next six months: automating support, or improving forecasting. Both teams sent you business cases written by AI.",
-    "primary_stakes": "Money, risk, and attention are limited, and vendor demos often promise more than they deliver.",
-    "complication_inject": "One vendor's demo used made-up success numbers that don't match how your real data behaves.",
-    "standards_prompt": "Think about how you'd test a vendor's claims and decide when to stop a project before scaling it."
+    "primary_setup": "Leadership asks you to choose one AI project for the next six months: automating support replies, or improving sales forecasting. Both teams sent business cases — partly drafted with ChatGPT.",
+    "primary_stakes": "Budget, risk, and leadership attention are limited. Vendor demos often look better than real life.",
+    "complication_inject": "One vendor's demo used success numbers that do not match how your actual data behaves.",
+    "standards_prompt": "How would you pressure-test a vendor's claims and decide when to stop a pilot before you scale it?"
   }
 }
