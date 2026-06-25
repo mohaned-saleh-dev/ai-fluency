@@ -79,28 +79,28 @@
   },
   "people": {
     "primary_title": "Return-to-office email",
-    "primary_setup": "Your company announces a return-to-office policy next week. Someone in People Ops used ChatGPT to draft the company-wide email and a short guide for line managers on how to explain it to their teams.",
-    "primary_stakes": "If the email makes hybrid sound more flexible than the rule really is, employees will act on the wrong expectation and HR will field angry messages.",
-    "complication_inject": "The ChatGPT draft reads friendly, but it says people can work from home twice a week. The approved policy is one day.",
-    "standards_prompt": "Before any people-related email goes to staff, who has to read it, and what would you tell your team about putting employee details into ChatGPT?",
-    "standards_question": "What's one rule your team must follow before a people-related email goes to staff?",
+    "primary_setup": "People Ops used ChatGPT to draft next week's return-to-office email and a short guide for managers.",
+    "primary_stakes": "The draft makes hybrid sound more flexible than your real rule. If that goes out as-is, people will expect the wrong thing.",
+    "complication_inject": "The draft says staff can work from home two days a week. Your approved policy is one day.",
+    "standards_prompt": "Who must read people emails before they go to staff? What do you tell your team about putting employee details into ChatGPT?",
+    "standards_question": "What's one rule before a people-related email goes to staff?",
     "probe_bank": [
-      "What would you do first when you see this draft?",
-      "The email reads well — what would you check against the actual policy?",
-      "Who has to approve it before it goes company-wide?"
+      "What do you do first when you see this draft?",
+      "The email reads fine — what do you check against the real policy?",
+      "Who approves it before it goes company-wide?"
     ]
   },
   "people_ta": {
     "primary_title": "Candidate emails due today",
-    "primary_setup": "A recruiter on your team used ChatGPT to draft a batch of rejection emails and a first-draft offer letter for a senior hire. They want to send them by end of day.",
-    "primary_stakes": "Wrong tone, wrong role details, or a benefit that is not in the approved offer template can upset candidates and create legal exposure.",
-    "complication_inject": "The offer letter draft adds a signing bonus your comp band does not allow, but it reads confident and polished.",
-    "standards_prompt": "Before any candidate-facing email or offer leaves your team, who reviews it, and what would you tell recruiters about pasting applicant details into ChatGPT?",
-    "standards_question": "What's one rule recruiters must follow before they send a ChatGPT-drafted email or offer?",
+    "primary_setup": "A recruiter used ChatGPT to draft rejection emails and an offer letter for a senior hire. They want to send everything today.",
+    "primary_stakes": "Wrong benefits or tone can lose the candidate or create legal trouble.",
+    "complication_inject": "The offer includes a signing bonus that is not in your approved pay band. It still reads polished.",
+    "standards_prompt": "Who reviews candidate emails and offers before they go out? What do recruiters never paste into ChatGPT?",
+    "standards_question": "What's one rule before a recruiter sends a ChatGPT-drafted email or offer?",
     "probe_bank": [
-      "What would you do first when you see these drafts?",
-      "The offer reads fine — what would you check before it goes to the candidate?",
-      "Who has to sign off before candidate emails go out?"
+      "What do you do first when you see these drafts?",
+      "The offer looks fine — what do you check before the candidate gets it?",
+      "Who signs off before these emails go out?"
     ]
   },
   "people_hrbp": {

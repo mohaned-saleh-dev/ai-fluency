@@ -110,6 +110,21 @@ def test_standards_question_from_library():
     q = se._pick_probe("standards", plan, 0)
     assert "comp" in q.lower() or "pay" in q.lower()
 
+def test_talent_acquisition_typo_routes_to_ta():
+    plan = se.build_scenario_plan(
+        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
+        "seed",
+    )
+    line = "I'm the head of Talent acquistion, I use gemini and notion ai"
+    out = se._apply_anchor_context(
+        plan,
+        [{"role": "model", "content": "What is your role?"},
+         {"role": "user", "content": line}],
+    )
+    assert out.get("cluster") == "people_ta"
+    assert "recruiter" in (out.get("primary") or {}).get("setup", "").lower()
+    assert "return-to-office" not in (out.get("primary") or {}).get("setup", "").lower()
+
 
 def test_anchor_in_flight_user_message_personalizes_before_primary():
     """Regression: anchor answer is user_message, not history — must not mix RTO + TA probes."""
@@ -141,4 +156,5 @@ if __name__ == "__main__":
     test_gtm_sales_anchor_swaps_scenario()
     test_standards_question_from_library()
     test_anchor_in_flight_user_message_personalizes_before_primary()
+    test_talent_acquisition_typo_routes_to_ta()
     print("ok")

@@ -76,9 +76,9 @@ _CLARIFY_PATTERNS = re.compile(
     re.I,
 )
 _TA_SIGNALS = re.compile(
-    r"\b(talent acquisition|head of ta|ta lead|recruiting|recruiter|"
-    r"sourcing|candidate outreach|offer letter|job description|hiring manager|"
-    r"applicant tracking|\bats\b)\b",
+    r"\b(talent\s+acqui\w*|talent acquisition|head of talent|head of ta|ta lead|"
+    r"recruit\w*|sourcing|candidate outreach|offer letter|job description|"
+    r"hiring manager|applicant tracking|\bats\b)\b",
     re.I,
 )
 _ER_SIGNALS = re.compile(
@@ -182,9 +182,18 @@ def _scenario_from_library_key(key: str) -> Dict[str, Any]:
     return out
 
 
+def _normalize_anchor_for_match(anchor: str) -> str:
+    """Light cleanup so typos still route to the right sub-scenario."""
+    t = (anchor or "").lower()
+    t = re.sub(r"acqui[sz]it?ion", "acquisition", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
 def _pick_variant_key(cluster: str, anchor: str, variants: List[Tuple[str, re.Pattern]]) -> Optional[str]:
+    hay = _normalize_anchor_for_match(anchor)
     for key, pattern in variants:
-        if pattern.search(anchor):
+        if pattern.search(hay) or pattern.search(anchor or ""):
             return key
     return None
 
@@ -494,23 +503,43 @@ def _strip_soft_opener(s: str) -> str:
 
 
 def _scenario_brief_for(phase: str, plan: dict) -> str:
-    """Natural narration for a phase entry — no stage-direction labels shown to the user."""
+    """Short, plain scenario setup — no filler phrases."""
     if phase == "primary":
         primary = plan.get("primary") or {}
         setup = (primary.get("setup", "") or "").strip()
         stakes = (primary.get("stakes", "") or "").strip()
-        body = f"Here's something that could happen in your week. {setup}".strip()
-        if stakes:
-            body = f"{body} {stakes}"
-        return body
+        if setup and stakes:
+            return f"{setup}\n\n{stakes}"
+        return setup or stakes
     if phase == "complication":
         inject = ((plan.get("complication") or {}).get("inject", "") or "").strip()
         if inject:
-            return f"Something goes wrong. {inject}"
+            return inject
     if phase == "standards":
         focus = ((plan.get("standards") or {}).get("focus", "") or "").strip()
         if focus:
             return focus
+    return ""
+
+
+_ROLE_ACK_LABELS: Dict[str, str] = {
+    "ta": "recruiting and talent acquisition",
+    "hrbp": "HR business partnering",
+    "ld": "learning and development",
+    "comp": "compensation",
+    "er": "employee relations",
+    "sales": "sales",
+    "brand": "brand and comms",
+}
+
+
+def _role_ack(plan: dict) -> str:
+    key = str(plan.get("anchor_role") or "").strip().lower()
+    if key and key in _ROLE_ACK_LABELS:
+        return f"Okay — I'll stick to {_ROLE_ACK_LABELS[key]}."
+    anchor = plan.get("anchor_snippet") or ""
+    if _TA_SIGNALS.search(_normalize_anchor_for_match(anchor)):
+        return "Okay — I'll stick to recruiting and talent acquisition."
     return ""
 
 
@@ -593,10 +622,9 @@ def plan_and_render_turn(
         session_complete = True
 
     phase_brief = _scenario_brief_for(phase, plan) if is_phase_entry else ""
-    # After anchor, acknowledge their role briefly before the scenario.
-    if is_phase_entry and phase == "primary" and plan.get("anchor_snippet"):
-        role_ack = "Got it — keeping your role in mind."
-        phase_brief = f"{role_ack}\n\n{phase_brief}" if phase_brief else role_ack
+    ack = _role_ack(plan) if is_phase_entry and phase == "primary" else ""
+    if ack:
+        phase_brief = f"{ack}\n\n{phase_brief}" if phase_brief else ack
     body_parts: List[str] = []
     if phase_brief:
         body_parts.append(phase_brief)
