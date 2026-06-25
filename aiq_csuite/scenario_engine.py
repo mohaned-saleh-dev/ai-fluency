@@ -189,6 +189,14 @@ def _pick_variant_key(cluster: str, anchor: str, variants: List[Tuple[str, re.Pa
     return None
 
 
+def _messages_for_context(history: List[dict], user_message: str) -> List[dict]:
+    """History plus the in-flight user reply (not yet appended when plan_and_render runs)."""
+    msgs = list(history)
+    if (user_message or "").strip():
+        msgs.append({"role": "user", "content": user_message})
+    return msgs
+
+
 def _apply_anchor_context(plan: dict, messages: List[dict]) -> dict:
     """Swap generic scenarios for sub-variants when the anchor answer names a specific role."""
     out = dict(plan)
@@ -517,7 +525,10 @@ def plan_and_render_turn(
     Server-controlled phase + scenario presentation; LLM only writes the question.
     Returns {reply, phase_shift?, session_suggests_complete, planner_meta}.
     """
-    plan = _apply_anchor_context(dict(variation.get("scenario_plan") or {}), history)
+    plan = _apply_anchor_context(
+        dict(variation.get("scenario_plan") or {}),
+        _messages_for_context(history, user_message),
+    )
     ass = variation.get("assessment") or {}
     current_phase = flow.get("current_phase") or "anchor"
     must_adv = bool(flow.get("must_advance_phase"))

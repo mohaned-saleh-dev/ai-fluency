@@ -111,6 +111,23 @@ def test_standards_question_from_library():
     assert "comp" in q.lower() or "pay" in q.lower()
 
 
+def test_anchor_in_flight_user_message_personalizes_before_primary():
+    """Regression: anchor answer is user_message, not history — must not mix RTO + TA probes."""
+    plan = se.build_scenario_plan(
+        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
+        "seed",
+    )
+    opening_only = [{"role": "model", "content": "What is your role?"}]
+    anchor_line = "Head of Talent Acquisition. ChatGPT for job descriptions."
+    without_current = se._apply_anchor_context(plan, opening_only)
+    assert without_current.get("cluster") == "people"
+    with_current = se._apply_anchor_context(
+        plan, se._messages_for_context(opening_only, anchor_line)
+    )
+    assert with_current.get("cluster") == "people_ta"
+    assert "offer" in with_current.get("probe_bank", [""])[1].lower()
+
+
 if __name__ == "__main__":
     test_thin_answer_detection()
     test_complication_signal_skips_portfolio_loop()
@@ -123,4 +140,5 @@ if __name__ == "__main__":
     test_er_anchor_swaps_people_scenario()
     test_gtm_sales_anchor_swaps_scenario()
     test_standards_question_from_library()
+    test_anchor_in_flight_user_message_personalizes_before_primary()
     print("ok")
