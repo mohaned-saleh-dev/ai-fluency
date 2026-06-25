@@ -63,13 +63,22 @@ _IN_SCENARIO_LOOP = re.compile(
     re.I,
 )
 _CLARIFY_PATTERNS = re.compile(
-    r"(what do you mean|i don'?t (understand|get it|follow|know what you)|"
+    r"(what do you mean|you mean\b|do you mean|are you saying\b|"
+    r"i don'?t (understand|get it|follow|know what you)|"
     r"not sure what you (mean|are asking)|can you (clarify|explain|rephrase|simplify|elaborate|repeat|be more specific)|"
     r"could you (clarify|explain|rephrase|simplify|repeat)|come again|say that again|"
     r"rephrase|repeat the question|don'?t understand( the| your)? question|"
     r"unclear|confus(ed|ing)|explain (that|the question|what)|in plain|simpl(er|y that)|"
     r"didn'?t (get|understand)|lost me|what'?s that mean|meaning of|"
-    r"^huh\b|^sorry\?|^what\?|too (complex|complicated|technical))",
+    r"was it (already |)(sent|published|posted|live|out)|has it (been |)(sent|published|posted)|"
+    r"published already|gone out|went out|still (a |just a )?draft|not yet sent|"
+    r"^huh\b|^sorry\?|^what\?|too (complex|complicated|technical)|^wait[, ]|^just to clarify)",
+    re.I,
+)
+_TA_SIGNALS = re.compile(
+    r"\b(talent acquisition|head of ta|ta lead|recruiting|recruiter|"
+    r"sourcing|candidate outreach|offer letter|job description|hiring manager|"
+    r"applicant tracking|\bats\b)\b",
     re.I,
 )
 
@@ -81,9 +90,64 @@ def _is_clarification_request(text: str) -> bool:
         return False
     if t and set(t) <= {"?", " "}:
         return True
-    if len(t.split()) > 16:
+    if len(t.split()) > 22:
         return False
-    return bool(_CLARIFY_PATTERNS.search(t))
+    if _CLARIFY_PATTERNS.search(t):
+        return True
+    # Short question without a substantive answer — likely checking scenario facts.
+    if t.rstrip().endswith("?") and len(t.split()) <= 14:
+        if re.search(
+            r"\b(already|published|sent|posted|live|draft|mean|clarify|understand|scenario)\b",
+            t,
+            re.I,
+        ):
+            return True
+    return False
+
+
+def _first_anchor_user_message(messages: List[dict]) -> str:
+    """First user reply after the opening — their stated role and tools."""
+    seen_model = False
+    for m in messages:
+        role = (m.get("role") or "").strip()
+        if role == "model":
+            seen_model = True
+            continue
+        if role == "user" and seen_model:
+            return (m.get("content") or "").strip()
+    return ""
+
+
+def _scenario_from_library_key(key: str) -> Dict[str, Any]:
+    base = dict(_load_library().get(key) or {})
+    if not base:
+        return {}
+    return {
+        "cluster": key,
+        "primary": {
+            "title": base.get("primary_title", ""),
+            "setup": base.get("primary_setup", ""),
+            "stakes": base.get("primary_stakes", ""),
+        },
+        "complication": {"inject": base.get("complication_inject", "")},
+        "standards": {"focus": base.get("standards_prompt", "")},
+    }
+
+
+def _apply_anchor_context(plan: dict, messages: List[dict]) -> dict:
+    """Swap generic HR scenarios for recruiting/TA when the anchor answer says so."""
+    out = dict(plan)
+    anchor = _first_anchor_user_message(messages)
+    if not anchor:
+        return out
+    out["anchor_snippet"] = anchor[:400]
+    cluster = str(out.get("cluster") or "")
+    if cluster == "people" and _TA_SIGNALS.search(anchor):
+        ta = _scenario_from_library_key("people_ta")
+        if ta:
+            out.update(ta)
+            out["anchor_role"] = "talent_acquisition"
+    return out
 
 _THIN_PROBE_BY_PHASE: Dict[str, str] = {
     "primary": (
@@ -386,7 +450,7 @@ def plan_and_render_turn(
     Server-controlled phase + scenario presentation; LLM only writes the question.
     Returns {reply, phase_shift?, session_suggests_complete, planner_meta}.
     """
-    plan = variation.get("scenario_plan") or {}
+    plan = _apply_anchor_context(dict(variation.get("scenario_plan") or {}), history)
     ass = variation.get("assessment") or {}
     current_phase = flow.get("current_phase") or "anchor"
     must_adv = bool(flow.get("must_advance_phase"))
@@ -395,14 +459,18 @@ def plan_and_render_turn(
     vague = _is_vague_hype(user_message)
     probe_slot = int(flow.get("model_turns_in_phase") or 0)
 
-    # The user asked us to explain — restate the SAME question simply; never advance or score this as an answer.
+    # The user asked us to explain — answer scenario facts, then re-ask; never advance.
     if flow.get("clarifying"):
         last_q = _last_assistant_question(history)
-        simpler = _rephrase_simpler(
-            last_q, current_phase, plan, simplest=int(flow.get("clarify_streak") or 0) >= 3
+        reply = _answer_clarification(
+            user_message,
+            last_q,
+            current_phase,
+            plan,
+            simplest=int(flow.get("clarify_streak") or 0) >= 3,
         )
         return {
-            "reply": simpler,
+            "reply": reply,
             "phase_shift": None,
             "session_suggests_complete": False,
             "planner_meta": {
@@ -443,6 +511,7 @@ def plan_and_render_turn(
         prompt = f"""You are the AiQ interview **planner**. Write the next single question for the participant.
 
 **Participant profile:** {ass.get("level_label") or ass.get("level")} in {ass.get("job_family_label") or "their role"}.
+{("They said in their own words: " + (plan.get("anchor_snippet") or "")[:300]) if plan.get("anchor_snippet") else ""}
 {plan.get("level_note") or ""}
 
 **Scenario plan (canonical; stay in their role):**
@@ -471,7 +540,7 @@ def plan_and_render_turn(
   - `primary` (entry): how they'd start handling the situation — what they'd ask the AI to do.
   - `primary` (follow-up): ONE new angle — how they'd check it's right, OR who else should look at it, OR what they wouldn't share with the AI.
   - `complication`: what they'd do first, right now, about the problem.
-  - `standards`: one simple rule they'd want others to follow.
+  - `standards`: one simple rule for THIS scenario (name the email, offer, deck, etc.) — not generic "AI guidelines".
   - `close`: one thing they'd do differently next time; session_complete true.
 - If the reply is thin: ask one simple, concrete follow-up. Don't pile on another question.
 - Never mention dimensions or [Dim: Dx].
@@ -536,6 +605,91 @@ def _last_assistant_question(history: List[dict]) -> str:
         if (m.get("role") or "") == "model":
             return (m.get("content") or "").strip()
     return ""
+
+
+def _answer_clarification(
+    user_message: str,
+    last_q: str,
+    phase: str,
+    plan: dict,
+    *,
+    simplest: bool,
+) -> str:
+    """Answer factual questions about the scenario, then re-ask the same question simply."""
+    if simplest or not last_q:
+        return _clarification_fallback(user_message, last_q, plan, phase)
+
+    scenario_ctx = json.dumps(
+        {
+            "primary": plan.get("primary") or {},
+            "complication": plan.get("complication") or {},
+            "phase": phase,
+        },
+        ensure_ascii=False,
+    )[:1400]
+    prompt = f"""The participant is in a work-scenario interview and asked a CLARIFICATION — they are NOT answering yet.
+
+Their clarification: {user_message[:500]}
+
+Last question we asked:
+{last_q[:700]}
+
+Scenario context (canonical facts — use these):
+{scenario_ctx}
+
+Rules:
+- First: answer their clarification in 1-2 short plain sentences. Set facts clearly (e.g. draft not sent yet, still on screen, not published, you're reviewing before it goes out). Use the scenario context.
+- Then: repeat essentially the SAME question as last_q, in simpler words. One question only, ending with `?`.
+- Do NOT ask about "guidelines" or "rules for the team" unless that was the last question.
+- Do NOT switch topic. Max 55 words total.
+- No preamble like "Sure" or "Great question".
+
+Return JSON only: {{"reply": "..."}}"""
+    try:
+        out = llm_json(prompt, temperature=0.15, max_tokens=220)
+        reply = _strip_soft_opener((out.get("reply") or "").strip())
+        if reply and "?" in reply:
+            return reply
+    except Exception:
+        pass
+    return _clarification_fallback(user_message, last_q, plan, phase)
+
+
+def _clarification_fallback(
+    user_message: str, last_q: str, plan: dict, phase: str
+) -> str:
+    ul = (user_message or "").lower()
+    inject = ((plan.get("complication") or {}).get("inject") or "").strip()
+    if re.search(r"publish|sent|went out|gone out|live already|posted", ul):
+        clarify = (
+            "No — it has not gone out yet. You are still looking at a draft on your screen."
+        )
+    elif re.search(r"you mean|do you mean|rewrote|rewrite|softer", ul) and inject:
+        clarify = (
+            f"Right — {inject[0].lower()}{inject[1:] if len(inject) > 1 else inject} "
+            "Nothing has been sent yet; you caught it while reviewing."
+        )
+    elif re.search(r"you mean|do you mean", ul):
+        clarify = "Let me be clearer about what happened."
+    else:
+        clarify = "Good question — let me clarify."
+
+    simple_q = _extract_last_question(last_q) or _fallback_question(phase, plan, user_message)
+    return f"{clarify} {simple_q}"
+
+
+def _extract_last_question(text: str) -> str:
+    t = (text or "").replace("\n", " ").strip()
+    if "?" not in t:
+        return ""
+    # Last sentence that is actually a question (not the scenario setup paragraph).
+    chunks = re.split(r"(?<=[.!?])\s+", t)
+    for chunk in reversed(chunks):
+        c = chunk.strip()
+        if c.endswith("?"):
+            return c
+    parts = [p.strip() for p in t.split("?") if p.strip()]
+    return (parts[-1] + "?") if parts else ""
 
 
 def _rephrase_simpler(last_q: str, phase: str, plan: dict, *, simplest: bool) -> str:
@@ -674,13 +828,11 @@ def run_post_session_pipeline(
 
 def opening_message(variation: dict) -> str:
     """First line — anchor phase only (one quick question, then a real scenario)."""
-    plan = variation.get("scenario_plan") or {}
     ass = variation.get("assessment") or {}
     fam = ass.get("job_family_label") or "your role"
-    primary_title = (plan.get("primary") or {}).get("title", "a real work scenario")
     return (
         "This is a short AiQ conversation — about ten minutes. "
-        f"I'll walk you through one scenario tailored to {fam} (\"{primary_title}\") and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\n"
+        f"I'll walk you through one work scenario relevant to {fam} and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\n"
         "First, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?"
     )
 

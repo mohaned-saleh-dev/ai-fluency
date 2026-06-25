@@ -99,6 +99,7 @@ PERSONAS: Dict[str, List[str]] = {
     "asks_clarify": [
         "Head of ops. We use ChatGPT and Copilot for memos and planning.",
         "What do you mean?",
+        "you mean it rewrote it and it was published already?",
         "Oh, got it. I'd ask it to draft the memo from last quarter's deck, then check the numbers myself.",
         "I'd tell people not to paste customer data into it.",
         "Have the team lead read it before it goes to the COO.",
@@ -115,7 +116,7 @@ PROFILES = [
     ("executive", "finance", "risk_focused"),
     ("head_of", "risk_legal", "risk_focused"),
     ("ic", "product_engineering", "ic_product"),
-    ("people_manager", "hr_people", "terse"),
+    ("head_of", "hr_people", "asks_clarify"),
     ("head_of", "go_to_market", "vague_enthusiast"),
     ("head_of", "general_management", "asks_clarify"),
 ]

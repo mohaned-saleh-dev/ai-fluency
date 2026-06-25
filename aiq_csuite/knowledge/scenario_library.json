@@ -34,6 +34,13 @@
     "complication_inject": "The ChatGPT draft reads friendly, but it says people can work from home twice a week. The approved policy is one day.",
     "standards_prompt": "Before any people-related email goes to staff, who has to read it, and what would you tell your team about putting employee details into ChatGPT?"
   },
+  "people_ta": {
+    "primary_title": "Candidate emails due today",
+    "primary_setup": "A recruiter on your team used ChatGPT to draft a batch of rejection emails and a first-draft offer letter for a senior hire. They want to send them by end of day.",
+    "primary_stakes": "Wrong tone, wrong role details, or a benefit that is not in the approved offer template can upset candidates and create legal exposure.",
+    "complication_inject": "The offer letter draft adds a signing bonus your comp band does not allow, but it reads confident and polished.",
+    "standards_prompt": "Before any candidate-facing email or offer leaves your team, who reviews it, and what would you tell recruiters about pasting applicant details into ChatGPT?"
+  },
   "risk": {
     "primary_title": "Vendor security questionnaire",
     "primary_setup": "A partner bank sends a vendor security form. Your colleague used ChatGPT to fill in the section on how you store customer data and how long you keep it.",
