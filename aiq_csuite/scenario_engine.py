@@ -81,6 +81,49 @@ _TA_SIGNALS = re.compile(
     r"applicant tracking|\bats\b)\b",
     re.I,
 )
+_ER_SIGNALS = re.compile(
+    r"\b(employee relations|\ber\b|workplace investigation|disciplinary|"
+    r"grievance|harassment|conduct case|investigation)\b",
+    re.I,
+)
+_COMP_SIGNALS = re.compile(
+    r"\b(compensation|comp and benefits|total rewards|pay equity|salary band|"
+    r"pay review|payroll)\b",
+    re.I,
+)
+_LD_SIGNALS = re.compile(
+    r"\b(learning and development|l&d|training team|onboarding program|"
+    r"curriculum|enablement|facilitator)\b",
+    re.I,
+)
+_HRBP_SIGNALS = re.compile(
+    r"\b(hrbp|hr business partner|people partner|people advisory|"
+    r"business partner)\b",
+    re.I,
+)
+_GTM_SALES_SIGNALS = re.compile(
+    r"\b(sales|account executive|ae\b|enterprise sales|bdr|sdr|"
+    r"revenue team|deal desk)\b",
+    re.I,
+)
+_GTM_BRAND_SIGNALS = re.compile(
+    r"\b(brand|communications|comms|creative|pr\b|public relations|"
+    r"social media|content marketing)\b",
+    re.I,
+)
+
+# Most specific match wins (first in list).
+_PEOPLE_VARIANTS: List[Tuple[str, re.Pattern]] = [
+    ("people_er", _ER_SIGNALS),
+    ("people_comp", _COMP_SIGNALS),
+    ("people_ld", _LD_SIGNALS),
+    ("people_ta", _TA_SIGNALS),
+    ("people_hrbp", _HRBP_SIGNALS),
+]
+_GTM_VARIANTS: List[Tuple[str, re.Pattern]] = [
+    ("gtm_brand", _GTM_BRAND_SIGNALS),
+    ("gtm_sales", _GTM_SALES_SIGNALS),
+]
 
 
 def _is_clarification_request(text: str) -> bool:
@@ -122,7 +165,7 @@ def _scenario_from_library_key(key: str) -> Dict[str, Any]:
     base = dict(_load_library().get(key) or {})
     if not base:
         return {}
-    return {
+    out: Dict[str, Any] = {
         "cluster": key,
         "primary": {
             "title": base.get("primary_title", ""),
@@ -132,21 +175,38 @@ def _scenario_from_library_key(key: str) -> Dict[str, Any]:
         "complication": {"inject": base.get("complication_inject", "")},
         "standards": {"focus": base.get("standards_prompt", "")},
     }
+    if base.get("probe_bank"):
+        out["probe_bank"] = list(base["probe_bank"])
+    if base.get("standards_question"):
+        out["standards_question"] = base["standards_question"]
+    return out
+
+
+def _pick_variant_key(cluster: str, anchor: str, variants: List[Tuple[str, re.Pattern]]) -> Optional[str]:
+    for key, pattern in variants:
+        if pattern.search(anchor):
+            return key
+    return None
 
 
 def _apply_anchor_context(plan: dict, messages: List[dict]) -> dict:
-    """Swap generic HR scenarios for recruiting/TA when the anchor answer says so."""
+    """Swap generic scenarios for sub-variants when the anchor answer names a specific role."""
     out = dict(plan)
     anchor = _first_anchor_user_message(messages)
     if not anchor:
         return out
     out["anchor_snippet"] = anchor[:400]
     cluster = str(out.get("cluster") or "")
-    if cluster == "people" and _TA_SIGNALS.search(anchor):
-        ta = _scenario_from_library_key("people_ta")
-        if ta:
-            out.update(ta)
-            out["anchor_role"] = "talent_acquisition"
+    variant_key: Optional[str] = None
+    if cluster == "people":
+        variant_key = _pick_variant_key(cluster, anchor, _PEOPLE_VARIANTS)
+    elif cluster == "gtm":
+        variant_key = _pick_variant_key(cluster, anchor, _GTM_VARIANTS)
+    if variant_key:
+        picked = _scenario_from_library_key(variant_key)
+        if picked:
+            out.update(picked)
+            out["anchor_role"] = variant_key.replace("people_", "").replace("gtm_", "")
     return out
 
 _THIN_PROBE_BY_PHASE: Dict[str, str] = {
@@ -221,11 +281,15 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
         "standards": {
             "focus": base.get("standards_prompt", ""),
         },
-        "probe_bank": [
-            "What would you do first to handle this?",
-            "The draft looks good at first glance. What would you check before anyone else sees it?",
-            "Who else needs to read or sign off on this before it goes out?",
-        ],
+        "probe_bank": list(
+            base.get("probe_bank")
+            or [
+                "What would you do first to handle this?",
+                "The draft looks good at first glance. What would you check before anyone else sees it?",
+                "Who else needs to read or sign off on this before it goes out?",
+            ]
+        ),
+        "standards_question": base.get("standards_question") or "",
         "opening_id": rng.randrange(0, 6),
     }
 
@@ -299,6 +363,9 @@ def _pick_probe(phase: str, plan: dict, slot: int) -> str:
     if phase == "complication":
         return "What's the first thing you'd do right now to deal with this?"
     if phase == "standards":
+        sq = (plan.get("standards_question") or "").strip()
+        if sq:
+            return sq
         return _THIN_PROBE_BY_PHASE["standards"]
     if phase == "close":
         return "Looking back, what's one thing you'd do differently next time you use AI for something like this?"
@@ -424,7 +491,7 @@ def _scenario_brief_for(phase: str, plan: dict) -> str:
         primary = plan.get("primary") or {}
         setup = (primary.get("setup", "") or "").strip()
         stakes = (primary.get("stakes", "") or "").strip()
-        body = f"Picture this. {setup}".strip()
+        body = f"Here's something that could happen in your week. {setup}".strip()
         if stakes:
             body = f"{body} {stakes}"
         return body
@@ -488,68 +555,17 @@ def plan_and_render_turn(
         phase = current_phase
         is_phase_entry = False
 
-    # Server-authored questions for thin/vague — skip LLM entirely.
+    # Server-authored questions — no planner LLM on the hot path (predictable, role-specific).
+    out: Dict[str, Any] = {}
+    slot = 0 if is_phase_entry else probe_slot
     if thin and phase in _THIN_PROBE_BY_PHASE and not is_phase_entry:
         question = _THIN_PROBE_BY_PHASE[phase]
-        out: Dict[str, Any] = {}
     elif vague and phase == "primary" and not is_phase_entry:
         question = _PUSHBACK_VAGUE
-        out = {}
-    elif is_phase_entry and phase == "complication":
-        question = _pick_probe("complication", plan, probe_slot)
-        out = {}
-    elif is_phase_entry and phase == "standards":
-        question = _pick_probe("standards", plan, probe_slot)
-        out = {}
-    elif is_phase_entry and phase == "close":
-        question = _pick_probe("close", plan, 0)
-        out = {}
+    elif phase in ("anchor", "primary", "complication", "standards", "close"):
+        question = _pick_probe(phase, plan, slot)
     else:
-        plan_json = json.dumps(plan, ensure_ascii=False)[:4000]
-        phase_brief = _scenario_brief_for(phase, plan) if is_phase_entry else ""
-        server_probe = _pick_probe(phase, plan, probe_slot) if phase != "anchor" else ""
-        prompt = f"""You are the AiQ interview **planner**. Write the next single question for the participant.
-
-**Participant profile:** {ass.get("level_label") or ass.get("level")} in {ass.get("job_family_label") or "their role"}.
-{("They said in their own words: " + (plan.get("anchor_snippet") or "")[:300]) if plan.get("anchor_snippet") else ""}
-{plan.get("level_note") or ""}
-
-**Scenario plan (canonical; stay in their role):**
-{plan_json}
-
-**Current phase:** {phase}
-**Is this a phase entry turn (server-decided):** {is_phase_entry}
-**Phase brief the server WILL prepend (do not repeat verbatim):** {phase_brief or "(none)"}
-**If you need a concrete angle, adapt this probe (do not copy "In the scenario where"):** {server_probe}
-
-**Recent transcript (last turns):**
-{_transcript_excerpt(history + [{"role": "user", "content": user_message}])}
-
-**Last user message:** {user_message[:3500]}
-**Thin / low-signal reply:** {thin}
-**Vague hype without checks:** {vague}
-
-**Hard rules (must follow exactly):**
-- Output JSON only: `question`, `session_complete`, `internal_tags`, `missing_facets`.
-- `question`: ONE short, plain-English question ending with `?`. Max 30 words. No bullet lists.
-- **Plain language:** write the way you'd speak to a smart colleague who isn't technical. Everyday words, short sentences. Name the real artifact (email, deck, refund reply) — not "AI output" or "policy note". No jargon or buzzwords (avoid: "guardrails", "minimum bar", "kill criteria", "verification step", "forbidden inventions", "AI-generated", "sensitive policy note", "talking points"). Ask about ONE thing, not three things at once.
-- **FORBIDDEN openers:** That's, It sounds like, Understood, Great, Nice, In the scenario where, In the context of the scenario, In light of the vendor.
-- **FORBIDDEN:** repeating the same framing you already asked. Ask a NEW, simple angle.
-- Phase rules (keep each as one simple question):
-  - `anchor`: their role + which AI tools they actually use. No scenario yet.
-  - `primary` (entry): how they'd start handling the situation — what they'd ask the AI to do.
-  - `primary` (follow-up): ONE new angle — how they'd check it's right, OR who else should look at it, OR what they wouldn't share with the AI.
-  - `complication`: what they'd do first, right now, about the problem.
-  - `standards`: one simple rule for THIS scenario (name the email, offer, deck, etc.) — not generic "AI guidelines".
-  - `close`: one thing they'd do differently next time; session_complete true.
-- If the reply is thin: ask one simple, concrete follow-up. Don't pile on another question.
-- Never mention dimensions or [Dim: Dx].
-"""
-        try:
-            out = llm_json(prompt, temperature=0.25, max_tokens=500)
-        except Exception:
-            out = {}
-        question = (out.get("question") or "").strip()
+        question = _fallback_question(phase, plan, user_message)
 
     question = _finalize_question(
         question,
@@ -566,6 +582,10 @@ def plan_and_render_turn(
         session_complete = True
 
     phase_brief = _scenario_brief_for(phase, plan) if is_phase_entry else ""
+    # After anchor, acknowledge their role briefly before the scenario.
+    if is_phase_entry and phase == "primary" and plan.get("anchor_snippet"):
+        role_ack = "Got it — keeping your role in mind."
+        phase_brief = f"{role_ack}\n\n{phase_brief}" if phase_brief else role_ack
     body_parts: List[str] = []
     if phase_brief:
         body_parts.append(phase_brief)
@@ -831,9 +851,9 @@ def opening_message(variation: dict) -> str:
     ass = variation.get("assessment") or {}
     fam = ass.get("job_family_label") or "your role"
     return (
-        "This is a short AiQ conversation — about ten minutes. "
-        f"I'll walk you through one work scenario relevant to {fam} and ask how you'd actually handle it with AI: prompts, checks, who owns what.\n\n"
-        "First, so I can pitch the scenario at the right altitude: in one or two lines, what is your role, and which AI or copilot tools do you actually open in a normal week (and roughly for what)?"
+        "This is a short AiQ chat — about ten minutes. "
+        f"I'll ask how you'd handle one realistic situation in {fam}: what you'd do, what you'd check, who signs off.\n\n"
+        "First: in one or two lines, what is your role, and which AI tools do you actually use in a normal week?"
     )
 
 

@@ -52,21 +52,63 @@ def test_clarification_you_mean_published():
     )
 
 
+def _anchor_msgs(role_line: str):
+    return [
+        {"role": "model", "content": "What is your role?"},
+        {"role": "user", "content": role_line},
+    ]
+
+
 def test_ta_anchor_swaps_people_scenario():
     plan = se.build_scenario_plan(
         {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
         "seed",
     )
-    messages = [
-        {"role": "model", "content": "What is your role?"},
-        {
-            "role": "user",
-            "content": "Head of Talent Acquisition. ChatGPT for job descriptions and outreach.",
-        },
-    ]
-    out = se._apply_anchor_context(plan, messages)
+    out = se._apply_anchor_context(plan, _anchor_msgs(
+        "Head of Talent Acquisition. ChatGPT for job descriptions and outreach."
+    ))
     assert out.get("cluster") == "people_ta"
     assert "recruiter" in (out.get("primary") or {}).get("setup", "").lower()
+
+
+def test_hrbp_anchor_swaps_people_scenario():
+    plan = se.build_scenario_plan(
+        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
+        "seed",
+    )
+    out = se._apply_anchor_context(plan, _anchor_msgs(
+        "HR Business Partner supporting sales leaders. Copilot for manager coaching notes."
+    ))
+    assert out.get("cluster") == "people_hrbp"
+    assert "performance" in (out.get("primary") or {}).get("setup", "").lower()
+
+
+def test_er_anchor_swaps_people_scenario():
+    plan = se.build_scenario_plan(
+        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
+        "seed",
+    )
+    out = se._apply_anchor_context(plan, _anchor_msgs(
+        "Employee relations lead. ChatGPT to summarize investigation notes."
+    ))
+    assert out.get("cluster") == "people_er"
+
+
+def test_gtm_sales_anchor_swaps_scenario():
+    plan = se.build_scenario_plan(
+        {"job_family": "go_to_market", "level": "head_of", "job_family_label": "GTM"},
+        "seed",
+    )
+    out = se._apply_anchor_context(plan, _anchor_msgs(
+        "Head of enterprise sales. ChatGPT for outreach personalization."
+    ))
+    assert out.get("cluster") == "gtm_sales"
+
+
+def test_standards_question_from_library():
+    plan = se._scenario_from_library_key("people_comp")
+    q = se._pick_probe("standards", plan, 0)
+    assert "comp" in q.lower() or "pay" in q.lower()
 
 
 if __name__ == "__main__":
@@ -77,4 +119,8 @@ if __name__ == "__main__":
     test_finalize_uses_thin_probe()
     test_clarification_you_mean_published()
     test_ta_anchor_swaps_people_scenario()
+    test_hrbp_anchor_swaps_people_scenario()
+    test_er_anchor_swaps_people_scenario()
+    test_gtm_sales_anchor_swaps_scenario()
+    test_standards_question_from_library()
     print("ok")

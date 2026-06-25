@@ -686,6 +686,13 @@ def send_message(session_id: str):
                 force_close=force_close,
             )
             turn = se.plan_and_render_turn(flow, var, hist, user_text, ctx)
+            personalized = se._apply_anchor_context(
+                dict(var.get("scenario_plan") or {}),
+                [{"role": m["role"], "content": m["content"]} for m in all_m],
+            )
+            if personalized != (var.get("scenario_plan") or {}):
+                var = {**var, "scenario_plan": personalized}
+                update_session_variation(session_id, var)
             reply = (turn.get("reply") or "").strip()
             reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
             phase_shift = turn.get("phase_shift")

@@ -4,62 +4,194 @@
     "primary_setup": "Your COO needs a one-page memo by tomorrow on how your team will use AI in quarterly planning. You are about to ask ChatGPT to write the first draft from last quarter's slides and a Slack export.",
     "primary_stakes": "The whole leadership team will read it. Wrong names, made-up numbers, or skipping Legal and Finance will be embarrassing and hard to walk back.",
     "complication_inject": "While polishing the draft, someone on your team pasted real customer names and next year's targets into a shared ChatGPT thread.",
-    "standards_prompt": "If everyone in your function starts using ChatGPT on memos and plans that others act on, what would you want them to check before they hit send?"
+    "standards_prompt": "If everyone in your function starts using ChatGPT on memos and plans that others act on, what would you want them to check before they hit send?",
+    "standards_question": "What's one rule you'd want everyone to follow before they use ChatGPT on a memo or plan that others will act on?",
+    "probe_bank": [
+      "What would you do first to get this memo draft started?",
+      "The draft looks polished — what would you check before the leadership team sees it?",
+      "Who else needs to read or sign off before this memo goes out?"
+    ]
   },
   "product": {
     "primary_title": "Spec due Friday",
     "primary_setup": "Your product manager wants ChatGPT to write the spec for a new checkout change by Friday. The feature handles card payments and needs Compliance sign-off.",
     "primary_stakes": "If the requirements are wrong, or the draft invents a rule that does not exist, you slip the launch or ship something Compliance has not approved.",
     "complication_inject": "Someone pasted real customer account numbers into a shared ChatGPT chat while working on the spec.",
-    "standards_prompt": "When your team uses ChatGPT on specs that engineers will build, what quality bar would you set before anyone commits to the work?"
+    "standards_prompt": "When your team uses ChatGPT on specs that engineers will build, what quality bar would you set before anyone commits to the work?",
+    "standards_question": "What's one rule your team must follow before a ChatGPT-drafted spec goes to engineering?",
+    "probe_bank": [
+      "What would you do first to get this spec draft going?",
+      "The spec reads cleanly — what would you verify before engineers start building?",
+      "Who has to sign off before this spec is treated as final?"
+    ]
   },
   "ops": {
     "primary_title": "Angry VIP customer",
     "primary_setup": "ChatGPT drafted a refund apology for an upset VIP customer. Your frontline agent wants to send it in one click from the helpdesk.",
     "primary_stakes": "The tone, the facts, and what you are offering have to match policy. A wrong reply goes straight to the customer and is hard to undo.",
     "complication_inject": "The draft sounds warm, but it offers a bigger refund than policy allows and promises an exception your team cannot honor.",
-    "standards_prompt": "What can frontline agents send on their own, and what should they escalate before a customer sees it?"
+    "standards_prompt": "What can frontline agents send on their own, and what should they escalate before a customer sees it?",
+    "standards_question": "What's one rule agents must follow before they send any ChatGPT-drafted reply to a customer?",
+    "probe_bank": [
+      "What would you do first when you see this draft in the queue?",
+      "The reply sounds right — what would you check before the customer gets it?",
+      "Who has to approve this before it goes out?"
+    ]
   },
   "gtm": {
     "primary_title": "Launch copy due tomorrow",
     "primary_setup": "Marketing wants ChatGPT to write tomorrow's launch email and landing page for a new savings product.",
     "primary_stakes": "Every claim has to be true and on-brand. Generic or overstated copy hurts trust and can create compliance issues.",
     "complication_inject": "The draft includes a performance number that is roughly true internally but has never been approved for public use.",
-    "standards_prompt": "How would brand, legal, and sales agree on what ChatGPT can draft versus what stays fully human-written?"
+    "standards_prompt": "How would brand, legal, and sales agree on what ChatGPT can draft versus what stays fully human-written?",
+    "standards_question": "What's one rule your team must follow before launch copy leaves marketing?",
+    "probe_bank": [
+      "What would you do first to get this launch copy drafted?",
+      "The copy reads well — what would you verify before it goes live?",
+      "Who else needs to sign off on claims before publish?"
+    ]
+  },
+  "gtm_sales": {
+    "primary_title": "Sales outreach due this afternoon",
+    "primary_setup": "Your sales team used ChatGPT to personalize outreach emails and a one-pager for a big enterprise prospect. They want to send the batch this afternoon.",
+    "primary_stakes": "Wrong company facts, made-up references, or promises your product cannot back up can kill the deal and create legal risk.",
+    "complication_inject": "One email names a product integration you do not actually offer, but it reads confident and specific.",
+    "standards_prompt": "Before sales sends AI-drafted outreach, who reviews it, and what must never go into ChatGPT?",
+    "standards_question": "What's one rule sellers must follow before they send ChatGPT-drafted outreach?",
+    "probe_bank": [
+      "What would you do first before this batch goes out?",
+      "The emails look tailored — what would you check on each one?",
+      "Who signs off before enterprise prospects see this?"
+    ]
+  },
+  "gtm_brand": {
+    "primary_title": "Brand campaign review",
+    "primary_setup": "Your brand team used ChatGPT to draft social posts and a press-release quote for a campaign launching Friday.",
+    "primary_stakes": "Off-brand tone, unapproved claims, or a quote attributed to your CEO that they never said can blow up publicly.",
+    "complication_inject": "The draft puts a specific performance claim in the CEO quote. Legal has not cleared that wording.",
+    "standards_prompt": "Before brand publishes AI-assisted copy, who must approve it, and what stays off-limits for ChatGPT?",
+    "standards_question": "What's one rule your brand team must follow before AI-drafted copy goes public?",
+    "probe_bank": [
+      "What would you do first when you see these drafts?",
+      "The posts look on-brand — what would you still verify?",
+      "Who has to approve the CEO quote before Friday?"
+    ]
   },
   "people": {
     "primary_title": "Return-to-office email",
     "primary_setup": "Your company announces a return-to-office policy next week. Someone in People Ops used ChatGPT to draft the company-wide email and a short guide for line managers on how to explain it to their teams.",
     "primary_stakes": "If the email makes hybrid sound more flexible than the rule really is, employees will act on the wrong expectation and HR will field angry messages.",
     "complication_inject": "The ChatGPT draft reads friendly, but it says people can work from home twice a week. The approved policy is one day.",
-    "standards_prompt": "Before any people-related email goes to staff, who has to read it, and what would you tell your team about putting employee details into ChatGPT?"
+    "standards_prompt": "Before any people-related email goes to staff, who has to read it, and what would you tell your team about putting employee details into ChatGPT?",
+    "standards_question": "What's one rule your team must follow before a people-related email goes to staff?",
+    "probe_bank": [
+      "What would you do first when you see this draft?",
+      "The email reads well — what would you check against the actual policy?",
+      "Who has to approve it before it goes company-wide?"
+    ]
   },
   "people_ta": {
     "primary_title": "Candidate emails due today",
     "primary_setup": "A recruiter on your team used ChatGPT to draft a batch of rejection emails and a first-draft offer letter for a senior hire. They want to send them by end of day.",
     "primary_stakes": "Wrong tone, wrong role details, or a benefit that is not in the approved offer template can upset candidates and create legal exposure.",
     "complication_inject": "The offer letter draft adds a signing bonus your comp band does not allow, but it reads confident and polished.",
-    "standards_prompt": "Before any candidate-facing email or offer leaves your team, who reviews it, and what would you tell recruiters about pasting applicant details into ChatGPT?"
+    "standards_prompt": "Before any candidate-facing email or offer leaves your team, who reviews it, and what would you tell recruiters about pasting applicant details into ChatGPT?",
+    "standards_question": "What's one rule recruiters must follow before they send a ChatGPT-drafted email or offer?",
+    "probe_bank": [
+      "What would you do first when you see these drafts?",
+      "The offer reads fine — what would you check before it goes to the candidate?",
+      "Who has to sign off before candidate emails go out?"
+    ]
+  },
+  "people_hrbp": {
+    "primary_title": "Tough manager conversation",
+    "primary_setup": "A line manager used ChatGPT to draft talking points for a difficult performance conversation with a direct report. The meeting is tomorrow morning.",
+    "primary_stakes": "The wrong framing, vague commitments, or language that sounds like a formal warning when it is not can escalate the situation and create ER risk.",
+    "complication_inject": "The talking points imply the employee may be let go, but leadership has not approved any separation plan.",
+    "standards_prompt": "Before managers use ChatGPT on performance or coaching conversations, who reviews it, and what employee details stay out of the tool?",
+    "standards_question": "What's one rule managers must follow before they use ChatGPT on performance or coaching notes?",
+    "probe_bank": [
+      "What would you do first when the manager shares these talking points?",
+      "The script sounds reasonable — what would you check before the meeting?",
+      "Who else needs to weigh in before this conversation happens?"
+    ]
+  },
+  "people_ld": {
+    "primary_title": "Manager training deck",
+    "primary_setup": "Your L&D team used ChatGPT to draft a 90-minute manager training deck on giving feedback. Facilitators want to run it with a live cohort next week.",
+    "primary_stakes": "Outdated examples, wrong company policies quoted as fact, or generic advice that contradicts how your managers actually work will undermine trust in L&D.",
+    "complication_inject": "One slide cites a PTO policy that was replaced six months ago, but the deck reads current and authoritative.",
+    "standards_prompt": "Before L&D publishes AI-assisted training materials, who fact-checks them, and what internal data stays out of ChatGPT?",
+    "standards_question": "What's one rule your L&D team must follow before AI-drafted training goes to a live cohort?",
+    "probe_bank": [
+      "What would you do first when reviewing this deck?",
+      "The slides look ready — what would you verify against real policy?",
+      "Who signs off before facilitators run this session?"
+    ]
+  },
+  "people_comp": {
+    "primary_title": "Pay review communications",
+    "primary_setup": "Your comp team used ChatGPT to draft the annual pay-review email to staff and a manager guide explaining the new salary bands. The send is scheduled for Friday.",
+    "primary_stakes": "Wrong band descriptions, implied promises, or numbers that do not match the approved matrices can cause pay confusion and serious morale fallout.",
+    "complication_inject": "The manager guide says most people will get a 5–8% increase. Leadership approved a tighter range that only some roles qualify for.",
+    "standards_prompt": "Before comp communications go out, who reviews them, and what salary or employee data never goes into ChatGPT?",
+    "standards_question": "What's one rule your comp team must follow before pay communications go to staff or managers?",
+    "probe_bank": [
+      "What would you do first when you see these drafts?",
+      "The guide reads clear — what would you check against the approved bands?",
+      "Who has final sign-off before Friday's send?"
+    ]
+  },
+  "people_er": {
+    "primary_title": "Workplace complaint summary",
+    "primary_setup": "An ER partner used ChatGPT to summarize witness statements and draft a preliminary outcome letter after a workplace complaint. Legal wants it Monday.",
+    "primary_stakes": "Missing context, softened findings, or language that prejudges the outcome can harm the investigation and create legal exposure.",
+    "complication_inject": "The draft outcome letter sounds like a final decision, but interviews are still open and Legal has not signed off.",
+    "standards_prompt": "Before ER uses ChatGPT on investigations, who reviews outputs, and what case details must never be pasted in?",
+    "standards_question": "What's one rule ER must follow before any AI-drafted investigation summary or letter goes further?",
+    "probe_bank": [
+      "What would you do first when you see this draft?",
+      "The letter reads decisive — what would you check before Legal sees it?",
+      "Who has to approve before this moves to the next step?"
+    ]
   },
   "risk": {
     "primary_title": "Vendor security questionnaire",
     "primary_setup": "A partner bank sends a vendor security form. Your colleague used ChatGPT to fill in the section on how you store customer data and how long you keep it.",
     "primary_stakes": "If you overstate what you do, or miss how long data is retained, you create audit and legal exposure.",
     "complication_inject": "The draft says you delete all prompts within 24 hours. That is not true for the tool your team actually uses.",
-    "standards_prompt": "How would you turn your data-retention policy into simple day-to-day rules people can follow when they answer forms like this?"
+    "standards_prompt": "How would you turn your data-retention policy into simple day-to-day rules people can follow when they answer forms like this?",
+    "standards_question": "What's one rule people must follow before they submit AI-drafted answers on a vendor security form?",
+    "probe_bank": [
+      "What would you do first when you see these answers?",
+      "The form looks complete — what would you verify before it goes back to the bank?",
+      "Who has to sign off before this is submitted?"
+    ]
   },
   "fin": {
     "primary_title": "Board deck numbers",
     "primary_setup": "You owe a section of next week's board deck on revenue and growth. A colleague used ChatGPT to draft the charts and narrative from a spreadsheet.",
     "primary_stakes": "A confident wrong number in a board pack is worse than a slide that lands a day late.",
     "complication_inject": "The chart swaps Q2 and Q3 growth, but the write-up still sounds sure of itself.",
-    "standards_prompt": "What checks would you want before any number or forecast leaves your desk, whether or not ChatGPT helped write it?"
+    "standards_prompt": "What checks would you want before any number or forecast leaves your desk, whether or not ChatGPT helped write it?",
+    "standards_question": "What's one rule your team must follow before numbers go into a board deck?",
+    "probe_bank": [
+      "What would you do first when you see these slides?",
+      "The chart looks clean — what would you verify against the source data?",
+      "Who else reviews the numbers before the board sees them?"
+    ]
   },
   "gm": {
     "primary_title": "Pick one AI bet",
     "primary_setup": "Leadership asks you to choose one AI project for the next six months: automating support replies, or improving sales forecasting. Both teams sent business cases — partly drafted with ChatGPT.",
     "primary_stakes": "Budget, risk, and leadership attention are limited. Vendor demos often look better than real life.",
     "complication_inject": "One vendor's demo used success numbers that do not match how your actual data behaves.",
-    "standards_prompt": "How would you pressure-test a vendor's claims and decide when to stop a pilot before you scale it?"
+    "standards_prompt": "How would you pressure-test a vendor's claims and decide when to stop a pilot before you scale it?",
+    "standards_question": "What's one rule you'd set before any team scales an AI pilot?",
+    "probe_bank": [
+      "What would you do first to decide between these two options?",
+      "The business case reads strong — what would you pressure-test?",
+      "Who else would you involve before committing budget?"
+    ]
   }
 }
