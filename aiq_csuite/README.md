@@ -29,9 +29,9 @@ python app.py
 - **LLM check:** `GET /api/health` or `GET /api/health/llm` (shows `backend`: `gemini` | `openai` | `ollama` | `error`, plus `detail`).
 - **APIs:** `POST /api/session/start`, `POST /api/session/<id>/message`, `POST /api/session/<id>/complete`, `POST /api/session/<id>/event`.
 
-**LLM choice (env):** `AIQ_LLM_PROVIDER=auto` (default) uses **Gemini** if `GOOGLE_API_KEY` / `GEMINI_API_KEY` is set, else **OpenAI** if `OPENAI_API_KEY` is set, else **Ollama** at `OLLAMA_BASE` (default `http://127.0.0.1:11434`) if the server is up. Set `AIQ_LLM_PROVIDER=ollama` / `openai` / `gemini` to force. **Ollama (no API key):** [install Ollama](https://ollama.com), `ollama pull llama3.2` (or set `OLLAMA_MODEL`), run `ollama serve`, then `auto` with no cloud key uses local inference.
+**LLM choice (env):** `AIQ_LLM_PROVIDER=openai` (default) uses **OpenAI** if `OPENAI_API_KEY` is set, else **Gemini** if `GOOGLE_API_KEY` / `GEMINI_API_KEY` is set, else **Ollama** at `OLLAMA_BASE` (default `http://127.0.0.1:11434`) if the server is up. Set `AIQ_LLM_PROVIDER=ollama` / `gemini` / `openai` to force. **Ollama (no API key):** [install Ollama](https://ollama.com), `ollama pull llama3.2` (or set `OLLAMA_MODEL`), run `ollama serve`, then with no cloud key uses local inference.
 
-**Model / 404 (Gemini):** The app defaults to `gemini-2.5-flash` (2.0-flash and older are often 404 for new users). If you get 404, set `AIQ_GEMINI_MODEL` to a name your key supports, e.g. `gemini-2.5-flash-lite` (see [models](https://ai.google.dev/gemini-api/docs/models)). **429 / rate limits / quota:** With **Ollama running** (`ollama serve` + `ollama pull` your `OLLAMA_MODEL`), the app **falls back to local** if Gemini returns 429 (interviewer, scoring, and optional paste classifier). You can also remove the key or set `AIQ_LLM_PROVIDER=ollama` to use only Ollama. Paste-detection uses **heuristics** by default (`AIQ_LLM_CLASSIFY=0`) so Gemini only gets one main call per message.
+**Model:** The app defaults to `gpt-4o-mini` (override with `AIQ_OPENAI_MODEL`). If OpenAI key is missing, it falls back to `gemini-2.5-flash` (Gemini). **429 / rate limits / quota:** With **Ollama running** (`ollama serve` + `ollama pull` your `OLLAMA_MODEL`), the app **falls back to local** if OpenAI/Gemini returns 429 (interviewer, scoring, and optional paste classifier). You can also remove keys or set `AIQ_LLM_PROVIDER=ollama` to use only Ollama. Paste-detection uses **heuristics** by default (`AIQ_LLM_CLASSIFY=0`) so the LLM only gets one main call per message.
 
 **Database backend (env):**
 - Default (no `DATABASE_URL`) → local SQLite at `AIQ_SQLITE_PATH` / `instance/aiq_csuite.db`.
@@ -48,7 +48,7 @@ python app.py
 - **Secrets:** Never check `.env` in. Set `AIQ_ADMIN_SECRET` to a long random value. Optional: `AIQ_ADMIN_SECRETS` to allow multiple admin codes (comma/semicolon/newline separated).
 - **Network:** Expose only behind your VPN, SSO, or IP allow list.
 - **PII:** The COO is identified only by `session_id` in the admin UI unless you add a field.
-- **Cost (Gemini):** With heuristics for paste-detection, one model call per user message; completion adds scoring. `AIQ_LLM_CLASSIFY=1` adds an extra call per user message. **Ollama** has no per-token cost (local).
+- **Cost (OpenAI/Gemini):** With heuristics for paste-detection, one model call per user message; completion adds scoring. `AIQ_LLM_CLASSIFY=1` adds an extra call per user message. **Ollama** has no per-token cost (local).
 
 ## Files
 

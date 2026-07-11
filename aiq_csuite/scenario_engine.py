@@ -258,10 +258,16 @@ def _load_library() -> dict:
 
 
 def _scenario_cluster(fam: str, level: str) -> str:
-    """Pick library cluster; COO/strategy ops execs get coo_office not generic portfolio."""
+    """Pick library cluster. Senior/leadership tiers get a strategic scenario instead of the
+    tactical IC one: general_management → coo_office; product_engineering → product_exec;
+    care_operations → ops_exec. ic and people_manager keep the hands-on scenario."""
     base = fam_cluster(fam)
-    if fam in ("general_management",) and level in ("head_of", "executive", "people_manager"):
+    if fam == "general_management" and level in ("head_of", "executive", "people_manager"):
         return "coo_office"
+    if fam == "product_engineering" and level in ("head_of", "executive"):
+        return "product_exec"
+    if fam == "care_operations" and level in ("head_of", "executive"):
+        return "ops_exec"
     return base
 
 

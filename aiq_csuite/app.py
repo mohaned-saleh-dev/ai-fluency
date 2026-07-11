@@ -235,7 +235,7 @@ def orchestrator_state():
     return jsonify(
         {
             "tool": "AI Fluency Orchestrator",
-            "agent_role": "Interviewer (Gemini / Ollama via gemini_service.run_interviewer_reply)",
+            "agent_role": "Interviewer (OpenAI / Gemini / Ollama via gemini_service.run_interviewer_reply)",
             "llm": {
                 "ok": ok,
                 "backend": mode,
@@ -418,7 +418,7 @@ def _coverage_state_for_session(session_id: str) -> dict:
     pending_codes = [c for c, _ in DIMENSION_ORDER if c not in set(codes)]
     force_dim = _next_pending_dim(codes)
     must_switch_now = bool(
-        force_dim and (streak >= max_streak or (current is None and len(msgs_all) >= 2))
+        force_dim and (streak >= max_streak or (current is None and len(msgs_all) >= 8))
     )
     return {
         "touched": codes,
@@ -696,6 +696,30 @@ def send_message(session_id: str):
             reply = (turn.get("reply") or "").strip()
             reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
             phase_shift = turn.get("phase_shift")
+            # Listening layer: a one-line, tailored acknowledgment of what they actually said, so
+            # the chat feels heard — without advancing the scenario or leaving scope (the
+            # server-authored question still follows). It reflects their prior answer, then the
+            # reply moves on; on scene changes it reads as a natural bridge into the next scene.
+            # Skipped on the primary-scene entry (which already carries its own role framing),
+            # on clarification turns, and on thin answers. Best-effort: any failure just leaves
+            # the question-only reply.
+            meta = turn.get("planner_meta") or {}
+            _primary_entry = bool(meta.get("is_phase_entry")) and meta.get("phase") == "primary"
+            if (
+                config.AIQ_LISTENING_ACK
+                and not _primary_entry
+                and not meta.get("clarifying")
+                and not meta.get("thin")
+                and reply
+            ):
+                primary = (var.get("scenario_plan") or {}).get("primary") or {}
+                ack = gs.generate_listening_ack(
+                    user_text,
+                    scenario_title=primary.get("title") or "",
+                    level_label=(var.get("assessment") or {}).get("level_label") or "",
+                )
+                if ack:
+                    reply = f"{ack}\n\n{reply}"
         else:
             coverage_state = _coverage_state_for_session(session_id)
             reply = gs.run_interviewer_reply(
@@ -764,18 +788,109 @@ def send_message(session_id: str):
     )
 
 
+_LOW_EFFORT_NONANSWERS = re.compile(
+    r"^\s*(idk|dunno|no idea|not sure|nothing|none|n/?a|nope|yes|no|ok|okay|sure|maybe|"
+    r"i guess|whatever|move fast|use ai more|trust the tools|it depends)\b[\s.!?]*$",
+    re.I,
+)
+
+
+def _session_effort_signal(msgs: List[dict]) -> dict:
+    """
+    Whole-session effort read from the participant's own turns — catches a session that has
+    *enough* replies but where every reply is terse or a non-answer ("yes", "idk", "not sure"),
+    which the zero-reply / coverage checks miss. Returns avg words, the share of thin replies,
+    and a level: 'thin' (sustained low effort), 'light' (brief), or 'ok'.
+    """
+    users = [str(m.get("content") or "").strip() for m in (msgs or []) if (m.get("role") or "") == "user"]
+    users = [u for u in users if u]
+    n = len(users)
+    if n == 0:
+        return {"level": "none", "avg_words": 0.0, "thin_ratio": 0.0, "user_turns": 0}
+    word_counts = [len([w for w in u.split() if w]) for u in users]
+    avg_words = sum(word_counts) / float(n)
+
+    def _is_thin(text: str, wc: int) -> bool:
+        return wc <= 4 or bool(_LOW_EFFORT_NONANSWERS.match(text))
+
+    thin_n = sum(1 for u, wc in zip(users, word_counts) if _is_thin(u, wc))
+    thin_ratio = thin_n / float(n)
+    # Sustained low effort: most replies are non-answers, or the whole session averages very few words.
+    if thin_ratio >= 0.6 or avg_words < 5.0:
+        level = "thin"
+    elif avg_words < 12.0:
+        level = "light"
+    else:
+        level = "ok"
+    return {
+        "level": level,
+        "avg_words": round(avg_words, 1),
+        "thin_ratio": round(thin_ratio, 2),
+        "user_turns": n,
+    }
+
+
 def _session_readiness_payload(session_id: str) -> dict:
+    """Coverage signal for the end-session confirmation. Branches by session mode: current
+    sessions run the scenario-stack flow (phase_shift events, no dim_shift events), so counting
+    dim_shift codes here would always read as zero coverage — track user turns / phase reached
+    instead. Older, non-scenario sessions still get the dimension-breadth reading.
+    """
     st = session_stats(session_id)
     if not st.get("session_id"):
         return {}
-    codes = get_dimension_shift_codes(session_id)
-    n = len(codes)
-    all_c = [d[0] for d in DIMENSION_ORDER]
-    missing = [c for c in all_c if c not in set(codes)]
+    with get_conn() as c:
+        row = c.execute(
+            "SELECT variation_json FROM sessions WHERE id = ?", (session_id,)
+        ).fetchone()
+    var = json.loads(_row_get(row, "variation_json") or "{}") if row else {}
     elapsed = float(st.get("duration_sec") or 0.0)
     u = int(st.get("user_messages") or 0)
     target = int(TARGET_DURATION_SEC)
     guide_remaining = max(0, target - elapsed)
+    msgs = list_messages(session_id)
+    effort = _session_effort_signal(msgs)
+
+    if _uses_scenario_stack(var):
+        phases = get_phase_shift_codes(session_id)
+        flow = se.compute_flow_state(msgs, phases, last_user_message="")
+        current = flow.get("current_phase") or "anchor"
+        current_label = flow.get("current_label") or current
+        max_turns = int(se.MAX_USER_TURNS)
+        all_done = bool(flow.get("all_phases_done")) or current == "close"
+        if all_done or u >= max_turns:
+            w_level = "none"
+        elif u <= 1:
+            w_level = "strong"
+        else:
+            w_level = "soft"
+        return {
+            "session_id": session_id,
+            "mode": "scenario",
+            "current_phase": current,
+            "current_phase_label": current_label,
+            "user_turns": u,
+            "max_turns": max_turns,
+            "elapsed_sec": round(elapsed, 1),
+            "target_sec": target,
+            "guide_time_remaining_sec": round(guide_remaining, 0),
+            "has_coverage_signal": u > 0,
+            "warning_level": w_level,
+            "effort_level": effort["level"],
+            "effort_avg_words": effort["avg_words"],
+            "effort_thin_ratio": effort["thin_ratio"],
+            "low_effort": effort["level"] == "thin",
+            "breadth_incomplete": not all_done,
+            "topic_label_note": (
+                "This reflects how far the conversation got, not a checklist the interviewer "
+                "must finish. You can end anytime; the summary still reflects the transcript."
+            ),
+        }
+
+    codes = get_dimension_shift_codes(session_id)
+    n = len(codes)
+    all_c = [d[0] for d in DIMENSION_ORDER]
+    missing = [c for c in all_c if c not in set(codes)]
     by_code = {c: label for c, label in DIMENSION_ORDER}
     # ~1 min per not-yet-signalled focus area, capped (rough UX hint, not a promise)
     approx_extra = min(target, max(0, (6 - n) * 60))
@@ -788,6 +903,7 @@ def _session_readiness_payload(session_id: str) -> dict:
         w_level = "soft"
     return {
         "session_id": session_id,
+        "mode": "dimension",
         "dimension_codes_touched": codes,
         "dimensions_touched": n,
         "dimensions_total": 6,
@@ -803,6 +919,10 @@ def _session_readiness_payload(session_id: str) -> dict:
         "approx_time_for_remaining_angles_sec": round(approx_extra, 0),
         "has_coverage_signal": n > 0,
         "warning_level": w_level,
+        "effort_level": effort["level"],
+        "effort_avg_words": effort["avg_words"],
+        "effort_thin_ratio": effort["thin_ratio"],
+        "low_effort": effort["level"] == "thin",
         "breadth_incomplete": n < 6,
         "topic_label_note": (
             "The “/6” count is how many times a new topic label appeared in this chat, "
@@ -847,11 +967,13 @@ def complete(session_id: str):
         return jsonify({"error": "not found"}), 404
     var = json.loads(_row_get(row, "variation_json") or "{}")
 
-    # Idempotent: if this run is already scored, return the stored scores immediately.
+    # Idempotent: if this run is already scored AND narrative is present, return the stored scores immediately.
     # A slow first pass can time out at the browser/edge while the server still finished
     # and persisted; the client's automatic retry then returns instantly from here.
     stored_raw = _row_get(row, "last_scores_json")
-    if stored_raw:
+    enrichment = get_session_enrichment(session_id)
+    has_narrative = bool(isinstance(enrichment, dict) and enrichment.get("narrative"))
+    if stored_raw and has_narrative:
         try:
             stored = json.loads(stored_raw)
         except (json.JSONDecodeError, TypeError):
@@ -865,6 +987,18 @@ def complete(session_id: str):
                     "cached": True,
                 }
             )
+
+    user_turn_n = sum(1 for m in msgs if (m.get("role") or "") == "user")
+    if user_turn_n == 0:
+        return (
+            jsonify(
+                {
+                    "error": "Send at least one reply before ending — there's nothing to summarize yet.",
+                    "code": "no_replies_yet",
+                }
+            ),
+            400,
+        )
 
     mlist = [{"role": m["role"], "content": m["content"]} for m in msgs]
     is_v2 = _uses_scenario_stack(var)
@@ -1964,6 +2098,23 @@ def admin_sessions():
             pname = r["participant_name"] or ""
         except (KeyError, IndexError, TypeError):
             pname = s.get("participant_name") or ""
+        has_scores = bool(r["last_scores_json"])
+        readiness = _session_readiness_payload(r["id"]) if has_scores else {}
+        # A scored run built from very little conversation, OR from sustained terse / non-answers —
+        # surfaced so admins don't read it with the same confidence as a thorough one. Two distinct
+        # causes: 'coverage' (ended early / few turns) and 'effort' (enough turns, but all thin).
+        # Neither changes the stored score itself.
+        low_coverage = bool(has_scores and readiness.get("warning_level") == "strong")
+        low_effort = bool(has_scores and readiness.get("low_effort"))
+        low_signal = low_coverage or low_effort
+        if low_effort and not low_coverage:
+            low_signal_reason = "effort"
+        elif low_coverage and not low_effort:
+            low_signal_reason = "coverage"
+        elif low_signal:
+            low_signal_reason = "coverage+effort"
+        else:
+            low_signal_reason = ""
         out.append(
             {
                 "id": r["id"],
@@ -1979,6 +2130,11 @@ def admin_sessions():
                 else None,
                 "assessment": (json.loads(r["variation_json"] or "{}") or {}).get("assessment"),
                 "stats": s,
+                "low_signal": low_signal,
+                "low_signal_reason": low_signal_reason,
+                "coverage_user_turns": readiness.get("user_turns"),
+                "coverage_stage": readiness.get("current_phase_label"),
+                "effort_avg_words": readiness.get("effort_avg_words"),
             }
         )
     return jsonify(

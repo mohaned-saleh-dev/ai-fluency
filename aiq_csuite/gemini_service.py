@@ -654,6 +654,96 @@ You aim for *breadth* across the six areas in the RAG without making it feel lik
     return _postprocess_interviewer_reply(out)
 
 
+_ACK_MAX_WORDS = 24
+_ACK_GENERIC_PRAISE = (
+    "great answer", "good answer", "good point", "great point", "excellent",
+    "well said", "that's a great", "thats a great", "perfect", "amazing", "wonderful",
+)
+
+
+def _clean_ack(s: str) -> str:
+    """Keep the ack to short, statement-only prose; drop any question sentence and generic praise."""
+    t = (s or "").strip().strip('"').strip("'").replace("\n", " ").strip()
+    if not t:
+        return ""
+    # The ack must never ask anything (the server question follows). Keep only statement sentences.
+    parts = re.split(r"(?<=[.!?])\s+", t)
+    kept = [p.strip() for p in parts if p.strip() and "?" not in p]
+    t = " ".join(kept).strip()
+    if not t:
+        return ""
+    low = t.lower()
+    for bad in _ACK_GENERIC_PRAISE:
+        if low.startswith(bad):
+            return ""
+    words = t.split()
+    if len(words) > _ACK_MAX_WORDS + 8:
+        t = " ".join(words[:_ACK_MAX_WORDS]).rstrip(" ,;:-") + "…"
+    if t[-1] not in ".!…":
+        t += "."
+    return t
+
+
+def generate_listening_ack(
+    user_message: str,
+    *,
+    scenario_title: str = "",
+    level_label: str = "",
+) -> str:
+    """
+    One short sentence that reflects the participant's *specific* reply back to them, so the
+    scenario chat feels heard. It never asks a question, gives advice, judges quality, adds new
+    information, or moves the conversation on — the server-authored question always follows it.
+    Returns "" on a thin answer or any LLM issue, so the caller falls back to the question alone.
+    """
+    text = (user_message or "").strip()
+    if len(text.split()) < 7:
+        return ""  # nothing substantive to reflect; also avoids rewarding one-word replies
+    mode, _ = _llm_mode()
+    if mode == "error":
+        return ""
+    sys = (
+        "You are an attentive interviewer in a short workplace conversation about how someone uses AI at work. "
+        "The participant has just replied. Respond with EXACTLY ONE short sentence (max 24 words) that shows you "
+        "listened: mirror back a specific, concrete detail they actually mentioned, or briefly restate their point "
+        "in your own words so they feel heard.\n"
+        "Hard rules:\n"
+        "- Do NOT ask a question of any kind.\n"
+        "- Do NOT give advice, opinions on how good their answer was, or any new information.\n"
+        "- Do NOT introduce a new topic or move the conversation forward.\n"
+        "- Do NOT use generic praise ('great answer', 'good point').\n"
+        "- No emojis, no lists, no quotation marks. Warm, natural, professional, plain."
+    )
+    ctx = f"(Background scenario, do not mention it directly: {scenario_title}.) " if scenario_title else ""
+    prompt = (
+        f"{ctx}The participant said:\n\"\"\"\n{text[:1400]}\n\"\"\"\n\n"
+        "Your one-sentence reflective acknowledgment (statement only, no question):"
+    )
+    try:
+        if mode == "ollama":
+            out = ollama_generate_text(sys + "\n\n" + prompt, temperature=0.5)
+        elif mode == "openai":
+            out = openai_generate_text(
+                prompt,
+                model=OPENAI_MODEL,
+                temperature=0.5,
+                max_output_tokens=60,
+                system_instruction=sys,
+            )
+        else:
+            import google.generativeai as genai
+            genai.configure(api_key=GEMINI_API_KEY)
+            model = genai.GenerativeModel(GEMINI_MODEL, system_instruction=sys)
+            r = model.generate_content(
+                prompt,
+                generation_config={"temperature": 0.5, "max_output_tokens": 60},
+            )
+            out = r.text or ""
+    except Exception:
+        return ""
+    return _clean_ack(out)
+
+
 def opening_message(variation: dict) -> str:
     if (variation or {}).get("version") == 2 or (variation or {}).get("scenario_plan"):
         from scenario_engine import opening_message as scenario_opening
@@ -683,7 +773,7 @@ def _score_with_ollama_from_prompt_body(prompt: str) -> dict:
         pass
     r3 = ollama_generate_text(
         "The previous model output was invalid. Output ONLY a single valid JSON object with the same "
-        "keys: D1..D6, AiQ_0_100, maturity_band, strength_1line, risk_1line. "
+        "keys: D1..D6 (each with score, rationale_1line, and evidence_quotes), AiQ_0_100, maturity_band, strength_1line, risk_1line. "
         "Every string: one line, no double quotes inside, max 200 chars. Invalid output:\n\n"
         + (r1 or "")[:8000],
         temperature=0.1,
@@ -700,7 +790,7 @@ def _score_with_openai_from_prompt_body(prompt: str) -> dict:
         prompt,
         model=OPENAI_MODEL,
         temperature=0.2,
-        max_output_tokens=2500,
+        max_output_tokens=3200,
         system_instruction=sys,
         response_json=True,
     )
@@ -712,7 +802,7 @@ def _score_with_openai_from_prompt_body(prompt: str) -> dict:
         "Return raw JSON only (no backticks, no text outside JSON).\n\n" + prompt,
         model=OPENAI_MODEL,
         temperature=0.1,
-        max_output_tokens=3000,
+        max_output_tokens=3600,
         system_instruction=sys,
         response_json=True,
     )
@@ -722,11 +812,11 @@ def _score_with_openai_from_prompt_body(prompt: str) -> dict:
         pass
     r3 = openai_generate_text(
         "Previous output was invalid JSON. Return ONLY one valid JSON object with keys: "
-        "D1..D6, AiQ_0_100, maturity_band, strength_1line, risk_1line. Invalid output:\n\n"
+        "D1..D6 (each with score, rationale_1line, evidence_quotes), AiQ_0_100, maturity_band, strength_1line, risk_1line. Invalid output:\n\n"
         + (r1 or "")[:8000],
         model=OPENAI_MODEL,
         temperature=0.1,
-        max_output_tokens=2500,
+        max_output_tokens=3200,
         system_instruction=sys,
         response_json=True,
     )
@@ -799,9 +889,68 @@ def sanitize_scoring_for_participant_view(out: dict) -> dict:
     return o
 
 
-def _finalize_scoring_for_session(out: dict, weights: Optional[dict]) -> dict:
+def _normalize_for_match(s: str) -> str:
+    """Lowercase, drop quote chars and punctuation, collapse whitespace — for quote grounding."""
+    t = (s or "").lower()
+    t = re.sub(r"[‘’“”'\"]", "", t)
+    t = re.sub(r"[^a-z0-9\s]", " ", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _ground_evidence_quotes(out: dict, msgs: Optional[List[dict]]) -> dict:
+    """
+    Coerce each dimension's `evidence_quotes` to a clean list (<=2 short strings) and drop any
+    quote not actually grounded in the participant's own USER turns. Guards against the scorer
+    inventing or paraphrasing quotes: a quote survives only if its normalized text is a substring
+    of the participant's words, or >=80% of its words appear there (tolerates minor re-quoting).
+    """
+    if not isinstance(out, dict):
+        return out
+    user_text = _normalize_for_match(
+        " ".join(
+            str(m.get("content") or "")
+            for m in (msgs or [])
+            if (m.get("role") or "") == "user"
+        )
+    )
+    user_words = set(user_text.split())
+    for i in range(1, 7):
+        b = out.get(f"D{i}")
+        if not isinstance(b, dict):
+            continue
+        raw = b.get("evidence_quotes")
+        if isinstance(raw, str):
+            raw = [raw]
+        cleaned: List[str] = []
+        if isinstance(raw, list):
+            for q in raw:
+                if not isinstance(q, str):
+                    continue
+                qt = q.strip()[:160]
+                nq = _normalize_for_match(qt)
+                if not qt or not nq:
+                    continue
+                grounded = nq in user_text
+                if not grounded and user_words:
+                    qw = nq.split()
+                    if qw:
+                        overlap = sum(1 for w in qw if w in user_words) / len(qw)
+                        grounded = overlap >= 0.8
+                if grounded:
+                    cleaned.append(qt)
+                if len(cleaned) >= 2:
+                    break
+        b["evidence_quotes"] = cleaned
+    return out
+
+
+def _finalize_scoring_for_session(
+    out: dict, weights: Optional[dict], msgs: Optional[List[dict]] = None
+) -> dict:
     return sanitize_scoring_for_participant_view(
-        _apply_session_weights_to_composite(out, weights)
+        _apply_session_weights_to_composite(
+            _ground_evidence_quotes(out, msgs), weights
+        )
     )
 
 
@@ -820,6 +969,18 @@ def _apply_session_weights_to_composite(
         s += wv * dv
     out["AiQ_0_100"] = round(10.0 * s, 1)
     return out
+
+
+# Behavioral anchors: what a low / mid / high score *looks like* per dimension. Judge the
+# participant's observable behavior against these bands, not title, tone, or enthusiasm.
+# Bands are deliberately behavioral (what they did) so scores are defensible and repeatable.
+_SCORING_ANCHORS = """**Behavioral anchor bands (score against these; 0-3 low, 4-7 mid, 8-10 high):**
+- **D1 Awareness & opportunity** — LOW: names at most one AI tool in passing, no concrete use case beyond generic time-saving. MID: names two or more tools or use cases actually used and can say which task each is for. HIGH: maps where AI is worth it across their function, not just personal tasks, and can name a case where they chose *not* to use AI and why.
+- **D2 Prompts & communication** — LOW: vague one-shot prompting, no context, examples, or iteration. MID: supplies context and constraints and iterates on a weak output at least once with a concrete example. HIGH: describes a repeatable approach (templates, structured context) adapted deliberately per task type.
+- **D3 Critical judgment** — LOW: takes AI output at face value, no example of catching an error. MID: describes at least one concrete instance of catching a wrong or misleading output before it was used. HIGH: has a standing habit or checklist for verification and distinguishes where AI is reliable vs not in their domain.
+- **D4 Workflows & org design** — LOW: AI use is ad hoc and individual, cannot describe how it fits with teammates. MID: AI is embedded in at least one defined workflow with a clear owner or handoff. HIGH: has redesigned a process around AI (not bolted it on) with explicit accountability and handoffs.
+- **D5 Clarity, craft & output fit** — LOW: ships AI output largely unedited, no sense of the audience bar. MID: edits AI drafts for tone and accuracy before others see them and has a rough quality bar. HIGH: has an explicit, articulable standard AI-assisted output must meet before it reaches its audience, and can say how it is enforced.
+- **D6 Risk & responsible use** — LOW: no mention of data boundaries, escalation, or what they would avoid feeding a model. MID: names at least one concrete boundary (a data type or decision type) they would not hand to AI and knows who to escalate to. HIGH: has a proactive, consistent data-handling and escalation practice they apply by default, not only when asked."""
 
 
 def score_transcript(
@@ -870,6 +1031,8 @@ def score_transcript(
 RAG (shared definitions; interpret through the profile above):
 {rag}
 
+{_SCORING_ANCHORS}
+
 TRANSCRIPT:
 {t_text}
 
@@ -880,34 +1043,39 @@ Session scenario themes (legacy context): {json.dumps(them)}
     prompt += f"""
 Return **one** JSON object only, **no** markdown, **no** code fences, **no** keys except those below. Maturity band must be one of: AiQ1, AiQ2, AiQ3, AiQ4.
 {{
-  "D1": {{"score": 0, "rationale_1line": ""}},
-  "D2": {{"score": 0, "rationale_1line": ""}},
-  "D3": {{"score": 0, "rationale_1line": ""}},
-  "D4": {{"score": 0, "rationale_1line": ""}},
-  "D5": {{"score": 0, "rationale_1line": ""}},
-  "D6": {{"score": 0, "rationale_1line": ""}},
+  "D1": {{"score": 0, "rationale_1line": "", "evidence_quotes": []}},
+  "D2": {{"score": 0, "rationale_1line": "", "evidence_quotes": []}},
+  "D3": {{"score": 0, "rationale_1line": "", "evidence_quotes": []}},
+  "D4": {{"score": 0, "rationale_1line": "", "evidence_quotes": []}},
+  "D5": {{"score": 0, "rationale_1line": "", "evidence_quotes": []}},
+  "D6": {{"score": 0, "rationale_1line": "", "evidence_quotes": []}},
   "AiQ_0_100": 0,
   "maturity_band": "AiQ3",
   "strength_1line": "",
   "risk_1line": ""
 }}
 
+**Anchoring (mandatory):** For each dimension, place the score in the band from the anchor table above that best matches what the participant actually demonstrated, then fine-tune within the band using 0.5 steps. Do **not** reward a good job title, confident tone, or generic enthusiasm — only observable behavior in the transcript.
+
+**Evidence quotes (mandatory):** For each dimension, `evidence_quotes` is an array of **1-2 short verbatim excerpts** copied *word-for-word* from the participant's own USER turns that justify the score. Copy exactly; do **not** paraphrase, invent, summarize, or quote the ASSISTANT. Trim each quote to under 160 characters. If the participant genuinely said nothing relevant to a dimension, use an **empty array** `[]` and score that dimension in the low band — never fabricate a quote to fill it.
+
 **Rules that prevent broken JSON (mandatory):**
 - Every `rationale_1line`, `strength_1line`, and `risk_1line` must be **one** short line, **no** newlines, **no** unescaped **double-quote** characters. Use only letters, digits, space, and basic punctuation (- ; ' . ,). If you need emphasis, rephrase; do not use a period chain that breaks strings.
+- Inside `evidence_quotes`, replace any double-quote in the original wording with a single quote so the JSON stays valid; keep the wording otherwise identical.
 - Every string value under 200 characters.
 
-**Report copy (read by the interviewee; mandatory):**  
-All `rationale_1line`, `strength_1line`, and `risk_1line` are shown to the person who was interviewed. Write in **neutral, respectful** language, or with **you** if natural (e.g. you described, this exchange stayed high-level). Describe limits of **the chat**, not moral failure.  
+**Report copy (read by the interviewee; mandatory):**
+All `rationale_1line`, `strength_1line`, and `risk_1line` are shown to the person who was interviewed. Write in **neutral, respectful** language, or with **you** if natural (e.g. you described, this exchange stayed high-level). Describe limits of **the chat**, not moral failure.
 **Never use:** the phrases *the user*, *the participant*, *preventing assessment*, *insufficient to assess* as blame, *did not provide* (in an accusatory way), *only* their *job title* as a critique, or any line that sounds like an internal grading memo.
 
 Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w6}*D6) using the numeric D scores, rounded to 1 decimal. These weights are **fixed** for this session. Rationales: one short clause; avoid niche regulatory acronyms or vendor diligence unless the job family is risk/legal. Do not return markdown.
 """
     if mode == "ollama":
         out = _score_with_ollama_from_prompt_body(prompt)
-        return _finalize_scoring_for_session(out, w)
+        return _finalize_scoring_for_session(out, w, msgs)
     if mode == "openai":
         out = _score_with_openai_from_prompt_body(prompt)
-        return _finalize_scoring_for_session(out, w)
+        return _finalize_scoring_for_session(out, w, msgs)
     import google.generativeai as genai
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel(
@@ -923,7 +1091,7 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
             prompt,
             generation_config={
                 "temperature": 0.2,
-                "max_output_tokens": 2500,
+                "max_output_tokens": 3200,
                 "response_mime_type": "application/json",
             },
         )
@@ -947,7 +1115,7 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
         try:
             r2 = model.generate_content(
                 "The previous model output was not valid JSON. Return ONLY one JSON object, same keys as before "
-                "(D1..D6 with score and rationale_1line, AiQ_0_100, maturity_band, strength_1line, risk_1line). "
+                "(D1..D6 each with score, rationale_1line, and evidence_quotes, AiQ_0_100, maturity_band, strength_1line, risk_1line). "
                 "Every string value: one line, no double quotation marks inside, max 200 characters. "
                 "No markdown, no text outside the JSON. Invalid output:\n\n" + t_fix[:12000],
                 generation_config={
@@ -960,7 +1128,7 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
         except Exception as ge2:
             if ollama_available():
                 out = _score_with_ollama_from_prompt_body(prompt)
-                return _finalize_scoring_for_session(out, w)
+                return _finalize_scoring_for_session(out, w, msgs)
             raise RuntimeError(
                 f"Scoring repair call failed: {ge2!s}"
             ) from ge2
@@ -974,7 +1142,7 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
                     "Scoring returned data we could not read as JSON. Please tap “View results” again; "
                     "if it repeats, the model may need a retry or a local Ollama fallback for scoring."
                 ) from None
-    return _finalize_scoring_for_session(out, w)
+    return _finalize_scoring_for_session(out, w, msgs)
 
 
 def get_rag_for_app() -> str:

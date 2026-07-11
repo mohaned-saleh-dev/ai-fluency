@@ -100,14 +100,14 @@ def resolve_backend(gemini_key: str, openai_key: str = "") -> Tuple[str, str]:
         if ollama_available():
             return "ollama", f"using Ollama at {OLLAMA_BASE} model={OLLAMA_MODEL}"
         return "error", f"AIQ_LLM_PROVIDER=ollama but Ollama not reachable at {OLLAMA_BASE}"
-    # auto
-    if gemini_key:
-        return "gemini", "auto: using Gemini (key present)"
+    # auto preference: openai (if key) -> gemini (if key) -> ollama (if running)
     if openai_key:
         return "openai", "auto: using OpenAI (key present)"
+    if gemini_key:
+        return "gemini", "auto: using Gemini (key present)"
     if ollama_available():
-        return "ollama", f"auto: no Gemini key, using Ollama at {OLLAMA_BASE} model={OLLAMA_MODEL}"
+        return "ollama", f"auto: no OpenAI/Gemini key, using Ollama at {OLLAMA_BASE} model={OLLAMA_MODEL}"
     return "error", (
-        "auto: set GOOGLE_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY, or install Ollama and run: "
+        "auto: set OPENAI_API_KEY / GEMINI_API_KEY, or install Ollama and run: "
         f"ollama pull {OLLAMA_MODEL} && ollama serve"
     )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 import urllib.error
 import urllib.request
 from typing import Any, Dict, List, Optional
@@ -10,28 +11,44 @@ from typing import Any, Dict, List, Optional
 from config import OPENAI_API_KEY, OPENAI_BASE, OPENAI_MODEL
 
 
-def _post_json(path: str, body: Dict[str, Any], timeout: int = 120) -> Dict[str, Any]:
+def _post_json(path: str, body: Dict[str, Any], timeout: int = 120, max_tries: int = 3) -> Dict[str, Any]:
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set")
-    req = urllib.request.Request(
-        f"{OPENAI_BASE}{path}",
-        data=json.dumps(body).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        detail = ""
+    last_err: Optional[Exception] = None
+    for attempt in range(max_tries):
+        req = urllib.request.Request(
+            f"{OPENAI_BASE}{path}",
+            data=json.dumps(body).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+            },
+            method="POST",
+        )
         try:
-            detail = e.read().decode("utf-8")
-        except Exception:
-            detail = str(e)
-        raise RuntimeError(f"OpenAI HTTP {e.code}: {detail[:900]}") from e
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            detail = ""
+            try:
+                detail = e.read().decode("utf-8")
+            except Exception:
+                detail = str(e)
+            last_err = RuntimeError(f"OpenAI HTTP {e.code}: {detail[:900]}")
+            if e.code in (429, 500, 502, 503, 504) and attempt < max_tries - 1:
+                wait = 2.0 * (attempt + 1)
+                time.sleep(wait)
+                continue
+            raise last_err
+        except (urllib.error.URLError, OSError) as e:
+            last_err = e
+            if attempt < max_tries - 1:
+                time.sleep(2.0 * (attempt + 1))
+                continue
+            raise
+    if last_err:
+        raise last_err
+    return {}
 
 
 def _extract_text(resp: Dict[str, Any]) -> str:

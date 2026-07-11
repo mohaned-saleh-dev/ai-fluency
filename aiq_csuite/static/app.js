@@ -1,9 +1,11 @@
 (function () {
   const $ = (s) => document.querySelector(s);
   const msgBox = $("#msgBox");
-  const stepIntro = $("#step-intro");
+  const stepWelcome = $("#step-welcome");
+  const stepAbout = $("#step-about");
   const stepChat = $("#step-chat");
   const stepResults = $("#step-results");
+  const stepScoring = $("#step-scoring");
   const endModal = $("#endModal");
   const sessionState = {
     id: null,
@@ -20,6 +22,12 @@
   /** Persisted so reload / new tab / recovery after errors can continue the same server session. */
   const STORAGE_KEY = "aiq_csuite_active_session";
   let wrapCtaCountdown = null;
+
+  function setShellChatMode(on) {
+    const shell = document.querySelector(".shell");
+    if (shell) shell.classList.toggle("shell--chat", !!on);
+    document.body.classList.toggle("chat-active", !!on);
+  }
 
   function persistActiveSession(sid) {
     if (!sid) return;
@@ -99,12 +107,15 @@
         else addDimBanner(byIdx[i]);
       }
       const m = st.messages[i];
-      addBubble(m.content, (m.role || "") === "user");
+      addBubble(m.content, (m.role || "") === "user", false);
     }
-    stepIntro.style.display = "none";
-    stepChat.style.display = "block";
+    stepWelcome.style.display = "none";
+    if (stepAbout) stepAbout.style.display = "none";
+    stepChat.style.display = "flex";
+    setShellChatMode(true);
     if (stepResults) stepResults.style.display = "none";
     if ($("#app")) $("#app").classList.remove("results-only");
+    if (stepScoring) stepScoring.style.display = "none";
     const sa = st.started_at;
     if (sa != null && typeof sa === "number" && sa > 1) {
       sessionState.t0 = sa * 1000;
@@ -190,60 +201,62 @@
   }
 
   function renderProgress(progress) {
-    const chips = document.getElementById("aiqProgressChips");
     const count = document.getElementById("aiqProgressCount");
-    if (!chips) return;
+    const phaseLabel = document.getElementById("phaseLabel");
+    if (!phaseLabel) return;
     const mode = (progress && progress.mode) || sessionState.progressMode || "dimension";
     sessionState.progressMode = mode;
     const touched = (progress && Array.isArray(progress.touched)) ? progress.touched : sessionState.progressTouched;
     sessionState.progressTouched = touched;
     if (progress && progress.target_sec) sessionState.targetSec = Number(progress.target_sec) || sessionState.targetSec;
     const current = (progress && progress.current) || (touched.length ? touched[touched.length - 1] : null);
-    const set = new Set(touched);
     if (mode === "scenario" && progress && progress.phases) {
       const phases = progress.phases;
-      const total = progress.total_phases || phases.length || 5;
-      const html = phases
-        .map(function (p) {
-          const code = p.code;
-          const isOn = set.has(code);
-          const isCur = code === current;
-          const cls = "aiq-chip" + (isOn ? " is-on" : "") + (isCur ? " is-current" : "");
-          const labelTxt = p.label || code;
-          return (
-            '<span class="' + cls + '" title="' + escapeHtml(labelTxt) +
-            '" aria-label="' + escapeHtml(labelTxt + (isOn ? " done" : isCur ? " current" : " pending")) + '">' +
-            '<span class="aiq-chip__l">' + escapeHtml(labelTxt) + "</span>" +
-            "</span>"
-          );
-        })
-        .join("");
-      chips.innerHTML = html;
-      if (count) count.textContent = touched.length + " / " + total;
-      return;
+      const cur = phases.find((p) => p.code === current);
+      phaseLabel.textContent = cur ? (cur.label || cur.code || "In progress") : "Getting started";
+    } else {
+      phaseLabel.textContent = touched.length ? ("Covered " + touched.length) : "Getting started";
     }
-    const html = DIM_ORDER.map((code) => {
-      const isOn = set.has(code);
-      const isCur = code === current;
-      const cls = "aiq-chip" + (isOn ? " is-on" : "") + (isCur ? " is-current" : "");
-      const labelTxt = DIM_META[code] || code;
-      return (
-        '<span class="' + cls + '" title="' + escapeHtml(code + " · " + labelTxt) +
-        '" aria-label="' + escapeHtml(code + " " + labelTxt + (isOn ? " covered" : " pending")) + '">' +
-        '<span class="aiq-chip__c">' + escapeHtml(code) + "</span>" +
-        '<span class="aiq-chip__l">' + escapeHtml(labelTxt) + "</span>" +
-        "</span>"
-      );
-    }).join("");
-    chips.innerHTML = html;
-    if (count) count.textContent = touched.length + " / 6";
+    const total =
+      mode === "scenario"
+        ? (progress && progress.total_phases) || 5
+        : (progress && progress.total) || 6;
+    const step =
+      mode === "scenario" && progress && typeof progress.phase_index === "number"
+        ? progress.phase_index + 1
+        : Math.max(1, touched.length || 1);
+    if (count) count.textContent = "Part " + step + " of " + total;
+    const fill = document.getElementById("aiqProgressFill");
+    if (fill) {
+      const pct = Math.min(100, Math.max(0, (step / total) * 100));
+      fill.style.width = pct.toFixed(1) + "%";
+    }
   }
-  function addBubble(text, me) {
+  function addBubble(text, me, animate) {
+    const block = document.createElement("div");
+    block.className = "bubble-block bubble-block--" + (me ? "me" : "them");
+    // Animate live messages (including the interviewer's opening); skip when rebuilding history on resume.
+    if (animate !== false) block.classList.add("bubble-block--in");
+    if (!me) {
+      const sender = document.createElement("div");
+      sender.className = "bubble-sender";
+      sender.textContent = "AiQ";
+      block.appendChild(sender);
+    }
     const d = document.createElement("div");
     d.className = "bubble " + (me ? "me" : "them");
-    if (me) d.textContent = text;
-    else d.innerHTML = formatAssistantHtml(text);
-    msgBox.appendChild(d);
+    const body = document.createElement("div");
+    body.className = "bubble__body";
+    if (me) body.textContent = text;
+    else body.innerHTML = formatAssistantHtml(text);
+    d.appendChild(body);
+    const ts = document.createElement("time");
+    ts.className = "bubble__time";
+    ts.dateTime = new Date().toISOString();
+    ts.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    d.appendChild(ts);
+    block.appendChild(d);
+    msgBox.appendChild(block);
     msgBox.scrollTop = msgBox.scrollHeight;
   }
 
@@ -251,16 +264,28 @@
     let el = document.getElementById("typ");
     if (on) {
       if (!el) {
+        const block = document.createElement("div");
+        block.className = "bubble-block bubble-block--them";
+        block.id = "typBlock";
+        const sender = document.createElement("div");
+        sender.className = "bubble-sender";
+        sender.textContent = "AiQ";
+        block.appendChild(sender);
         el = document.createElement("div");
         el.id = "typ";
         el.className = "typing";
         el.textContent = "Interviewer is thinking…";
-        msgBox.appendChild(el);
+        block.appendChild(el);
+        msgBox.appendChild(block);
       }
       requestAnimationFrame(function () {
         requestAnimationFrame(ensureTypingVisible);
       });
-    } else if (el) el.remove();
+    } else {
+      const block = document.getElementById("typBlock");
+      if (block) block.remove();
+      else if (el) el.remove();
+    }
   }
 
   async function api(path, body) {
@@ -317,12 +342,6 @@
       const r = elapsed % 60;
       const el = $("#timer");
       if (el) el.textContent = `${m}:${String(r).padStart(2, "0")}`;
-      const fill = document.getElementById("aiqProgressFill");
-      if (fill) {
-        const tgt = Math.max(60, Number(sessionState.targetSec) || 900);
-        const pct = Math.min(100, Math.max(0, (elapsed / tgt) * 100));
-        fill.style.width = pct.toFixed(1) + "%";
-      }
     };
     tick();
     sessionState.interval = setInterval(tick, 800);
@@ -543,8 +562,11 @@
     const ap = ass || sessionState.assessment || null;
     const appEl = document.getElementById("app");
     if (appEl) appEl.classList.add("results-only");
-    if (stepIntro) stepIntro.style.display = "none";
+    if (stepWelcome) stepWelcome.style.display = "none";
+    if (stepAbout) stepAbout.style.display = "none";
     if (stepChat) stepChat.style.display = "none";
+    setShellChatMode(false);
+    if (stepScoring) stepScoring.style.display = "none";
     const sr = document.getElementById("step-results");
     const mount = document.getElementById("resultsMount");
     if (!sr || !mount) return;
@@ -592,6 +614,10 @@
     try {
       return await api(path, {});
     } catch (e1) {
+      // A client error (bad request, ended session, etc.) won't change on retry —
+      // only worth waiting and retrying for transient/server-side failures.
+      const st = e1 && e1.status;
+      if (st && st >= 400 && st < 500) throw e1;
       // A slow first pass can time out in the browser/edge even though the server
       // finished and saved the score. Wait, then retry — the server returns the
       // stored result instantly (idempotent), so the user still sees their summary.
@@ -602,10 +628,22 @@
 
   async function runCompleteAndShowResults() {
     if (!sessionState.id) return;
+    if (stepChat) stepChat.style.display = "none";
+    setShellChatMode(false);
+    if (endModal) endModal.setAttribute("hidden", "");
+    if (stepScoring) {
+      stepScoring.style.display = "block";
+      const fill = document.getElementById("scoringFill");
+      if (fill) {
+        fill.style.width = "0%";
+        requestAnimationFrame(() => { fill.style.width = "100%"; });
+      }
+    }
     const o = await postCompleteWithRetry();
     clearActiveSession();
     if (o.assessment) sessionState.assessment = o.assessment;
     if (sessionState.interval) clearInterval(sessionState.interval);
+    if (stepScoring) stepScoring.style.display = "none";
     const S = o && o.scores;
     const d1s = S && S.D1 && (S.D1.score != null || S.D1.score === 0);
     const hasBody = S && typeof S === "object" && (S.AiQ_0_100 != null || d1s);
@@ -638,7 +676,7 @@
     }
     if (btn) {
       btn.disabled = true;
-      btn.textContent = "Scoring… (up to a minute)";
+      btn.textContent = "Scoring…";
     }
     if (cont) cont.disabled = true;
     setEndModalScoringState(true);
@@ -659,7 +697,7 @@
       }
       if (cont) cont.disabled = false;
       if (errEl) {
-        errEl.textContent = (e3 && e3.message) || "Couldn’t build your summary. Try again.";
+        errEl.textContent = (e3 && e3.message) || "Couldn't build your summary. Try again.";
         errEl.removeAttribute("hidden");
       } else {
         alert((e3 && e3.message) || "Error");
@@ -683,17 +721,19 @@
     };
   }
 
-  $("#btnBegin").onclick = async function () {
+  async function startSessionFromAbout() {
     const berr = $("#startErr");
     berr.classList.remove("show");
-    this.disabled = true;
+    const btn = $("#btnBegin");
+    if (btn) btn.disabled = true;
     try {
       const s = String(Math.random()).slice(2) + String(Date.now());
       const levelEl = document.getElementById("selLevel");
       const famEl = document.getElementById("selJobFamily");
+      const intentEl = document.getElementById("selIntent");
       const o = await api("/api/session/start", {
         seed: s,
-        client_meta: { ui: "web" },
+        client_meta: { ui: "web", intent: intentEl ? intentEl.value : undefined },
         level: levelEl ? levelEl.value : undefined,
         job_family: famEl ? famEl.value : undefined,
       });
@@ -717,18 +757,32 @@
         wtime0.setAttribute("hidden", "");
         wtime0.textContent = "";
       }
-      stepIntro.style.display = "none";
-      stepChat.style.display = "block";
+      if (stepAbout) stepAbout.style.display = "none";
+      stepChat.style.display = "flex";
+      setShellChatMode(true);
       if (stepResults) stepResults.style.display = "none";
+      if (stepScoring) stepScoring.style.display = "none";
       if ($("#app")) $("#app").classList.remove("results-only");
       addBubble(o.opening, false);
       startTimer();
       renderProgress(o.progress);
+      if (window.__plausible) window.__plausible("track", "session_start");
     } catch (e) {
       showErr(berr, e.message || "Could not start. Check API key / server logs.");
-      this.disabled = false;
+      if (btn) btn.disabled = false;
     }
-  };
+  }
+
+  if ($("#btnContinue")) {
+    $("#btnContinue").onclick = function () {
+      if (stepWelcome) stepWelcome.style.display = "none";
+      const about = $("#step-about");
+      if (about) about.style.display = "block";
+    };
+  }
+  if ($("#btnBegin")) {
+    $("#btnBegin").onclick = startSessionFromAbout;
+  }
 
   $("#fChat").onsubmit = async function (e) {
     e.preventDefault();
@@ -788,16 +842,73 @@
     $("#sendBtn").disabled = false;
   };
 
-  $("#linkDone").onclick = function (e) {
-    e.preventDefault();
+  function renderEndModalReadiness(r) {
+    const tEl = document.getElementById("endModalTitle");
+    const bEl = document.getElementById("endModalBody");
+    const confirmBtn = document.getElementById("endModalConfirm");
+    if (!bEl || !r) return;
+    const turns = Number(r.user_turns || 0);
+    const strong = r.warning_level === "strong";
+    const isScenario = r.mode === "scenario";
+    const maxTurns = Number(r.max_turns || 6);
+    const stageLabel = r.current_phase_label || "";
+    const statsHtml =
+      "<div class='end-modal__stats'>" +
+      "<div class='end-modal__stat'><span class='end-modal__n'>" +
+      turns + (isScenario ? "/" + maxTurns : "") +
+      "</span><span class='end-modal__l'>Your replies</span></div>" +
+      (isScenario
+        ? "<div class='end-modal__stat'><span class='end-modal__n'>" + escapeHtml(stageLabel) +
+          "</span><span class='end-modal__l'>Stage reached</span></div>"
+        : "<div class='end-modal__stat'><span class='end-modal__n'>" +
+          (r.dimensions_touched || 0) + "/" + (r.dimensions_total || 6) +
+          "</span><span class='end-modal__l'>Topics covered</span></div>") +
+      "</div>";
+    if (endModal) endModal.classList.toggle("end-modal--warn-strong", turns === 0 || strong);
+    if (turns === 0) {
+      if (tEl) tEl.textContent = "Nothing to summarize yet";
+      bEl.innerHTML =
+        statsHtml +
+        "<p class='end-modal__lede end-modal__lede--warn'>You haven&rsquo;t sent a reply yet, so there&rsquo;s nothing for a summary to work from. Send at least one message, then end whenever you&rsquo;re ready.</p>";
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.title = "Send a reply first";
+      }
+    } else if (strong) {
+      if (tEl) tEl.textContent = "End with limited coverage?";
+      bEl.innerHTML =
+        statsHtml +
+        "<p class='end-modal__lede end-modal__lede--warn'>You&rsquo;re early in the conversation. Ending now still generates a summary, but it&rsquo;ll be based on very little.</p>";
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.title = "";
+      }
+    } else {
+      if (tEl) tEl.textContent = "Finish and see your summary?";
+      bEl.innerHTML =
+        statsHtml +
+        "<p class='end-modal__lede'>Ending will close the chat and generate your one-page summary from this conversation. You can continue if you&rsquo;d rather keep going.</p>";
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.title = "";
+      }
+    }
+  }
+
+  $("#linkDone").onclick = async function (e) {
     if (!sessionState.id) return;
     if (endModal) endModal.classList.remove("end-modal--warn-strong");
     const tEl = document.getElementById("endModalTitle");
-    if (tEl) tEl.textContent = "End this session?";
     const bEl = document.getElementById("endModalBody");
+    const confirmBtn = document.getElementById("endModalConfirm");
+    if (tEl) tEl.textContent = "Finish and see your summary?";
     if (bEl) {
       bEl.innerHTML =
-        "<p class='end-modal__lede'>Ending will close the chat and generate your one-page summary from this conversation. You can keep going if you’d rather continue.</p>";
+        "<p class='end-modal__lede'>Ending will close the chat and generate your one-page summary from this conversation. You can continue if you&rsquo;d rather keep going.</p>";
+    }
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.title = "";
     }
     const errEl = document.getElementById("endModalError");
     if (errEl) {
@@ -805,10 +916,16 @@
       errEl.textContent = "";
     }
     openEndModal();
+    try {
+      const r = await apiGet("/api/session/" + sessionState.id + "/readiness");
+      renderEndModalReadiness(r);
+    } catch (_) {
+      // Readiness is advisory only — keep the generic copy if the fetch fails.
+    }
   };
 
   (function resumeBoot() {
-    const bb = $("#btnBegin");
+    const bb = $("#btnContinue") || $("#btnBegin");
     if (bb) bb.disabled = true;
     tryResumeOnLoad().finally(function () {
       if (bb && !sessionState.id) bb.disabled = false;

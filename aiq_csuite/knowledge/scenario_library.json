@@ -193,5 +193,31 @@
       "The business case reads strong — what would you pressure-test?",
       "Who else would you involve before committing budget?"
     ]
+  },
+  "product_exec": {
+    "primary_title": "Build vs. buy: AI code review tool",
+    "primary_setup": "Your engineering org is deciding whether to build an internal AI-assisted code review tool or license a third-party one. Your leads are split — some want to move fast with a vendor, others want something trained on your own codebase.",
+    "primary_stakes": "Whichever way you go becomes the default for every engineer this quarter. A wrong call means months of wasted build time, or a vendor lock-in that is hard to unwind.",
+    "complication_inject": "Partway through the evaluation, a senior engineer has already been running the vendor's early-access tool against production code, skipping the pilot process your team agreed to follow.",
+    "standards_prompt": "When your teams adopt AI tools that touch production code, what would you want every engineering leader to check before rollout?",
+    "standards_question": "What's one rule you'd want every engineering leader to follow before adopting an AI tool that touches production code?",
+    "probe_bank": [
+      "What would you actually evaluate first — cost, capability, or something else?",
+      "The vendor demo looks impressive — what would you want to see before trusting it on your codebase?",
+      "Who needs to sign off before this becomes the team default?"
+    ]
+  },
+  "ops_exec": {
+    "primary_title": "AI rollout across the ops floor",
+    "primary_setup": "You are deciding whether to roll out an AI ticket-triage and agent-assist tool across your entire customer care organization — hundreds of agents, multiple queues, different escalation paths per product line.",
+    "primary_stakes": "A bad rollout does not slow one team, it hits every customer touchpoint at once. A visible failure becomes a leadership-level problem, not a single-agent mistake.",
+    "complication_inject": "Early pilot data is mixed — the tool cuts handling time in one queue but is quietly increasing escalations in another, and nobody flagged it until a customer complaint surfaced the pattern.",
+    "standards_prompt": "Before a queue goes live on an AI assist tool, what would you want its lead to confirm first?",
+    "standards_question": "What's one rule you'd want every queue lead to follow before turning on an AI assist tool for their team?",
+    "probe_bank": [
+      "What would you want to see in the pilot data before deciding to expand it?",
+      "The numbers look good on average — what would make you dig deeper before rolling out further?",
+      "Who owns the decision to pause or roll back if something goes wrong mid-rollout?"
+    ]
   }
 }

@@ -21,6 +21,7 @@
       --bad: #ff7b7b;
     }
     * { box-sizing: border-box; }
+    html { font-size: 17px; }
     body {
       margin: 0;
       color: var(--ink);
@@ -28,7 +29,7 @@
       background: radial-gradient(1200px 700px at 8% 0%, #2f1a5a 0%, #120c24 58%, #0f0b1f 100%) fixed;
     }
     .hidden { display: none !important; }
-    .shell { width: min(1400px, 96vw); margin: 0 auto; padding: 1rem 0 1.8rem; }
+    .shell { width: min(1560px, 97vw); margin: 0 auto; padding: 1rem 0 1.8rem; }
     .btn {
       border: 0;
       border-radius: 999px;
@@ -131,20 +132,25 @@
     .top { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
     .top h1 { margin: 0; font-size: 1.18rem; letter-spacing: -0.01em; }
     .top p { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--muted); }
-    .layout { display: grid; grid-template-columns: minmax(390px, 0.9fr) minmax(580px, 1.4fr); gap: 0.8rem; }
+    .layout { display: grid; grid-template-columns: minmax(480px, 0.95fr) minmax(640px, 1.5fr); gap: 0.8rem; }
     @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
     .card { border: 1px solid rgba(175, 143, 242, 0.24); border-radius: 14px; background: linear-gradient(160deg, rgba(34, 21, 64, 0.94), rgba(16, 11, 31, 0.96)); overflow: hidden; }
-    .card-h { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.58rem 0.72rem; border-bottom: 1px solid rgba(175, 143, 242, 0.18); background: rgba(130, 75, 242, 0.1); }
-    .card-h h2 { margin: 0; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .card-h { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.7rem 0.85rem; border-bottom: 1px solid rgba(175, 143, 242, 0.18); background: rgba(130, 75, 242, 0.1); }
+    .card-h h2 { margin: 0; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
     .card-h .meta { font-size: 0.68rem; color: var(--muted); }
 
     .sess-wrap { max-height: 80vh; overflow: auto; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     th, td { border-bottom: 1px solid rgba(178, 151, 241, 0.13); padding: 0.46rem 0.46rem; text-align: left; font-size: 0.72rem; vertical-align: top; }
     th { position: sticky; top: 0; z-index: 2; background: #301a58; color: #d9c9ff; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .sess-wrap table { table-layout: auto; }
+    .sess-wrap th, .sess-wrap td { padding: 0.6rem 0.6rem; font-size: 0.8rem; white-space: nowrap; }
+    .sess-wrap th { font-size: 0.66rem; }
+    .sess-wrap td.name-cell { white-space: normal; }
+    .sess-wrap tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.018); }
     tr.srow { cursor: pointer; }
-    tr.srow:hover { background: rgba(157, 84, 255, 0.12); }
-    tr.srow.active { background: rgba(157, 84, 255, 0.2); }
+    .sess-wrap tr.srow:hover { background: rgba(157, 84, 255, 0.14); }
+    .sess-wrap tr.srow.active { background: rgba(157, 84, 255, 0.22); }
     .btn-admin-del {
       font-size: 0.6rem; padding: 0.2rem 0.45rem; min-width: auto; line-height: 1.2;
       background: rgba(255, 90, 90, 0.2); border: 1px solid rgba(255, 140, 140, 0.45);
@@ -155,10 +161,22 @@
     th.no-click, td.del-cell { text-align: center; width: 3.2rem; }
     td.del-cell { cursor: default; }
     td.del-cell * { cursor: pointer; }
+    .ls-flag {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.05rem; height: 1.05rem; margin-left: 0.35rem;
+      border-radius: 999px;
+      background: rgba(246, 177, 0, 0.22);
+      border: 1px solid rgba(246, 177, 0, 0.65);
+      color: #ffce5c;
+      font-size: 0.64rem;
+      font-weight: 900;
+      cursor: default;
+      vertical-align: middle;
+    }
     .sid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255, 255, 255, 0.08); border-radius: 5px; padding: 0.05rem 0.3rem; font-size: 0.68rem; }
     .pill { display: inline-block; padding: 0.09rem 0.4rem; border-radius: 999px; background: #6f35e5; color: #fff; font-size: 0.67rem; font-weight: 800; }
     .muted { color: #a89bcf; }
-    .detail { max-height: 80vh; overflow: auto; padding: 0.62rem 0.72rem 0.78rem; font-size: 0.9rem; line-height: 1.45; }
+    .detail { max-height: 80vh; overflow: auto; padding: 0.8rem 0.9rem 0.95rem; font-size: 0.92rem; line-height: 1.5; }
     .metrics-hero {
       border: 1px solid rgba(160, 130, 255, 0.35);
       border-radius: 14px;
@@ -169,14 +187,14 @@
     }
     .metrics-hero h3 { font-size: 0.8rem; letter-spacing: 0.11em; margin: 0 0 0.4rem; color: #f0e8ff; font-weight: 800; }
     .metrics-hero .lead { margin: 0 0 0.55rem; font-size: 0.8rem; line-height: 1.45; color: #c9b8ed; }
-    .kpis { display: grid; grid-template-columns: repeat(1, minmax(220px, 1fr)); gap: 0.6rem; }
-    @media (min-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(220px, 1fr)); } }
-    @media (min-width: 1180px) { .kpis { grid-template-columns: repeat(3, minmax(220px, 1fr)); } }
+    .kpis { display: grid; grid-template-columns: repeat(1, minmax(220px, 1fr)); gap: 0.75rem; }
+    @media (min-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(230px, 1fr)); } }
+    @media (min-width: 1180px) { .kpis { grid-template-columns: repeat(3, minmax(230px, 1fr)); } }
     @media (max-width: 600px) { .kpis { grid-template-columns: 1fr; } }
-    .kpi { position: relative; border: 1px solid rgba(175, 146, 240, 0.28); border-radius: 14px; padding: 0.56rem 0.58rem 0.58rem; background: rgba(255, 255, 255, 0.04); min-height: 6.1rem; }
+    .kpi { position: relative; border: 1px solid rgba(175, 146, 240, 0.28); border-radius: 14px; padding: 0.68rem 0.7rem 0.7rem; background: rgba(255, 255, 255, 0.04); min-height: 6.4rem; }
     .kpi .k-row { display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; margin-bottom: 0.1rem; }
-    .kpi .k { font-size: 0.64rem; color: #ddd4f5; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; flex: 1; }
-    .kpi .v { font-size: 1.2rem; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.2; margin-top: 0.25rem; }
+    .kpi .k { font-size: 0.74rem; color: #ddd4f5; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; flex: 1; }
+    .kpi .v { font-size: 1.28rem; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.3; margin-top: 0.3rem; }
     .hint-ico {
       flex-shrink: 0;
       width: 0.92rem; height: 0.92rem; border-radius: 999px; border: 1px solid rgba(199, 170, 255, 0.5);
@@ -231,7 +249,7 @@
     .dim-target { position: absolute; left:0; top:0; bottom:0; background: rgba(167,138,230,0.55); }
     .dim-actual { position: absolute; left:0; top:0; bottom:0; background: linear-gradient(90deg, #12c87c, #5fd9c2); }
     .ev-wrap { min-height: 10rem; padding: 0.35rem 0.4rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(160, 130, 220, 0.22); }
-    .ev-h { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #c4b0ee; font-weight: 800; margin: 0.35rem 0 0.2rem; }
+    .ev-h { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #c4b0ee; font-weight: 800; margin: 0.35rem 0 0.2rem; }
     .ev-h:first-child { margin-top: 0; }
     .ev-wrap ul { margin: 0.15rem 0 0 1.1rem; padding: 0; color: #e8dfff; font-size: 0.8rem; line-height: 1.45; }
     .ev-wrap li { margin: 0.1rem 0; }
@@ -242,7 +260,7 @@
     @media (max-width: 980px) { .grid2 { grid-template-columns: 1fr; } }
     .panel { border: 1px solid rgba(172, 142, 240, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.03); padding: 0.4rem 0.44rem; }
     .chart { width: 100%; height: 200px; display: block; background: rgba(20, 13, 40, 0.58); border-radius: 8px; border: 1px solid rgba(162, 129, 236, 0.18); }
-    .caption { margin-top: 0.25rem; color: #a99dd0; font-size: 0.68rem; line-height: 1.35; }
+    .caption { margin-top: 0.25rem; color: #b3a6d8; font-size: 0.76rem; line-height: 1.4; }
     .list { display: grid; gap: 0.34rem; }
     .itm { border-left: 3px solid var(--accent); border-radius: 10px; background: rgba(255, 255, 255, 0.05); padding: 0.5rem 0.55rem; }
     .itm b { font-size: 0.85rem; }
@@ -253,7 +271,7 @@
     .rec-action-card { border: 1px solid rgba(175,146,240,0.28); background: rgba(0,0,0,0.2); border-radius: 10px; padding: 0.5rem 0.55rem 0.55rem; margin-bottom: 0.42rem; }
     .rec-action-card h4 { margin: 0 0 0.2rem; font-size: 0.84rem; color: #f3ecff; font-weight: 800; letter-spacing: 0.01em; }
     .rec-action-card .rec-meta { font-size: 0.7rem; color: #c9b3ee; font-weight: 600; line-height: 1.4; margin-bottom: 0.4rem; }
-    .rec-action-card .rec-sub { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: #9e86d4; font-weight: 800; margin: 0.35rem 0 0.2rem; }
+    .rec-action-card .rec-sub { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: #9e86d4; font-weight: 800; margin: 0.35rem 0 0.2rem; }
     .rec-action-card ul { margin: 0.1rem 0 0.15rem; padding-left: 1.05rem; }
     .rec-action-card li { color: #ebe4ff; font-size: 0.78rem; line-height: 1.5; font-weight: 500; margin: 0.15rem 0; }
     .rec-action-card .rec-rational { font-size: 0.7rem; color: #9fa0c4; line-height: 1.4; font-style: italic; margin: 0.3rem 0 0; }
@@ -265,8 +283,8 @@
     .course-link { font-size: 0.72rem; font-weight: 700; color: #d9beff; text-decoration: underline; text-underline-offset: 2px; }
     @media (max-width: 980px) { .rec-grid { grid-template-columns: 1fr; } }
     .resp-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-    .resp-table th, .resp-table td { padding: 0.5rem 0.45rem; border-bottom: 1px solid rgba(170, 143, 238, 0.16); }
-    .resp-table th { position: static; background: rgba(106, 57, 214, 0.32); font-size: 0.6rem; font-weight: 800; }
+    .resp-table th, .resp-table td { padding: 0.55rem 0.5rem; border-bottom: 1px solid rgba(170, 143, 238, 0.16); }
+    .resp-table th { position: static; background: rgba(106, 57, 214, 0.32); font-size: 0.68rem; font-weight: 800; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
     .raw { margin: 0; white-space: pre-wrap; font-size: 0.66rem; line-height: 1.35; color: #d8cdf4; max-height: 15rem; overflow: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(169,139,236,0.2); border-radius: 8px; padding: 0.4rem; }
@@ -373,7 +391,7 @@
     .admin-name-editor__l { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #c4b0ee; font-weight: 700; }
     .resp-table th:nth-child(4), .resp-table td:nth-child(4) { width: 32%; }
     .resp-table th:nth-child(2), .resp-table td:nth-child(2) { min-width: 8rem; }
-    .report-hero__label { margin: 0 0 0.35rem; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; color: #a894d4; }
+    .report-hero__label { margin: 0 0 0.35rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; color: #b3a0da; }
     .report-hero {
       border: 1px solid rgba(175, 146, 240, 0.28);
       border-radius: 12px;
@@ -457,7 +475,6 @@
                 <th>Session</th>
                 <th>Dur</th>
                 <th>Msgs</th>
-                <th>Blur</th>
                 <th>AiQ</th>
                 <th class="no-click"></th>
               </tr>
@@ -539,6 +556,29 @@
         return parts.join(" ");
       }
       const ts = (v) => (v == null || isNaN(Number(v)) ? "—" : new Date(Number(v) * 1000).toLocaleString());
+      // Compact, single-line variants for the scan-table (full precision stays available via title=).
+      const tsShort = (v) =>
+        v == null || isNaN(Number(v))
+          ? "—"
+          : new Date(Number(v) * 1000).toLocaleString(undefined, {
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            });
+      function durShort(totalSec) {
+        if (totalSec == null || isNaN(Number(totalSec))) return "—";
+        let s = Math.max(0, Math.round(Number(totalSec)));
+        const h = Math.floor(s / 3600);
+        s -= h * 3600;
+        const m = Math.floor(s / 60);
+        s -= m * 60;
+        const parts = [];
+        if (h) parts.push(h + "h");
+        if (m) parts.push(m + "m");
+        if (!h && (s || !parts.length)) parts.push(s + "s");
+        return parts.join(" ");
+      }
 
       function isSessionEnded(s) {
         if (!s) return false;
@@ -715,15 +755,34 @@
           "<input type='text' class='admin-name-input' data-sid='" + esc(s.id || "") + "' " +
           "value='" + esc(nameVal) + "' placeholder='Add name' maxlength='120' " +
           "aria-label='Test-taker name (admin reference)' /></td>";
+        let aiqCell = "<span class='muted'>—</span>";
+        if (aiq !== "—") {
+          aiqCell = "<span class='pill'>" + esc(aiq) + "</span>";
+          if (s.low_signal) {
+            const turns = s.coverage_user_turns != null ? s.coverage_user_turns : "?";
+            const reason = s.low_signal_reason || "coverage";
+            let tip;
+            if (reason === "effort") {
+              const avg = s.effort_avg_words != null ? s.effort_avg_words : "?";
+              tip = "Low signal — replied " + turns + " time" + (turns === 1 ? "" : "s") +
+                    " but answers were thin (avg " + avg + " words/reply). Score rests on little substance.";
+            } else {
+              const stage = s.coverage_stage ? (", stopped at “" + s.coverage_stage + "”") : "";
+              let base = "Low signal — scored from very little conversation: " + turns + " repl" + (turns === 1 ? "y" : "ies") + stage;
+              if (reason === "coverage+effort") base += "; answers were also thin";
+              tip = base;
+            }
+            aiqCell += "<span class='ls-flag' title='" + esc(tip) + "'>!</span>";
+          }
+        }
         return (
-          "<td>" + esc(ts(s.created_at)) + "</td>" +
+          "<td title='" + esc(ts(s.created_at)) + "'>" + esc(tsShort(s.created_at)) + "</td>" +
           "<td style='width:5.5rem'>" + statusPill(s) + "</td>" +
           nameCell +
           "<td><span class='sid'>" + esc((s.id || "").slice(0, 8)) + "</span></td>" +
-          "<td>" + esc(st.duration_sec != null ? durHuman(st.duration_sec) : "—") + "</td>" +
+          "<td title='" + esc(st.duration_sec != null ? durHuman(st.duration_sec) : "") + "'>" + esc(st.duration_sec != null ? durShort(st.duration_sec) : "—") + "</td>" +
           "<td>" + esc((st.user_messages || 0) + "/" + (st.model_messages || 0)) + "</td>" +
-          "<td>" + esc(st.tab_blur_count != null ? st.tab_blur_count : 0) + "</td>" +
-          "<td>" + (aiq === "—" ? "<span class='muted'>—</span>" : "<span class='pill'>" + esc(aiq) + "</span>") + "</td>" +
+          "<td>" + aiqCell + "</td>" +
           "<td class='del-cell'><button type='button' class='btn btn-admin-del' aria-label='Delete session'>Delete</button></td>"
         );
       }
@@ -1052,6 +1111,50 @@
           "</div>" +
           rows +
           "</div>"
+        );
+      }
+
+      const DIM_LABELS = {
+        D1: "Awareness & opportunity",
+        D2: "Prompts & communication",
+        D3: "Critical judgment",
+        D4: "Workflows & org design",
+        D5: "Clarity, craft & output fit",
+        D6: "Risk & responsible use",
+      };
+
+      // Per-dimension evidence quotes pulled verbatim from the participant's replies. This is the
+      // "why" behind each score — the traceable backing the scoring pass now returns per dimension.
+      function renderEvidenceByDimension(scores) {
+        if (!scores || typeof scores !== "object") return "";
+        const rows = [];
+        for (let i = 1; i <= 6; i++) {
+          const code = "D" + i;
+          const b = scores[code];
+          if (!b || typeof b !== "object") continue;
+          const sc = b.score != null ? num(b.score, 1) : "—";
+          const quotes = Array.isArray(b.evidence_quotes) ? b.evidence_quotes.filter((q) => q && String(q).trim()) : [];
+          const rationale = b.rationale_1line ? String(b.rationale_1line).trim() : "";
+          const quotesHtml = quotes.length
+            ? "<ul>" + quotes.map((q) => "<li>“" + esc(String(q).trim()) + "”</li>").join("") + "</ul>"
+            : "<p class='ev-note muted' style='margin:0.1rem 0 0'>No verbatim quote grounded for this dimension — score rests on the rationale and overall read.</p>";
+          rows.push(
+            "<div style='margin-bottom:0.55rem'>" +
+            "<div class='ev-h' style='display:flex;justify-content:space-between;gap:0.5rem'>" +
+            "<span>" + esc(code + " · " + (DIM_LABELS[code] || "")) + "</span>" +
+            "<span style='color:#e8dfff'>" + esc(sc) + " / 10</span>" +
+            "</div>" +
+            (rationale ? "<p class='ev-note' style='margin:0.15rem 0 0.2rem'>" + esc(rationale) + "</p>" : "") +
+            quotesHtml +
+            "</div>"
+          );
+        }
+        if (!rows.length) return "";
+        return (
+          "<div class='sec' style='margin-top:0.7rem'>" +
+          "<h3 style='font-size:0.72rem;letter-spacing:0.08em'>Evidence by dimension</h3>" +
+          "<p class='muted' style='font-size:0.8rem;margin:0 0 0.4rem 0'>Verbatim excerpts from the participant's own replies that back each score. Quotes are checked against the transcript; a dimension with no grounded quote shows a note instead.</p>" +
+          "<div class='ev-wrap'>" + rows.join("") + "</div></div>"
         );
       }
 
@@ -1418,7 +1521,8 @@
             "<div class='panel-title'>Score by dimension (this run)</div>" +
             "<p class='chart-legend'>0–10 from the last scoring pass (empty until scored).</p>" +
             renderCapabilityStrength(charts.dimension_score_vs_target || []) +
-            "</div></div>";
+            "</div></div>" +
+            (evalConcluded ? renderEvidenceByDimension(scores0) : "");
 
           const s1 = reportSection(
             "1",

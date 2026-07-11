@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Tamara AiQ Fluency Assessment — SRS v1.0</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+* { box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.45;
+  color: #1a1a18;
+  max-width: 180mm;
+  margin: 0 auto;
+  padding: 0 4mm;
+}
+.cover {
+  page-break-after: always;
+  min-height: 250mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20mm 8mm;
+}
+.cover .label { font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: #9600F1; font-weight: 700; margin-bottom: 8mm; }
+.cover h1 { font-size: 26pt; line-height: 1.15; margin: 0 0 6mm; color: #5300BA; font-weight: 800; }
+.cover .sub { font-size: 12pt; color: #4a4843; margin-bottom: 12mm; max-width: 140mm; }
+.cover .meta { font-size: 9pt; color: #6e6b64; }
+.cover .conf { margin-top: 16mm; font-size: 8pt; color: #6e6b64; border-top: 1px solid #e8e6e1; padding-top: 6mm; }
+h1 { font-size: 16pt; color: #5300BA; margin: 10mm 0 4mm; page-break-after: avoid; }
+h2 { font-size: 11pt; color: #5300BA; margin: 7mm 0 3mm; page-break-after: avoid; border-bottom: 1px solid #e8e6e1; padding-bottom: 1mm; }
+h3 { font-size: 10pt; color: #1a1a18; margin: 5mm 0 2mm; page-break-after: avoid; }
+p { margin: 0 0 2.5mm; text-align: justify; }
+ul, ol { margin: 0 0 3mm; padding-left: 5mm; }
+li { margin-bottom: 1mm; }
+table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; font-size: 8.5pt; page-break-inside: avoid; }
+th, td { border: 1px solid #d8d6d1; padding: 2mm 2.5mm; vertical-align: top; text-align: left; }
+th { background: #f5f0ff; font-weight: 600; color: #5300BA; }
+tr:nth-child(even) td { background: #fafaf8; }
+.code { font-family: Consolas, monospace; font-size: 8pt; background: #f4f4f2; padding: 2mm; border-radius: 2px; white-space: pre-wrap; }
+.toc { page-break-after: always; }
+.toc ol { font-size: 9pt; }
+.toc a { color: inherit; text-decoration: none; }
+.req-id { font-family: Consolas, monospace; font-size: 8pt; color: #5300BA; white-space: nowrap; }
+.pri { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; }
+.p0 { color: #c41e3a; }
+.p1 { color: #d97706; }
+.p2 { color: #2563eb; }
+.p3 { color: #6e6b64; }
+.page-break { page-break-before: always; }
+.footer-note { font-size: 7.5pt; color: #6e6b64; margin-top: 8mm; border-top: 1px solid #e8e6e1; padding-top: 3mm; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="label">Software Requirements Specification</div>
+  <h1>Tamara AiQ Fluency Assessment Platform</h1>
+  <p class="sub">A structured framework for defining, assessing, measuring, and developing AI fluency across the Tamara workforce.</p>
+  <p class="meta"><strong>Document version:</strong> 1.0<br />
+  <strong>Date:</strong> 9 July 2026<br />
+  <strong>Status:</strong> Draft for product &amp; engineering alignment<br />
+  <strong>Baseline codebase:</strong> aiq_csuite (prototype)<br />
+  <strong>Framework reference:</strong> AiQ Executive Summary v1.2 (April 2026)</p>
+  <p class="conf">Confidential — Internal Tamara use. This document was prepared to align engineering, design, People/L&amp;D, and Legal on requirements to move from prototype to pilot-ready product.</p>
+</section>
+
+<section class="toc">
+  <h1>Table of contents</h1>
+  <ol>
+    <li>Introduction</li>
+    <li>Overall description</li>
+    <li>Current state baseline</li>
+    <li>Target product vision</li>
+    <li>User classes and personas</li>
+    <li>Functional requirements</li>
+    <li>Assessment framework requirements</li>
+    <li>User journey requirements</li>
+    <li>Reporting and coaching requirements</li>
+    <li>Admin and workforce analytics requirements</li>
+    <li>Data requirements</li>
+    <li>API requirements</li>
+    <li>Non-functional requirements</li>
+    <li>Security, privacy, and compliance</li>
+    <li>Integration requirements</li>
+    <li>Design and branding requirements</li>
+    <li>Phased delivery plan</li>
+    <li>Acceptance criteria</li>
+    <li>Out of scope</li>
+    <li>Open decisions</li>
+    <li>Appendices</li>
+  </ol>
+</section>
+
+<h1>1. Introduction</h1>
+
+<h2>1.1 Purpose</h2>
+<p>This SRS defines the software requirements for <strong>Tamara’s AiQ Fluency Assessment</strong> — an enterprise platform to define, assess, measure, and develop AI fluency across Tamara’s workforce using a structured conversational assessment aligned to the <strong>AiQ Framework</strong> (6 dimensions, role-specific weighting, 0–100 composite score, 4 maturity bands).</p>
+<p>The document bridges the strategic framework (Executive Summary PDF v1.2), the working prototype (aiq_csuite), and competitive UX patterns (AISA) adapted to Tamara’s brand, regulated context, and internal use case.</p>
+
+<h2>1.2 Scope</h2>
+<p><strong>In scope:</strong> Self-serve conversational AiQ assessment (~10 minutes); role × seniority calibration; evidence-based scoring and participant-facing coaching report; admin session review and telemetry; org-level fluency dashboards (later); executive framework deck; pilot for internal reflection &amp; L&amp;D with path to hiring and performance integration.</p>
+<p><strong>Out of scope for initial releases:</strong> See Section 19.</p>
+
+<h2>1.3 Definitions</h2>
+<table>
+<tr><th>Term</th><th>Definition</th></tr>
+<tr><td>AiQ</td><td>AI Quotient — composite measure of practical AI fluency (0–100)</td></tr>
+<tr><td>Dimension (D1–D6)</td><td>One of six competency areas in the AiQ rubric</td></tr>
+<tr><td>Criterion</td><td>Sub-component within a dimension (target: 2 per dimension = 12 total)</td></tr>
+<tr><td>Maturity band</td><td>AiQ1 (0–25), AiQ2 (26–55), AiQ3 (56–80), AiQ4 (81–100)</td></tr>
+<tr><td>Level</td><td>Seniority: ic, people_manager, head_of, executive</td></tr>
+<tr><td>Job family</td><td>Function slug, e.g. product_engineering, risk_legal</td></tr>
+<tr><td>Scenario stack</td><td>Structured flow: anchor → primary → complication → standards → close</td></tr>
+<tr><td>Track A / B / C</td><td>Interviewer / per-turn evaluator / end calibration (target architecture)</td></tr>
+<tr><td>Evidence quote</td><td>Verbatim transcript excerpt supporting a dimension score</td></tr>
+</table>
+
+<h2>1.4 References</h2>
+<table>
+<tr><th>Ref</th><th>Document</th></tr>
+<tr><td>R1</td><td>AiQ Executive Summary v1.2</td></tr>
+<tr><td>R2</td><td>Tamara Visual Identity Guidelines 2025</td></tr>
+<tr><td>R3</td><td>U.S. DOL AI Literacy Framework (TEN 07-25) — alignment appendix (TBD)</td></tr>
+<tr><td>R4</td><td>Anthropic AI Fluency Index (2026) — alignment appendix (TBD)</td></tr>
+<tr><td>R5</td><td>AISA methodology (competitive benchmark)</td></tr>
+<tr><td>R6</td><td>aiq_csuite README and knowledge/aiq_context_rag.md</td></tr>
+</table>
+
+<h2>1.5 Conventions</h2>
+<p>Requirements use <strong>SHALL</strong> (mandatory), <strong>SHOULD</strong> (recommended), <strong>MAY</strong> (optional). Priority: P0 (MVP blocker), P1 (pilot complete), P2 (scale), P3 (future).</p>
+
+<h1 class="page-break">2. Overall description</h1>
+
+<h2>2.1 Product perspective</h2>
+<p>Tamara AiQ is a measurement + development system, not a certification marketplace. It sits as a competency layer across: Hiring (AiQ Challenge) → Onboarding → Quarterly refresh → Performance/L&amp;D → Workforce planning. The pilot focuses on current employees, self-assessment, reflection &amp; coaching, with admin visibility.</p>
+
+<h2>2.2 Product principles</h2>
+<ol>
+<li>Conversational, not multiple-choice — measures demonstrated behavior.</li>
+<li>Augmentation, not automation — rewards extending human expertise with AI.</li>
+<li>Role-fair — same rubric, different weights and scenario emphasis.</li>
+<li>Evidence-backed — every dimension score traceable to transcript quotes.</li>
+<li>Regulated-context aware — D6 is a floor for everyone; deeper for risk/legal/finance.</li>
+<li>Tamara-native — brand, tone, fintech governance embedded.</li>
+<li>Short enough for executives — target ~10 minutes; max ~6 user turns in scenario mode.</li>
+<li>Transparent to participants — respectful second-person copy.</li>
+</ol>
+
+<h2>2.3 Constraints</h2>
+<table>
+<tr><th>Constraint</th><th>Detail</th></tr>
+<tr><td>Dependencies</td><td>No new packages without security approval</td></tr>
+<tr><td>Secrets</td><td>Environment variables only; no .env in source control</td></tr>
+<tr><td>LLM cost</td><td>Default 1 main LLM call per user message; scoring at end</td></tr>
+<tr><td>Pilot audience</td><td>Internal; VPN/SSO or IP allow list</td></tr>
+<tr><td>Duration</td><td>AIQ_TARGET_SEC default 900s; scenario max 6 user turns</td></tr>
+<tr><td>Branding</td><td>Lavender #9600F1, Purple #5300BA, Plus Jakarta Sans</td></tr>
+</table>
+
+<h1 class="page-break">3. Current state baseline</h1>
+<table>
+<tr><th>Area</th><th>Status</th><th>Notes</th></tr>
+<tr><td>Conversational assessment</td><td>Built</td><td>Flask, chat UI, session resume</td></tr>
+<tr><td>6-dimension scoring</td><td>Built</td><td>D1–D6, AiQ_0_100, maturity band</td></tr>
+<tr><td>Level × job family weights</td><td>Built</td><td>assessment_profiles.py</td></tr>
+<tr><td>Scenario stack v2</td><td>Built</td><td>5 phases, max 6 user turns</td></tr>
+<tr><td>Single LLM scoring</td><td>Built</td><td>gemini_service.score_transcript</td></tr>
+<tr><td>Participant report + PDF</td><td>Built</td><td>Results page, session_report_pdf</td></tr>
+<tr><td>Coaching / courses</td><td>Built</td><td>Per-dimension gaps, external links</td></tr>
+<tr><td>Admin + orchestrator</td><td>Built</td><td>Telemetry, weight editor</td></tr>
+<tr><td>Executive deck</td><td>Built</td><td>/deck/executive, PDF route</td></tr>
+<tr><td>Dual-track scoring</td><td>Not built</td><td>Single model interviews and scores</td></tr>
+<tr><td>Pre-assessment wizard</td><td>Not built</td><td>Level/family on intro only</td></tr>
+<tr><td>5-slide report reveal</td><td>Not built</td><td>Instant results</td></tr>
+<tr><td>Personas</td><td>Not built</td><td>Maturity bands only</td></tr>
+<tr><td>12 sub-criteria</td><td>Not built</td><td>1 score per dimension</td></tr>
+<tr><td>Org dashboard</td><td>Not built</td><td>Per-session admin only</td></tr>
+<tr><td>SSO / manager mode</td><td>Not built</td><td>Framework doc only</td></tr>
+</table>
+
+<h1>4. Target product vision</h1>
+<table>
+<tr><th>Tier</th><th>Name</th><th>Goal</th></tr>
+<tr><td>R1</td><td>Pilot MVP</td><td>Internal self-assessment, credible report, admin review</td></tr>
+<tr><td>R2</td><td>Enhanced experience</td><td>Journey quality, evidence quotes, personas, playbook</td></tr>
+<tr><td>R3</td><td>Workforce intelligence</td><td>Team/org dashboards, dual-track scoring, manager mode</td></tr>
+<tr><td>R4</td><td>Enterprise</td><td>SSO, ATS, performance systems, hiring challenge</td></tr>
+</table>
+
+<h3>Pilot success metrics</h3>
+<table>
+<tr><th>Metric</th><th>Target</th></tr>
+<tr><td>Session completion rate</td><td>≥ 70%</td></tr>
+<tr><td>Median duration</td><td>8–12 minutes</td></tr>
+<tr><td>Participant NPS</td><td>≥ 30</td></tr>
+<tr><td>Sessions with 6 dimension signals</td><td>≥ 80%</td></tr>
+<tr><td>Scoring failure rate</td><td>&lt; 5%</td></tr>
+<tr><td>PII incidents</td><td>0</td></tr>
+</table>
+
+<h1 class="page-break">5. User classes</h1>
+<table>
+<tr><th>User class</th><th>Needs</th></tr>
+<tr><td>Participant (employee)</td><td>Clear expectations, actionable report</td></tr>
+<tr><td>L&amp;D / People partner</td><td>Cohort progress, gap themes, training hooks</td></tr>
+<tr><td>Hiring manager (Phase 3+)</td><td>Comparable scores, integrity signals</td></tr>
+<tr><td>Function leader</td><td>Team dimension breakdown</td></tr>
+<tr><td>Platform admin</td><td>Session audit, rubric tuning</td></tr>
+<tr><td>Executive sponsor</td><td>Org AiQ index, trend, risk posture</td></tr>
+</table>
+
+<h1>6. Functional requirements</h1>
+
+<h2>6.1 Session lifecycle</h2>
+<table>
+<tr><th>ID</th><th>Pri</th><th>Requirement</th></tr>
+<tr><td class="req-id">FR-SLC-01</td><td class="pri p0">P0</td><td>System SHALL create unique session_id (UUID) on start.</td></tr>
+<tr><td class="req-id">FR-SLC-02</td><td class="pri p0">P0</td><td>System SHALL persist transcript and client events.</td></tr>
+<tr><td class="req-id">FR-SLC-03</td><td class="pri p0">P0</td><td>System SHALL allow resume via URL or localStorage.</td></tr>
+<tr><td class="req-id">FR-SLC-04</td><td class="pri p0">P0</td><td>System SHALL block messages on ended sessions (HTTP 410).</td></tr>
+<tr><td class="req-id">FR-SLC-05</td><td class="pri p0">P0</td><td>System SHALL auto-expire open sessions after 24h (configurable).</td></tr>
+<tr><td class="req-id">FR-SLC-06</td><td class="pri p0">P0</td><td>User SHALL complete anytime after ≥1 user turn.</td></tr>
+<tr><td class="req-id">FR-SLC-07</td><td class="pri p1">P1</td><td>System SHOULD warn if dimension breadth &lt; 4 before early end.</td></tr>
+<tr><td class="req-id">FR-SLC-08</td><td class="pri p1">P1</td><td>Scoring SHALL be idempotent on /complete retry.</td></tr>
+</table>
+
+<h2>6.2 Assessment configuration</h2>
+<table>
+<tr><th>ID</th><th>Pri</th><th>Requirement</th></tr>
+<tr><td class="req-id">FR-CFG-01</td><td class="pri p0">P0</td><td>Participant SHALL select level and job family before start.</td></tr>
+<tr><td class="req-id">FR-CFG-02</td><td class="pri p0">P0</td><td>System SHALL compute frozen dimension weights from profile.</td></tr>
+<tr><td class="req-id">FR-CFG-04</td><td class="pri p1">P1</td><td>System SHOULD capture participant intent (6 options).</td></tr>
+<tr><td class="req-id">FR-CFG-06</td><td class="pri p2">P2</td><td>System SHOULD support modes: self, manager, hiring_challenge.</td></tr>
+</table>
+
+<h2>6.3 Conversational interview (Track A)</h2>
+<table>
+<tr><th>ID</th><th>Pri</th><th>Requirement</th></tr>
+<tr><td class="req-id">FR-INT-01</td><td class="pri p0">P0</td><td>One clear question at a time.</td></tr>
+<tr><td class="req-id">FR-INT-02</td><td class="pri p0">P0</td><td>Focus on generative AI / copilot use in real work.</td></tr>
+<tr><td class="req-id">FR-INT-03</td><td class="pri p0">P0</td><td>Scenario stack v2 as default for new sessions.</td></tr>
+<tr><td class="req-id">FR-INT-05</td><td class="pri p0">P0</td><td>≤ 6 user turns in scenario mode.</td></tr>
+<tr><td class="req-id">FR-INT-07</td><td class="pri p0">P0</td><td>Probe tools used and what for by mid-session.</td></tr>
+<tr><td class="req-id">FR-INT-08</td><td class="pri p0">P0</td><td>No accusation of paste; may ask for concrete example.</td></tr>
+<tr><td class="req-id">FR-INT-11</td><td class="pri p1">P1</td><td>UI shows phase/dimension progress and timer.</td></tr>
+<tr><td class="req-id">FR-INT-13</td><td class="pri p2">P2</td><td>Interviewer receives Track B steering notes each turn.</td></tr>
+</table>
+
+<h2>6.4 Scoring</h2>
+<table>
+<tr><th>ID</th><th>Pri</th><th>Requirement</th></tr>
+<tr><td class="req-id">FR-SCR-01</td><td class="pri p0">P0</td><td>Score D1–D6 on 0–10 (0.5 steps).</td></tr>
+<tr><td class="req-id">FR-SCR-02</td><td class="pri p0">P0</td><td>Compute AiQ_0_100 from frozen weights.</td></tr>
+<tr><td class="req-id">FR-SCR-04</td><td class="pri p0">P0</td><td>Rationales in second person or neutral tone.</td></tr>
+<tr><td class="req-id">FR-SCR-06</td><td class="pri p1">P1</td><td>1–2 evidence quotes per dimension in report.</td></tr>
+<tr><td class="req-id">FR-SCR-08</td><td class="pri p1">P1</td><td>Assign AiQ persona from score shape.</td></tr>
+<tr><td class="req-id">FR-SCR-09</td><td class="pri p2">P2</td><td>12 sub-criteria with 1–10 behavioral anchors.</td></tr>
+<tr><td class="req-id">FR-SCR-10</td><td class="pri p2">P2</td><td>Track B evaluates each message in parallel.</td></tr>
+<tr><td class="req-id">FR-SCR-11</td><td class="pri p2">P2</td><td>Track C calibration pass on full transcript.</td></tr>
+</table>
+
+<h2>6.5 Integrity</h2>
+<table>
+<tr><th>ID</th><th>Pri</th><th>Requirement</th></tr>
+<tr><td class="req-id">FR-INTG-01</td><td class="pri p0">P0</td><td>Heuristic paste detection per message.</td></tr>
+<tr><td class="req-id">FR-INTG-02</td><td class="pri p0">P0</td><td>Tab/window blur/focus client events.</td></tr>
+<tr><td class="req-id">FR-INTG-04</td><td class="pri p1">P1</td><td>Admin integrity section in telemetry.</td></tr>
+<tr><td class="req-id">FR-INTG-07</td><td class="pri p1">P1</td><td>Integrity signals transparent, not auto-disqualifying in pilot.</td></tr>
+</table>
+
+<h2>6.6 Coaching</h2>
+<table>
+<tr><th>ID</th><th>Pri</th><th>Requirement</th></tr>
+<tr><td class="req-id">FR-COACH-01</td><td class="pri p0">P0</td><td>Report: composite, 6 dimensions, maturity blurb.</td></tr>
+<tr><td class="req-id">FR-COACH-03</td><td class="pri p0">P0</td><td>Per-dimension concrete next step.</td></tr>
+<tr><td class="req-id">FR-COACH-05</td><td class="pri p1">P1</td><td>30-day structured plan for top gaps.</td></tr>
+<tr><td class="req-id">FR-COACH-07</td><td class="pri p2">P2</td><td>Map gaps to AiQ Playbook (30+ articles).</td></tr>
+</table>
+
+<h1 class="page-break">7. Assessment framework requirements</h1>
+
+<h2>7.1 Six dimensions</h2>
+<table>
+<tr><th>Code</th><th>Name</th><th>Measures</th></tr>
+<tr><td>D1</td><td>Awareness &amp; opportunity</td><td>Tool landscape, value/risk prioritization</td></tr>
+<tr><td>D2</td><td>Prompts &amp; communication</td><td>Context, constraints, iteration</td></tr>
+<tr><td>D3</td><td>Critical judgment</td><td>Verification, human vs model judgment</td></tr>
+<tr><td>D4</td><td>Workflows &amp; org design</td><td>Process embedding, handoffs, accountability</td></tr>
+<tr><td>D5</td><td>Clarity, craft &amp; output fit</td><td>Quality of AI-supported work others rely on</td></tr>
+<tr><td>D6</td><td>Risk &amp; responsible use</td><td>Data/IP, vendor access, escalation, governance</td></tr>
+</table>
+
+<h2>7.2 Maturity bands</h2>
+<table>
+<tr><th>Band</th><th>Score</th><th>Label</th></tr>
+<tr><td>AiQ1</td><td>0–25</td><td>Aware — occasional use</td></tr>
+<tr><td>AiQ2</td><td>26–55</td><td>Proficient — daily use, evaluates output</td></tr>
+<tr><td>AiQ3</td><td>56–80</td><td>Builder — designs workflows, teaches peers</td></tr>
+<tr><td>AiQ4</td><td>81–100</td><td>Strategist — org-level AI strategy</td></tr>
+</table>
+
+<h2>7.3 Default executive weights</h2>
+<table>
+<tr><th>Dimension</th><th>Weight</th></tr>
+<tr><td>D1 Awareness</td><td>16%</td></tr>
+<tr><td>D2 Prompts</td><td>10%</td></tr>
+<tr><td>D3 Judgment</td><td>16%</td></tr>
+<tr><td>D4 Workflows</td><td>20%</td></tr>
+<tr><td>D5 Output craft</td><td>8%</td></tr>
+<tr><td>D6 Risk</td><td>30%</td></tr>
+</table>
+
+<h2>7.4 Interview depth (“6 + 2”)</h2>
+<p>Light pass across all six dimensions; deeper follow-up on the two highest-weighted dimensions for the participant’s level × job family. Pilot framing: reflection and coaching, not hiring rank.</p>
+
+<h2>7.5 Tamara personas (target R2)</h2>
+<table>
+<tr><th>Persona</th><th>Signal pattern</th></tr>
+<tr><td>Strategist</td><td>High D4+D6, executive level</td></tr>
+<tr><td>Builder</td><td>High D4+D2, hands-on</td></tr>
+<tr><td>Sceptic</td><td>High D3+D6, lower D4</td></tr>
+<tr><td>Operator</td><td>High D2+D4, moderate D3</td></tr>
+<tr><td>Explorer</td><td>High D1, lower D4</td></tr>
+<tr><td>Craftsperson</td><td>High D5+D3</td></tr>
+<tr><td>Delegator</td><td>High D2, low D3 (risk flag)</td></tr>
+<tr><td>Bystander</td><td>Low across D1–D4</td></tr>
+</table>
+
+<h1 class="page-break">8. User journey requirements</h1>
+<p><strong>Target flow:</strong> Landing → Onboarding (5 steps) → Chat → Scoring wait → Report slides (5) → PDF → Playbook.</p>
+
+<h2>8.1 Landing (P0–P1)</h2>
+<p>Explain conversational ~10 min assessment; Tamara branding; CTA “Begin assessment”; optional badges (6 dimensions, 0 multiple choice, role-weighted).</p>
+
+<h2>8.2 Onboarding wizard (P1)</h2>
+<table>
+<tr><th>Step</th><th>Content</th></tr>
+<tr><td>1</td><td>Ready for a chat — duration, deliverables</td></tr>
+<tr><td>2</td><td>Benchmark preview / sample chart</td></tr>
+<tr><td>3</td><td>Intent: what brings you here (6 options)</td></tr>
+<tr><td>4</td><td>Level + job family</td></tr>
+<tr><td>5</td><td>Expectations + privacy note</td></tr>
+</table>
+
+<h2>8.3 Chat (P0–P1)</h2>
+<p>Phase/dimension banners; timer; progress pill; composer; “View results”; mobile-responsive (min 320px).</p>
+
+<h2>8.4 Scoring interstitial (P1)</h2>
+<p>“Reviewing your conversation for evidence…”; ETA; progress bar; optional links while waiting.</p>
+
+<h2>8.5 Report reveal — 5 slides (P1)</h2>
+<ol>
+<li>Your results are ready</li>
+<li>Composite score + persona (+ percentile if cohort exists)</li>
+<li>6-dimension chart with weights</li>
+<li>Top gaps + evidence quotes + next steps</li>
+<li>Learning plan + PDF download</li>
+</ol>
+
+<h1>9. Reporting and coaching</h1>
+<p><strong>Participant report SHALL include:</strong> AiQ 0–100; maturity band; 6 dimension scores with rationales; strength + risk lines; top gaps vs target; per-dimension actions; up to 4 learning links; pilot disclaimer.</p>
+<p><strong>SHOULD include (R2):</strong> Persona; evidence quotes; neutral integrity note if flagged.</p>
+<p><strong>Org reporting (R3):</strong> AiQ Index; dimension averages; band distribution; team filters; QoQ trend; CSV export.</p>
+
+<h1 class="page-break">10. Admin requirements</h1>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-ADM-01</td><td>Admin APIs require AIQ_ADMIN_SECRET (Bearer, token, or header)</td></tr>
+<tr><td>FR-ADM-10</td><td>List sessions with scores and assessment profile</td></tr>
+<tr><td>FR-ADM-11</td><td>Detail: transcript, events, telemetry, per-turn analysis</td></tr>
+<tr><td>FR-ADM-13</td><td>Optional participant_name label</td></tr>
+<tr><td>FR-ADM-14</td><td>Delete session (GDPR erasure)</td></tr>
+<tr><td>FR-ADM-15</td><td>Filter by date, family, level, score (R2)</td></tr>
+</table>
+
+<h1>11. Data requirements</h1>
+<h2>11.1 Core entities</h2>
+<p><strong>sessions:</strong> id, timestamps, variation_json, last_scores_json, completed, user_agent, client_meta, participant_name, session_enrichment_json.</p>
+<p><strong>messages:</strong> id, session_id, role, content, created_at, flags_json.</p>
+<p><strong>events:</strong> id, session_id, type, payload_json, created_at.</p>
+
+<h2>11.2 Scores JSON (target)</h2>
+<div class="code">{
+  "D1": { "score": 6.5, "rationale_1line": "...", "evidence_quotes": ["..."] },
+  "AiQ_0_100": 62.4, "maturity_band": "AiQ3", "persona": "Builder",
+  "strength_1line": "...", "risk_1line": "..."
+}</div>
+
+<h2>11.3 Retention</h2>
+<p>Pilot: 12 months for transcripts unless deleted. Production policy TBD with Legal. Admin delete cascades messages and events.</p>
+
+<h1>12. API requirements</h1>
+<table>
+<tr><th>Method</th><th>Path</th><th>Pri</th></tr>
+<tr><td>POST</td><td>/api/session/start</td><td>P0</td></tr>
+<tr><td>POST</td><td>/api/session/{id}/message</td><td>P0</td></tr>
+<tr><td>POST</td><td>/api/session/{id}/complete</td><td>P0</td></tr>
+<tr><td>GET</td><td>/api/session/{id}/report.pdf</td><td>P0</td></tr>
+<tr><td>GET</td><td>/api/admin/sessions</td><td>P0</td></tr>
+<tr><td>GET</td><td>/api/orchestrator/state</td><td>P1</td></tr>
+</table>
+<p>User messages capped at 12,000 characters. Rate limit: 30 messages/session (configurable). CORS restricted in production.</p>
+
+<h1 class="page-break">13. Non-functional requirements</h1>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>NFR-PERF-01</td><td>Message round-trip p95 &lt; 15s (cloud LLM)</td></tr>
+<tr><td>NFR-PERF-02</td><td>Scoring p95 &lt; 60s typical transcript</td></tr>
+<tr><td>NFR-AVAIL-01</td><td>Pilot uptime 99% business hours (KSA)</td></tr>
+<tr><td>NFR-AVAIL-02</td><td>Fallback to Ollama on 429/quota</td></tr>
+<tr><td>NFR-SCALE-01</td><td>Postgres for production</td></tr>
+<tr><td>NFR-A11Y-01</td><td>WCAG 2.1 AA participant path (R2)</td></tr>
+<tr><td>NFR-I18N-01</td><td>Arabic UI RTL (R4)</td></tr>
+</table>
+
+<h1>14. Security, privacy, compliance</h1>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>SEC-01</td><td>No secrets in client or public repos</td></tr>
+<tr><td>SEC-02</td><td>Admin secret ≥ 32 random chars in production</td></tr>
+<tr><td>SEC-03</td><td>Deploy behind VPN/SSO/IP allow list (pilot)</td></tr>
+<tr><td>SEC-05</td><td>Supabase RLS default deny</td></tr>
+<tr><td>SEC-10</td><td>Transcripts: internal confidential</td></tr>
+<tr><td>SEC-11</td><td>No full message content in app logs</td></tr>
+<tr><td>SEC-13</td><td>Pre-chat warning: no customer PII, card data</td></tr>
+<tr><td>SEC-20</td><td>Approved LLM: OpenAI, Gemini, Ollama (dev)</td></tr>
+<tr><td>SEC-30</td><td>D6 aligned with Tamara AI policy, AML/security training spirit</td></tr>
+</table>
+
+<h1>15. Integration requirements</h1>
+<table>
+<tr><th>Integration</th><th>Priority</th></tr>
+<tr><td>Email notification</td><td>P2</td></tr>
+<tr><td>HRIS (employee ID, org unit)</td><td>P3</td></tr>
+<tr><td>ATS (hiring challenge scores)</td><td>P3</td></tr>
+<tr><td>SSO (Okta/Azure AD)</td><td>P3</td></tr>
+<tr><td>LMS / performance mgmt</td><td>P4</td></tr>
+</table>
+
+<h1>16. Design and branding</h1>
+<p><strong>Colors:</strong> Lavender #9600F1, Purple #5300BA. <strong>Font:</strong> Plus Jakarta Sans. <strong>Logo:</strong> tamara wordmark on purple/lavender; no brightness filter on PNG.</p>
+<p><strong>UX patterns to adopt (Tamara-styled):</strong> Multi-step onboarding; in-chat progress pill; scoring wait; 5-slide report; internal cohort percentile chart (n ≥ 30). Do not copy AISA dark/neon as primary identity.</p>
+
+<h1 class="page-break">17. Phased delivery plan</h1>
+
+<h2>R1 — Pilot MVP (4–6 weeks)</h2>
+<ul>
+<li>Stabilize core flow, scoring retry, session resume</li>
+<li>Finalize weights vs executive deck</li>
+<li>Evidence quotes in scoring JSON + report</li>
+<li>Postgres prod, VPN deploy, admin training</li>
+<li>Legal disclaimer and retention policy</li>
+</ul>
+<p><strong>Exit:</strong> 50 employees complete; L&amp;D sign-off on rubric tone.</p>
+
+<h2>R2 — Enhanced experience (6–8 weeks)</h2>
+<ul>
+<li>5-step onboarding wizard</li>
+<li>5-slide report reveal + PDF</li>
+<li>8 personas; scoring interstitial</li>
+<li>12 sub-criteria in rubric; AiQ Playbook (30 articles)</li>
+<li>DOL + Anthropic alignment appendix</li>
+</ul>
+
+<h2>R3 — Workforce intelligence (8–10 weeks)</h2>
+<ul>
+<li>Org dashboard (AiQ Index, histograms, team filters)</li>
+<li>Dual-track + calibration scoring</li>
+<li>Manager assessment mode; enhanced integrity</li>
+</ul>
+
+<h2>R4 — Enterprise (ongoing)</h2>
+<p>SSO, HRIS, AiQ Challenge (30–45 min exercise), ATS, quarterly campaigns, Arabic.</p>
+
+<h1>18. Acceptance criteria</h1>
+<h2>R1</h2>
+<ul>
+<li>End-to-end completion without admin help</li>
+<li>Report: AiQ, 6 dimensions, band, 3+ coaching actions</li>
+<li>PDF download works</li>
+<li>Admin views transcript + telemetry</li>
+<li>Session survives browser refresh</li>
+<li>Scoring success ≥ 95%</li>
+</ul>
+
+<h1>19. Out of scope</h1>
+<ol>
+<li>Public LinkedIn certification / global leaderboard</li>
+<li>MCQ as primary assessment</li>
+<li>Automated hiring decisions from score alone</li>
+<li>Webcam proctoring</li>
+<li>Custom fine-tuned Tamara LLM (v1)</li>
+<li>Native mobile apps</li>
+<li>Copilot tenant usage analytics (separate project)</li>
+<li>Performance management process implementation</li>
+<li>New dependencies without security review</li>
+</ol>
+
+<h1>20. Open decisions</h1>
+<table>
+<tr><th>#</th><th>Decision</th><th>Owner</th><th>By</th></tr>
+<tr><td>OD-01</td><td>Production hosting region</td><td>Infra</td><td>R1</td></tr>
+<tr><td>OD-02</td><td>Primary LLM vendor</td><td>Eng + Security</td><td>R1</td></tr>
+<tr><td>OD-03</td><td>Anonymous vs SSO in pilot</td><td>People + IT</td><td>R1</td></tr>
+<tr><td>OD-04</td><td>Transcript retention period</td><td>Legal</td><td>R1</td></tr>
+<tr><td>OD-05</td><td>Persona set (6 vs 8)</td><td>Product</td><td>R2</td></tr>
+<tr><td>OD-06</td><td>Cohort benchmark visibility</td><td>People</td><td>R2</td></tr>
+<tr><td>OD-07</td><td>Manager mode priority</td><td>COO</td><td>R3</td></tr>
+</table>
+
+<h1 class="page-break">Appendix A — Competitive differentiation</h1>
+<table>
+<tr><th>Capability</th><th>AISA</th><th>Tamara AiQ</th></tr>
+<tr><td>Dimensions</td><td>5</td><td>6 (+ D5 output craft)</td></tr>
+<tr><td>Duration</td><td>20–40 min</td><td>~10 min</td></tr>
+<tr><td>Audience</td><td>Global / certification</td><td>Tamara workforce</td></tr>
+<tr><td>D6 weight</td><td>10%</td><td>Up to 30%</td></tr>
+<tr><td>Org dashboard</td><td>Mature</td><td>R3</td></tr>
+<tr><td>Dual-track scoring</td><td>Yes</td><td>R3</td></tr>
+</table>
+
+<h1>Appendix B — Prototype traceability</h1>
+<table>
+<tr><th>File</th><th>SRS sections</th></tr>
+<tr><td>app.py</td><td>§6, §12, §10</td></tr>
+<tr><td>gemini_service.py</td><td>§6.3–6.4, §7</td></tr>
+<tr><td>scenario_engine.py</td><td>§6.3, §7.4, §8</td></tr>
+<tr><td>assessment_profiles.py</td><td>§7.3–7.5</td></tr>
+<tr><td>static/index.html, app.js</td><td>§8</td></tr>
+<tr><td>knowledge/aiq_context_rag.md</td><td>§7</td></tr>
+</table>
+
+<p class="footer-note">Tamara AiQ Fluency Assessment — Software Requirements Specification v1.0 — Generated 9 July 2026 — Confidential internal document.</p>
+
+</body>
+</html>

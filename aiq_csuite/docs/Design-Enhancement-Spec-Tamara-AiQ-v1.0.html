@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Tamara AiQ — Design Enhancement Specification v1.0</title>
+<style>
+@page { size: A4; margin: 16mm 14mm 18mm 14mm; }
+* { box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.48;
+  color: #2a3051;
+  max-width: 178mm;
+  margin: 0 auto;
+  padding: 0 3mm;
+}
+.cover {
+  page-break-after: always;
+  min-height: 248mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18mm 6mm;
+}
+.cover .eyebrow { font-size: 8pt; letter-spacing: 0.16em; text-transform: uppercase; color: #9600F1; font-weight: 700; margin-bottom: 6mm; }
+.cover h1 { font-size: 28pt; line-height: 1.12; color: #5300BA; margin: 0 0 5mm; font-weight: 800; }
+.cover .lead { font-size: 12pt; color: #444c6d; max-width: 130mm; margin-bottom: 10mm; }
+.cover .meta { font-size: 9pt; color: #707698; }
+.cover .swatch-row { display: flex; gap: 4mm; margin-top: 14mm; }
+.swatch { width: 18mm; height: 10mm; border-radius: 3px; border: 1px solid #e0dcf0; }
+.swatch span { display: block; font-size: 6.5pt; margin-top: 1mm; color: #707698; }
+h1 { font-size: 15pt; color: #5300BA; margin: 9mm 0 3.5mm; page-break-after: avoid; }
+h2 { font-size: 10.5pt; color: #5300BA; margin: 6mm 0 2.5mm; border-bottom: 1px solid #e8e6f0; padding-bottom: 1mm; page-break-after: avoid; }
+h3 { font-size: 9.5pt; color: #2a3051; margin: 4mm 0 2mm; page-break-after: avoid; }
+p { margin: 0 0 2.5mm; text-align: justify; }
+ul, ol { margin: 0 0 3mm; padding-left: 5mm; }
+li { margin-bottom: 1.2mm; }
+table { width: 100%; border-collapse: collapse; margin: 3mm 0 4.5mm; font-size: 8.5pt; page-break-inside: avoid; }
+th, td { border: 1px solid #d8d6e8; padding: 2mm 2.5mm; vertical-align: top; }
+th { background: #f5f0ff; color: #5300BA; font-weight: 600; }
+tr:nth-child(even) td { background: #faf9ff; }
+.callout { background: #f2f2ff; border-left: 3px solid #9600F1; padding: 3mm 4mm; margin: 3mm 0 4mm; border-radius: 0 4px 4px 0; }
+.callout-warn { background: #fff8f0; border-left-color: #d97706; }
+.callout-good { background: #f0fdf6; border-left-color: #059669; }
+.do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin: 3mm 0 5mm; }
+.do, .dont { padding: 3mm; border-radius: 4px; font-size: 8.5pt; }
+.do { background: #f0fdf6; border: 1px solid #a7f3d0; }
+.dont { background: #fff5f5; border: 1px solid #fecaca; }
+.do strong, .dont strong { display: block; margin-bottom: 1.5mm; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.06em; }
+.token { font-family: Consolas, monospace; font-size: 8pt; background: #f4f3f8; padding: 0.5mm 1.5mm; border-radius: 2px; }
+.wire { background: #faf9ff; border: 1px dashed #c4b5fd; padding: 4mm; margin: 3mm 0; font-size: 8.5pt; border-radius: 6px; }
+.page-break { page-break-before: always; }
+.phase { display: inline-block; font-size: 7pt; font-weight: 700; padding: 0.5mm 2mm; border-radius: 3px; text-transform: uppercase; }
+.ph1 { background: #fce7f3; color: #9d174d; }
+.ph2 { background: #dbeafe; color: #1e40af; }
+.ph3 { background: #e0e7ff; color: #3730a3; }
+.footer { font-size: 7.5pt; color: #707698; margin-top: 8mm; padding-top: 3mm; border-top: 1px solid #e8e6f0; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="eyebrow">Design Enhancement Specification</div>
+  <h1>Tamara AiQ Fluency Assessment</h1>
+  <p class="lead">A complete UX and visual design guide to evolve the current prototype into a calm, credible, Tamara-branded internal assessment — without the visual noise of a marketing deck or a competitor dark theme.</p>
+  <p class="meta">
+    <strong>Version:</strong> 1.0 &nbsp;·&nbsp;
+    <strong>Date:</strong> 9 July 2026 &nbsp;·&nbsp;
+    <strong>Status:</strong> For design &amp; engineering alignment &nbsp;·&nbsp;
+    <strong>Baseline:</strong> aiq_csuite static UI (brand.css, index.html, app.js)
+  </p>
+  <div class="swatch-row">
+    <div><div class="swatch" style="background:#9600F1"></div><span>Lavender #9600F1</span></div>
+    <div><div class="swatch" style="background:#5300BA"></div><span>Purple #5300BA</span></div>
+    <div><div class="swatch" style="background:#f2f2ff"></div><span>Mist #f2f2ff</span></div>
+    <div><div class="swatch" style="background:#ffffff;border-color:#d8d6e8"></div><span>Paper #fff</span></div>
+    <div><div class="swatch" style="background:#2a3051"></div><span>Ink #2a3051</span></div>
+  </div>
+  <p class="meta" style="margin-top:10mm">Confidential — Internal Tamara. Companion to SRS Tamara AiQ v1.0.</p>
+</section>
+
+<h1>1. Executive summary</h1>
+
+<h2>1.1 Purpose</h2>
+<p>This document defines the <strong>design enhancements</strong> required to bring the Tamara AiQ Fluency Assessment from an internal prototype to a <strong>pilot-ready product experience</strong>. It covers visual identity application, information architecture, screen specifications, component standards, motion, accessibility, and a phased rollout plan for design and front-end implementation.</p>
+
+<h2>1.2 Design problem statement</h2>
+<p>The current UI (<span class="token">static/brand.css</span>, <span class="token">static/index.html</span>) correctly uses Tamara tokens but applies them at <strong>maximum intensity</strong>: full-bleed purple gradients, deck-style shadows, uppercase CTAs, six dimension chips during chat, and a dense results dashboard. For a ~10-minute reflective conversation, this creates:</p>
+<ul>
+<li><strong>Cognitive overload</strong> — users process branding and assessment content at the same time.</li>
+<li><strong>Anxiety</strong> — visual language feels like a test, launch event, or sales page.</li>
+<li><strong>Distrust of intent</strong> — “Internal preview” + spectacle undermines the “reflection, not performance review” message.</li>
+<li><strong>Poor scan hierarchy</strong> — everything competes at font-weight 800.</li>
+</ul>
+
+<div class="callout callout-good">
+<strong>Design north star</strong><br />
+Tamara AiQ should feel like a <em>thoughtful internal tool</em>: calm surfaces, one primary action per screen, lavender as punctuation — not wallpaper. The chat is the hero; brand is present but quiet.
+</div>
+
+<h2>1.3 What we are not doing</h2>
+<ul>
+<li>Adopting AISA’s dark mode, neon accents, or certification/leaderboard energy.</li>
+<li>Replacing Tamara Visual Identity 2025 — we <em>refine application</em>, not rebrand.</li>
+<li>Adding decorative “slide numbers,” marketing stats, or social-proof tickers on the assessment path.</li>
+</ul>
+
+<h2>1.4 Success criteria (design)</h2>
+<table>
+<tr><th>Metric</th><th>Target</th><th>Method</th></tr>
+<tr><td>Intro comprehension</td><td>≥ 90% understand “chat, ~10 min, not a test” in 5s</td><td>5-user hallway test</td></tr>
+<tr><td>Visual calm rating</td><td>≥ 4/5 “feels calm / not stressful”</td><td>Post-session 1-question survey</td></tr>
+<tr><td>Brand recognition</td><td>≥ 80% identify as Tamara without prompting</td><td>Moderated test</td></tr>
+<tr><td>Chat focus</td><td>Dimension codes not required for users to complete flow</td><td>Task success</td></tr>
+<tr><td>Results clarity</td><td>Users can state their score + top gap in &lt; 30s on results screen</td><td>Moderated test</td></tr>
+<tr><td>WCAG 2.1 AA</td><td>Pass on participant path</td><td>axe / manual audit</td></tr>
+</table>
+
+<h1 class="page-break">2. Design principles</h1>
+
+<table>
+<tr><th>#</th><th>Principle</th><th>Implication</th></tr>
+<tr><td>1</td><td><strong>Conversation first</strong></td><td>Chat UI is minimal chrome; no rubric jargon visible during dialogue.</td></tr>
+<tr><td>2</td><td><strong>Calm over spectacle</strong></td><td>White/mist backgrounds; one purple accent per view; no full-bleed gradients on functional screens.</td></tr>
+<tr><td>3</td><td><strong>Progressive disclosure</strong></td><td>Intro → chat → scoring wait → staged results; never dump the full report at once.</td></tr>
+<tr><td>4</td><td><strong>Tamara, not template</strong></td><td>Wordmark, lavender, Plus Jakarta Sans; avoid generic “AI SaaS” dark/neon tropes.</td></tr>
+<tr><td>5</td><td><strong>Respectful tone</strong></td><td>Copy and UI avoid exam language, red alarm states, or “you failed” patterns.</td></tr>
+<tr><td>6</td><td><strong>Accessible by default</strong></td><td>Contrast, focus rings, aria-live for new messages; 16px inputs on mobile.</td></tr>
+<tr><td>7</td><td><strong>Mobile-realistic</strong></td><td>Many employees will use phone; chat composer and results must work at 320px width.</td></tr>
+</table>
+
+<h1>3. Brand application (Tamara Visual Identity 2025)</h1>
+
+<h2>3.1 Color system — refined tokens</h2>
+<p>Keep official palette; change <strong>roles</strong>. Lavender is accent; surfaces are neutral.</p>
+
+<table>
+<tr><th>Token</th><th>Hex</th><th>Role (new)</th><th>Old prototype misuse</th></tr>
+<tr><td><span class="token">--tam-lavender</span></td><td>#9600F1</td><td>Primary button, links, focus ring, active chip</td><td>Full-screen gradient endpoint</td></tr>
+<tr><td><span class="token">--zingy-purple</span></td><td>#5300BA</td><td>Headlines, secondary emphasis</td><td>Chat header gradient, user bubble fill</td></tr>
+<tr><td><span class="token">--surface-mist</span></td><td>#f2f2ff</td><td>Page background, subtle panels</td><td>Underused</td></tr>
+<tr><td><span class="token">--paper</span></td><td>#ffffff</td><td>Cards, chat area, modals</td><td>Competing with gradient</td></tr>
+<tr><td><span class="token">--ink</span></td><td>#2a3051</td><td>Body text</td><td>OK</td></tr>
+<tr><td><span class="token">--ink-muted</span></td><td>#444c6d</td><td>Secondary text</td><td>OK</td></tr>
+<tr><td><span class="token">--ink-soft</span></td><td>#707698</td><td>Hints, timestamps</td><td>OK</td></tr>
+<tr><td><span class="token">--border</span></td><td>#e0dcf0</td><td>Card borders, inputs</td><td>Replace heavy purple borders</td></tr>
+</table>
+
+<p><strong>Semantic colors</strong> (use sparingly): success <span class="token">#059669</span>, warning <span class="token">#d97706</span>, error <span class="token">#b91c1c</span> — never for dimension scores (avoid traffic-light shame).</p>
+
+<h2>3.2 Typography</h2>
+<table>
+<tr><th>Element</th><th>Font</th><th>Size</th><th>Weight</th><th>Notes</th></tr>
+<tr><td>Display (intro title)</td><td>Plus Jakarta Sans</td><td>28–32px</td><td>700</td><td>Not 800 everywhere</td></tr>
+<tr><td>Section title</td><td>Plus Jakarta Sans</td><td>18–20px</td><td>600–700</td><td>Sentence case</td></tr>
+<tr><td>Body</td><td>Plus Jakarta Sans</td><td>15–16px</td><td>400–500</td><td>Chat bubbles 16px min</td></tr>
+<tr><td>Label / meta</td><td>Plus Jakarta Sans</td><td>12–13px</td><td>500–600</td><td>No ALL CAPS blocks &gt; 3 words</td></tr>
+<tr><td>Button</td><td>Plus Jakarta Sans</td><td>15–16px</td><td>600</td><td><strong>Sentence case</strong> — “Begin assessment” not “BEGIN”</td></tr>
+</table>
+<p>If Degular Display is licensed later, reserve it for <em>marketing landing only</em> — not in-chat UI.</p>
+
+<h2>3.3 Logo usage</h2>
+<ul>
+<li><strong>Placement:</strong> Top-left, small lockup (mark + “tamara” word), max height 24–28px in app chrome.</li>
+<li><strong>Intro:</strong> Slightly larger (32–36px lockup) on white card — no gradient pill behind logo on every screen.</li>
+<li><strong>On purple:</strong> White wordmark per brand rules; use only for optional thin top brand strip (max 48px height), not full header.</li>
+<li><strong>Never:</strong> <span class="token">filter: brightness(0)</span> on PNG; no stretched mark.</li>
+</ul>
+
+<h2>3.4 Elevation &amp; shape</h2>
+<table>
+<tr><th>Level</th><th>Shadow</th><th>Use</th></tr>
+<tr><td>0</td><td>none</td><td>Page background, chat messages area</td></tr>
+<tr><td>1</td><td>0 1px 3px rgba(42,48,81,0.08)</td><td>Cards, composer</td></tr>
+<tr><td>2</td><td>0 8px 24px rgba(42,48,81,0.10)</td><td>Modals only</td></tr>
+</table>
+<p>Border radius: <span class="token">12px</span> cards, <span class="token">16px</span> bubbles, <span class="token">999px</span> pills/chips. Retire <span class="token">--shadow-slide</span> (0 24px 64px) on functional UI.</p>
+
+<div class="do-dont">
+<div class="do"><strong>Do</strong>White card on mist background; lavender CTA; small Tamara lockup.</div>
+<div class="dont"><strong>Don’t</strong>Full purple gradient page + gradient header + gradient user bubbles + deck shadow.</div>
+</div>
+
+<h1 class="page-break">4. Competitive reference (patterns only)</h1>
+<p>Reference: AISA (aisa.to) and saved design screenshots in <em>AiQ Fluency Assessment Website / Pics For Design</em>. Extract <strong>UX patterns</strong>, not visual skin.</p>
+
+<table>
+<tr><th>Pattern</th><th>AISA</th><th>Tamara adaptation</th></tr>
+<tr><td>Pre-chat onboarding</td><td>5–6 steps, progress dots</td><td>2–3 steps max for pilot; light theme; no fake benchmark on step 1</td></tr>
+<tr><td>Chat layout</td><td>Minimal chrome, dark</td><td>Same minimal chrome; <strong>light</strong> Tamara theme</td></tr>
+<tr><td>Session status</td><td>“Solid report” pill + timer</td><td>“Building your picture” / timer — no report jargon mid-chat</td></tr>
+<tr><td>Scoring wait</td><td>ETA + progress</td><td>Adopt — reduces anxiety during LLM scoring</td></tr>
+<tr><td>Report reveal</td><td>5-slide story</td><td>Adopt structure; Tamara colors; no LinkedIn CTA in pilot</td></tr>
+<tr><td>Percentile chart</td><td>Distribution + “You: 84”</td><td>Internal cohort only when n≥30; otherwise hide</td></tr>
+<tr><td>Persona</td><td>“The Sceptic” etc.</td><td>Tamara persona set; softer typography, no rainbow gradient text</td></tr>
+</table>
+
+<h1>5. Information architecture</h1>
+
+<h2>5.1 Site map (participant path)</h2>
+<div class="wire">
+<strong>1. Welcome</strong> → <strong>2. About you</strong> (level, family, intent) → <strong>3. Chat</strong> → <strong>4. Scoring</strong> → <strong>5. Results story</strong> (slides) → <strong>6. Full report</strong> + PDF
+</div>
+
+<h2>5.2 What to hide from participants</h2>
+<ul>
+<li>Dimension codes D1–D6 during chat (admin/orchestrator only).</li>
+<li>Weight percentages on first results view (show on “full breakdown”).</li>
+<li>“Internal preview” badge in production pilot (replace with “Tamara internal” or remove).</li>
+<li>Integrity / paste flags (admin only in pilot).</li>
+</ul>
+
+<h2>5.3 Content hierarchy per screen</h2>
+<p>Each screen gets <strong>one primary question</strong> in the user’s mind:</p>
+<ol>
+<li><em>Should I start?</em> → value + time + Begin</li>
+<li><em>Who am I for this run?</em> → level, family</li>
+<li><em>What do I say?</em> → single interviewer message + reply box</li>
+<li><em>Is it working?</em> → scoring progress</li>
+<li><em>How did I do?</em> → score + persona</li>
+<li><em>What next?</em> → gaps + actions + PDF</li>
+</ol>
+
+<h1 class="page-break">6. Screen specifications</h1>
+
+<h2>6.1 Welcome (Screen A) <span class="phase ph1">Phase 1</span></h2>
+
+<h3>Layout</h3>
+<ul>
+<li>Full viewport: <span class="token">--surface-mist</span> background.</li>
+<li>Centered card max-width 480px, white, elevation 1.</li>
+<li>Tamara lockup top; no gradient bar.</li>
+</ul>
+
+<h3>Content (max)</h3>
+<table>
+<tr><th>Element</th><th>Copy direction</th></tr>
+<tr><td>Title</td><td>“AiQ assessment” — sentence case subtitle: “A short chat about how you use AI at work.”</td></tr>
+<tr><td>Body</td><td>2 sentences max: not a form; ~10 minutes; end when ready.</td></tr>
+<tr><td>Meta chips</td><td>3 quiet pills: “~10 min” · “Conversational” · “Private to this session”</td></tr>
+<tr><td>CTA</td><td>Primary: “Continue” → Screen B</td></tr>
+</table>
+
+<p><strong>Remove from Screen A:</strong> 3 bullet expect list, bookmark URL warning, level/family dropdowns, “Internal preview” badge.</p>
+
+<h2>6.2 About you (Screen B) <span class="phase ph1">Phase 1</span></h2>
+<ul>
+<li>Progress: dot 2 of 3.</li>
+<li>Fields: Level (select), Job family (select).</li>
+<li>Optional: Intent — single select (“Growing in my role”, “Leading a team”, “Employer asked”, “Curious”).</li>
+<li>Footnote: one line privacy — “Transcript stored for L&amp;D; don’t paste customer data.”</li>
+<li>CTA: “Start chat”.</li>
+</ul>
+
+<h2>6.3 Chat (Screen C) <span class="phase ph1">Phase 1</span></h2>
+
+<h3>Chrome (minimal)</h3>
+<div class="wire">
+[ tamara logo ] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 8:42 &nbsp; [ End session ]
+<hr style="border:none;border-top:1px solid #e0dcf0;margin:8px 0"/>
+[ subtle: Step 2 of 5 · Main scenario — optional phase label, not D1–D6 ]
+<hr/>
+[ messages ]
+[ composer ]
+</div>
+
+<h3>Header changes</h3>
+<table>
+<tr><th>Current</th><th>Target</th></tr>
+<tr><td>Purple gradient <span class="token">.card-h</span></td><td>White bar, 1px bottom border</td></tr>
+<tr><td>“In session” pill</td><td>Remove or replace with muted timer only</td></tr>
+<tr><td>6 dimension chips</td><td><strong>Remove from participant UI</strong> — use single phase label or thin progress bar (5 segments)</td></tr>
+<tr><td>Wrap CTA box mid-chat</td><td>Replace with subtle text link when interviewer signals complete</td></tr>
+</table>
+
+<h3>Message bubbles</h3>
+<table>
+<tr><th>Role</th><th>Background</th><th>Border</th></tr>
+<tr><td>Interviewer</td><td>#ffffff</td><td>1px #e0dcf0, optional 2px left lavender accent</td></tr>
+<tr><td>Participant</td><td>#f0e8ff or #ede5ff (light lavender tint)</td><td>none; no dark purple gradient</td></tr>
+</table>
+
+<h3>Phase shift banner</h3>
+<p>Keep but simplify: “Next: When something goes wrong” — no D4 code, no uppercase NEXT TOPIC.</p>
+
+<h3>Composer</h3>
+<ul>
+<li>Placeholder: “Type your reply…”</li>
+<li>Single Send button; sentence case.</li>
+<li>Secondary: “End session” as text link in header, not duplicate in footer.</li>
+<li>Remove keyboard hint from default view (tooltip or help icon).</li>
+</ul>
+
+<h2>6.4 Scoring wait (Screen D) <span class="phase ph2">Phase 2</span></h2>
+<p>Full-screen white/mist overlay after user taps End session.</p>
+<ul>
+<li>Headline: “Reviewing your conversation…”</li>
+<li>Sub: “This usually takes under a minute.”</li>
+<li>Indeterminate or staged progress bar (lavender).</li>
+<li>No “challenge a friend” in internal pilot.</li>
+<li>On failure: calm retry button; preserve Tamara tone.</li>
+</ul>
+
+<h2>6.5 Results story — slides (Screen E) <span class="phase ph2">Phase 2</span></h2>
+<p>Five slides, dot navigation, “Skip to full report” always visible.</p>
+
+<table>
+<tr><th>Slide</th><th>Content</th><th>Visual</th></tr>
+<tr><td>E1</td><td>“Your results are ready.”</td><td>Small Tamara mark; no drum-roll gimmick</td></tr>
+<tr><td>E2</td><td>AiQ score /100 + maturity band + persona name</td><td>Large numeral; band as soft pill</td></tr>
+<tr><td>E3</td><td>6 dimensions — simple bar chart</td><td>Horizontal bars; names not codes</td></tr>
+<tr><td>E4</td><td>Top 2 gaps + one evidence quote each</td><td>Quote in italic block</td></tr>
+<tr><td>E5</td><td>Next steps (3 bullets) + Download PDF</td><td>Primary CTA lavender</td></tr>
+</table>
+
+<h2>6.6 Full report (Screen F) <span class="phase ph1">Phase 1</span></h2>
+<p>Evolve current <span class="token">report-onepage</span> — simplify first paint:</p>
+<ol>
+<li><strong>Hero row:</strong> Score + band + 2-line summary only.</li>
+<li><strong>Accordion or tabs:</strong> Dimensions | Coaching | Learning links.</li>
+<li><strong>Remove on first load:</strong> Radar chart (optional expand), benchmark scale if cohort &lt; 30.</li>
+</ol>
+
+<h2>6.7 End session modal <span class="phase ph1">Phase 1</span></h2>
+<ul>
+<li>Keep modal pattern; reduce stat grid unless readiness API returns meaningful breadth.</li>
+<li>Title: “Finish and see your summary?”</li>
+<li>Buttons: “Keep chatting” (secondary) · “See my summary” (primary).</li>
+<li>Loading state inside modal → transition to Screen D.</li>
+</ul>
+
+<h1 class="page-break">7. Component library</h1>
+
+<h2>7.1 Buttons</h2>
+<table>
+<tr><th>Variant</th><th>Style</th></tr>
+<tr><td>Primary</td><td>bg lavender, white text, radius 10px, padding 12px 20px, weight 600</td></tr>
+<tr><td>Secondary</td><td>white bg, lavender border 1.5px, lavender text</td></tr>
+<tr><td>Ghost / link</td><td>lavender text, no uppercase, underline on hover</td></tr>
+<tr><td>Disabled</td><td>opacity 0.45; no transform hover</td></tr>
+</table>
+
+<h2>7.2 Form controls</h2>
+<ul>
+<li>Select: white bg, <span class="token">--border</span>, focus ring 3px lavender 20% alpha.</li>
+<li>Textarea: min-height 48px; radius 12px; no 2px heavy purple border default.</li>
+</ul>
+
+<h2>7.3 Chips / pills</h2>
+<ul>
+<li>Meta chips (intro): grey bg <span class="token">#f4f3f8</span>, ink-muted text.</li>
+<li>Active phase: lavender outline, not filled purple chip farm.</li>
+</ul>
+
+<h2>7.4 Score display</h2>
+<ul>
+<li>Composite: 48–56px numeral, ink color — not gradient fill.</li>
+<li>Dimension row: label left, bar center, score right — one row per dimension in full report.</li>
+<li>Avoid red/green score coloring; use lavender bar fill only.</li>
+</ul>
+
+<h2>7.5 Empty / loading / error</h2>
+<table>
+<tr><th>State</th><th>Treatment</th></tr>
+<tr><td>LLM typing</td><td>Three soft dots, lavender — “Thinking…”</td></tr>
+<tr><td>API error</td><td>Rose-tinted banner, plain language, retry</td></tr>
+<tr><td>Session ended</td><td>Neutral message + link to start new</td></tr>
+</table>
+
+<h1>8. Motion &amp; interaction</h1>
+<ul>
+<li><strong>Message in:</strong> fade + 4px translateY, 200ms ease-out.</li>
+<li><strong>Slide transition:</strong> 250ms horizontal fade (results story).</li>
+<li><strong>No:</strong> pulse animations on “View results” link; parallax; hero number count-up (optional subtle only on slide E2).</li>
+<li><strong>Respect prefers-reduced-motion:</strong> disable transforms.</li>
+</ul>
+
+<h1>9. Accessibility</h1>
+<table>
+<tr><th>Requirement</th><th>Implementation</th></tr>
+<tr><td>Contrast</td><td>Body text ≥ 4.5:1 on white; lavender buttons white text OK at #9600F1</td></tr>
+<tr><td>Focus</td><td>Visible 3px focus ring on all interactive elements</td></tr>
+<tr><td>Live regions</td><td><span class="token">aria-live="polite"</span> on new interviewer messages</td></tr>
+<tr><td>Modal</td><td>Focus trap, Escape closes, return focus to trigger</td></tr>
+<tr><td>Touch targets</td><td>Min 44×44px</td></tr>
+<tr><td>Mobile inputs</td><td>16px font in textarea (prevent iOS zoom) — keep</td></tr>
+</table>
+
+<h1 class="page-break">10. Responsive behavior</h1>
+<table>
+<tr><th>Breakpoint</th><th>Behavior</th></tr>
+<tr><td>&lt; 480px</td><td>Full-width card; composer stack (textarea then full-width Send)</td></tr>
+<tr><td>480–768px</td><td>Default; max-width 520px chat column centered</td></tr>
+<tr><td>&gt; 768px</td><td>Same max-width — do not stretch chat to full desktop width</td></tr>
+</table>
+
+<h1>11. Admin &amp; orchestrator UI</h1>
+<p>Lower priority for pilot polish but should not clash:</p>
+<ul>
+<li>Reuse calm tokens; admin may keep slightly denser tables.</li>
+<li>White <span class="token">.deck-card</span> panels on mist — remove admin hero white text on purple gradient.</li>
+<li>Telemetry charts: neutral greys; lavender for highlights only.</li>
+</ul>
+
+<h1>12. PDF &amp; print</h1>
+<ul>
+<li>Session PDF: match Screen F content; Tamara logo header strip lavender 4px top rule.</li>
+<li>Print stylesheet: strip chrome, white background — extend existing <span class="token">@media print</span> rules.</li>
+<li>Executive deck (<span class="token">/deck/executive</span>): may stay richer for board — separate from app UI tokens.</li>
+</ul>
+
+<h1>13. Implementation mapping</h1>
+<table>
+<tr><th>File</th><th>Changes</th></tr>
+<tr><td><span class="token">static/brand.css</span></td><td>New “calm theme” tokens; deprecate body gradient; simplify .card-h, .bubble.me, .aiq-progress</td></tr>
+<tr><td><span class="token">static/index.html</span></td><td>Split intro steps; simplify chat chrome; add scoring + slides containers</td></tr>
+<tr><td><span class="token">static/app.js</span></td><td>Wizard navigation; hide D-chips; results slide controller; scoring overlay</td></tr>
+<tr><td><span class="token">static/brand/*</span></td><td>Verify wordmark assets per README</td></tr>
+</table>
+
+<h1>14. Phased delivery</h1>
+
+<h2>Phase 1 — Calm foundation <span class="phase ph1">1–2 weeks</span></h2>
+<ul>
+<li>White/mist page background; remove full-bleed gradient</li>
+<li>White chat header; light participant bubbles</li>
+<li>Sentence-case buttons; reduce font-weight 800 usage</li>
+<li>Split intro: Welcome + About you</li>
+<li>Hide dimension chips from chat; phase label only</li>
+<li>Simplify results hero (score first; accordion for rest)</li>
+<li>Remove “Internal preview” badge for pilot build</li>
+</ul>
+
+<h2>Phase 2 — Journey polish <span class="phase ph2">2–3 weeks</span></h2>
+<ul>
+<li>Scoring wait screen (Screen D)</li>
+<li>5-slide results story (Screen E)</li>
+<li>Persona card on slide E2</li>
+<li>Intent capture on Screen B</li>
+<li>WCAG audit fixes</li>
+</ul>
+
+<h2>Phase 3 — Refinement <span class="phase ph3">ongoing</span></h2>
+<ul>
+<li>Internal benchmark chart when cohort sufficient</li>
+<li>Admin UI calm pass</li>
+<li>Arabic RTL exploration</li>
+<li>Figma component library synced to code tokens</li>
+</ul>
+
+<h1>15. Design deliverables checklist</h1>
+<table>
+<tr><th>Deliverable</th><th>Owner</th><th>Phase</th></tr>
+<tr><td>Figma: 6 participant screens (A–F)</td><td>Design</td><td>1–2</td></tr>
+<tr><td>Component spec (buttons, inputs, bubbles)</td><td>Design</td><td>1</td></tr>
+<tr><td>Copy deck (all UI strings)</td><td>Product + People</td><td>1</td></tr>
+<tr><td>Brand review sign-off</td><td>Brand team</td><td>1</td></tr>
+<tr><td>Implemented calm theme in brand.css</td><td>Engineering</td><td>1</td></tr>
+<tr><td>5-slide results in app.js</td><td>Engineering</td><td>2</td></tr>
+<tr><td>Moderated usability test (n=5)</td><td>Product</td><td>2</td></tr>
+</table>
+
+<h1>16. Open design decisions</h1>
+<table>
+<tr><th>#</th><th>Question</th><th>Recommendation</th></tr>
+<tr><td>DD-01</td><td>Top brand strip purple vs all-white chrome?</td><td>All-white chrome for pilot</td></tr>
+<tr><td>DD-02</td><td>Show phase names to users?</td><td>Yes — human labels only</td></tr>
+<tr><td>DD-03</td><td>Radar chart in report?</td><td>Behind “Show chart” expand</td></tr>
+<tr><td>DD-04</td><td>Persona visual treatment</td><td>Text + icon, no rainbow gradient</td></tr>
+<tr><td>DD-05</td><td>Dark mode</td><td>Defer — not Tamara app standard</td></tr>
+</table>
+
+<div class="callout">
+<strong>Summary</strong><br />
+The enhancement is not a rebrand — it is <em>restraint</em>. Tamara AiQ should read as a trusted internal conversation tool: white space, lavender accents, progressive disclosure, and copy that lowers stakes. Implement Phase 1 before any new assessment features; visual calm is a pilot requirement, not polish.
+</div>
+
+<p class="footer">Tamara AiQ Fluency Assessment — Design Enhancement Specification v1.0 — 9 July 2026 — Confidential internal document.</p>
+
+</body>
+</html>

@@ -18,10 +18,56 @@
   <link rel="stylesheet" href="/static/brand.css" />
 </head>
 <body>
+  <div class="motion-bg" id="motionBg" aria-hidden="true">
+    <video autoplay loop muted playsinline
+           src="/static/video/motion-bg.mp4"
+           type="video/mp4">
+    </video>
+    <div class="motion-bg__overlay"></div>
+  </div>
+
   <div class="shell" id="app">
-    <div class="intro-panel" id="step-intro">
-      <div class="slide-plate no-hero-num">
-        <div class="brand-bar">
+    <!-- Screen A: Welcome -->
+    <div class="intro-panel" id="step-welcome">
+      <div class="slide-plate no-hero-num" style="max-width: 480px; margin: 0 auto;">
+        <div class="brand-bar" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 1.1rem;">
+          <div class="logo-wordmark" title="tamara">
+            <div class="logo-lockup" aria-label="tamara">
+              <img
+                class="tamara-mark"
+                src="/static/brand/tamara-mark-icon.png"
+                width="160"
+                height="160"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+              <span class="tamara-word">tamara</span>
+            </div>
+          </div>
+        </div>
+        <h1 class="display-title" style="text-align: center; font-size: clamp(1.6rem, 3.6vw, 2.2rem);">AiQ assessment</h1>
+        <p class="sub" style="text-align: center; max-width: 32ch; margin: 0.25rem auto 0.75rem;">
+          A short chat about how you use AI at work — not a test. You can end whenever you&rsquo;re ready.
+        </p>
+        <p class="sub" style="text-align: center; max-width: 36ch; margin: 0 auto 1.25rem; font-size: 0.95rem;">
+          This ~10-minute conversation is private to this session. Answer in your own words — short or detailed is fine.
+        </p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem;">
+          <span class="badge" style="background: #f4f3f8; color: var(--ink-muted); border-radius: 999px;">~10 min</span>
+          <span class="badge" style="background: #f4f3f8; color: var(--ink-muted); border-radius: 999px;">Conversational</span>
+          <span class="badge" style="background: #f4f3f8; color: var(--ink-muted); border-radius: 999px;">Private to this session</span>
+        </div>
+        <div style="text-align: center;">
+          <button class="btn prim" type="button" id="btnContinue" style="margin-top: 0;">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen B: About you -->
+    <div class="intro-panel" id="step-about" style="display: none">
+      <div class="slide-plate no-hero-num" style="max-width: 100%; margin: 0 auto;">
+        <div class="brand-bar" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 0.75rem;">
           <div class="logo-wordmark logo-surface" title="tamara">
             <div class="logo-lockup" aria-label="tamara">
               <img
@@ -36,21 +82,12 @@
               <span class="tamara-word">tamara</span>
             </div>
           </div>
-          <span class="badge">Internal preview</span>
         </div>
-        <h1 class="display-title">AiQ <span class="accent">assessment</span></h1>
-        <p class="sub">
-          A short open-ended chat about how you use AI in practice — not a form, not a performance review. You can end whenever you’re ready.
+        <p class="sub" style="text-align: center; max-width: 28ch; margin: 0 auto 1.25rem; font-size: 0.9rem; color: var(--ink-soft);">
+          Step 2 of 3
         </p>
-        <ul class="expect">
-          <li><strong>One clear question at a time.</strong> If anything is unclear, ask for a simpler phrasing — that&rsquo;s encouraged.</li>
-          <li><strong>Say what feels right.</strong> Short or detailed is fine; we&rsquo;re not scoring wording or length.</li>
-          <li><strong>No homework.</strong> You don&rsquo;t need to study any model or vocabulary beforehand. You&rsquo;ll walk through a short, role-specific work scenario (how you&rsquo;d use AI, check outputs, and set the bar for others) — a normal conversation, not a test with right answers.</li>
-        </ul>
-        <p class="sub" style="margin: 0.5rem 0 0.35rem; font-size: 0.88rem">
-          <strong>Who you are for this run</strong>
-        </p>
-        <div class="assessment-picks" id="assessmentPicks">
+        <h2 class="display-title" style="text-align: center; font-size: clamp(1.3rem, 3vw, 1.7rem); margin-bottom: 1.25rem;">About you</h2>
+        <div class="assessment-picks" id="assessmentPicks" style="margin-bottom: 0.5rem;">
           <label class="apick">
             <span class="apick-lbl">Level</span>
             <select id="selLevel" class="apick-ctrl" aria-label="Your level"></select>
@@ -59,18 +96,97 @@
             <span class="apick-lbl">Job family</span>
             <select id="selJobFamily" class="apick-ctrl" aria-label="Your job family"></select>
           </label>
+          <label class="apick">
+            <span class="apick-lbl">Intent</span>
+            <select id="selIntent" class="apick-ctrl" aria-label="Your intent">
+              <option value="">Select intent</option>
+              <option value="growing">Growing in my role</option>
+              <option value="leading">Leading a team</option>
+              <option value="employer">Employer asked</option>
+              <option value="curious">Curious</option>
+            </select>
+          </label>
         </div>
-        <div class="err-banner" id="startErr"></div>
-        <p class="sub" style="margin: 0 0 0.75rem; font-size: 0.82rem; opacity: 0.88">
-          After you begin, bookmark the page or copy the URL — you can continue the same conversation after closing the tab or if the connection drops (until you finish and view results).
+        <p class="sub" style="text-align: center; font-size: 0.78rem; color: var(--ink-soft); margin: 0 0 1.25rem;">
+          Transcript stored for L&amp;D; don&rsquo;t paste customer data.
         </p>
-        <button class="btn prim" type="button" id="btnBegin">Begin</button>
+        <div class="err-banner" id="startErr"></div>
+        <div style="text-align: center;">
+          <button class="btn prim" type="button" id="btnBegin" style="margin-top: 0;">Start chat</button>
+        </div>
       </div>
     </div>
+
+    <!-- Screen C: Chat -->
     <div class="card" id="step-chat" style="display: none">
-      <div class="card-h">
-        <div class="card-brand">
-          <div class="logo-wordmark" title="tamara">
+      <header class="card-h">
+        <div class="card-h__brand">
+          <img
+            class="card-h__mark tamara-mark"
+            src="/static/brand/tamara-mark-icon.png"
+            width="160"
+            height="160"
+            alt=""
+            role="presentation"
+          />
+          <div class="card-h__brand-text">
+            <span class="card-h__name tamara-word">tamara</span>
+            <span class="card-h__subtitle">AiQ assessment</span>
+          </div>
+        </div>
+        <div class="card-h__center">
+          <div class="session-status" aria-live="polite">
+            <div class="session-status__copy">
+              <span class="session-status__label" id="phaseLabel">Getting started</span>
+              <span class="session-status__hint" id="aiqProgressCount">Part 1 of 5</span>
+            </div>
+            <div class="session-status__bar" aria-hidden="true">
+              <div class="session-status__fill" id="aiqProgressFill"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-h__end">
+          <div class="session-timer">
+            <span class="session-timer__lbl">Time</span>
+            <span class="session-timer__val" id="timer">0:00</span>
+          </div>
+          <button class="session-end" type="button" id="linkDone">End session</button>
+        </div>
+      </header>
+      <div class="chat-main">
+        <div class="messages" id="msgBox"></div>
+        <div
+          class="wrap-cta"
+          id="wrapCta"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <p class="wrap-cta__text">
+            Whenever you&rsquo;re ready, tap <strong>End session &amp; view results</strong> below — or keep going.
+          </p>
+        </div>
+      </div>
+      <footer class="composer">
+        <form id="fChat" class="composer-bar">
+          <div class="composer-bar__inner">
+            <textarea id="txt" rows="1" placeholder="Share your thoughts…" required></textarea>
+            <button class="composer-send" type="submit" id="sendBtn" aria-label="Send">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h12M14 7l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+        <p class="composer-hint">Press <strong>Enter</strong> to send · <strong>Shift+Enter</strong> for a new line</p>
+      </footer>
+    </div>
+
+    <!-- Screen D: Scoring wait -->
+    <div class="intro-panel" id="step-scoring" style="display: none">
+      <div class="slide-plate no-hero-num" style="max-width: 420px; margin: 0 auto; text-align: center;">
+        <div class="brand-bar" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 1.25rem;">
+          <div class="logo-wordmark logo-surface" title="tamara">
             <div class="logo-lockup" aria-label="tamara">
               <img
                 class="tamara-mark"
@@ -78,48 +194,25 @@
                 width="160"
                 height="160"
                 alt=""
-                role="presentation"
+                loading="eager"
+                decoding="async"
               />
               <span class="tamara-word">tamara</span>
             </div>
           </div>
-          <div class="card-headline">
-            <span class="aiq-title">AiQ Assessment</span>
-          </div>
         </div>
-        <span class="pill">In session</span>
-        <span id="timer">0:00</span>
-      </div>
-      <div class="aiq-progress" id="aiqProgress" aria-label="Session coverage">
-        <div class="aiq-progress__row">
-          <span class="aiq-progress__label">Progress</span>
-          <div class="aiq-progress__chips" id="aiqProgressChips" role="group" aria-label="Topics covered"></div>
-          <span class="aiq-progress__count" id="aiqProgressCount">0 / 6</span>
-        </div>
-        <div class="aiq-progress__bar" aria-hidden="true"><div class="aiq-progress__bar-fill" id="aiqProgressFill"></div></div>
-      </div>
-      <div class="messages" id="msgBox"></div>
-      <div
-        class="wrap-cta"
-        id="wrapCta"
-        role="status"
-        aria-live="polite"
-        hidden
-      >
-        <p class="wrap-cta__text">
-          When you&rsquo;re ready, tap <strong>View results</strong> for your one-page summary from this session.
+        <p class="sub" style="text-align: center; margin: 0 auto 0.5rem; font-size: 1.05rem; color: var(--ink);">
+          Reviewing your conversation…
         </p>
-        <p class="wrap-cta__timer" id="wrapCtaTimer" hidden></p>
-      </div>
-      <div class="composer">
-        <form id="fChat">
-          <textarea id="txt" rows="2" placeholder="Your reply, or a clarifying question…" required></textarea>
-          <button class="prim" type="submit" id="sendBtn">Send</button>
-        </form>
-        <p class="muted" style="font-size: 0.92rem">Press <strong>Enter</strong> to send · <strong>Shift+Enter</strong> for a new line</p>
-        <p class="muted" style="margin-top: 0.25rem"><a href="#" id="linkDone" class="link-view-results">End session &amp; view results</a></p>
+        <p class="sub" style="text-align: center; margin: 0 auto 1.25rem; font-size: 0.9rem; color: var(--ink-muted);">
+          This usually takes under a minute.
+        </p>
+        <div class="aiq-progress__bar" style="max-width: 16rem; margin: 0 auto; height: 6px;">
+          <div class="aiq-progress__bar-fill" id="scoringFill" style="width: 0%; transition: width 1.2s ease;"></div>
+        </div>
       </div>
     </div>
+
     <div class="err-banner" id="chatErr"></div>
     <section
       class="step-results"
@@ -140,15 +233,15 @@
   >
     <div class="end-modal__backdrop" id="endModalBackdrop" aria-hidden="true"></div>
     <div class="end-modal__panel slide-plate no-hero-num" role="document">
-      <h2 class="end-modal__title" id="endModalTitle">End this session?</h2>
+      <h2 class="end-modal__title" id="endModalTitle">Finish and see your summary?</h2>
       <div class="end-modal__body" id="endModalBody">
-        <p class="end-modal__lede">Ending will close the chat and generate your one-page summary from this conversation. You can continue if you’d rather keep going.</p>
+        <p class="end-modal__lede">Ending will close the chat and generate your one-page summary from this conversation. You can continue if you&rsquo;d rather keep going.</p>
       </div>
       <p class="end-modal__err" id="endModalError" hidden></p>
       <p class="end-modal__loading" id="endModalLoading" hidden>Preparing your one-page summary… this can take up to a minute.</p>
       <div class="end-modal__actions">
-        <button type="button" class="btn btn--secondary" id="endModalContinue">Keep going</button>
-        <button type="button" class="btn prim" id="endModalConfirm">End &amp; view results</button>
+        <button type="button" class="btn btn--secondary" id="endModalContinue">Keep chatting</button>
+        <button type="button" class="btn prim" id="endModalConfirm">See my summary</button>
       </div>
     </div>
   </div>
