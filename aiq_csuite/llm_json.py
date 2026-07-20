@@ -6,7 +6,7 @@ import json
 from typing import Any, Dict, Optional
 
 from config import GEMINI_API_KEY, GEMINI_MODEL, OPENAI_API_KEY, OPENAI_MODEL  # noqa: F401
-from gemini_service import _is_gemini_quota_error, _strip_json, parse_scoring_json_object
+from llm_service import _is_gemini_quota_error, _strip_json, parse_scoring_json_object
 from ollama_client import ollama_available, ollama_generate_text, resolve_backend
 from openai_client import openai_generate_text
 

@@ -54,7 +54,9 @@ python app.py
 
 - `knowledge/aiq_context_rag.md` – rubric, weights, executive expectations (edit here to change RAG without code).
 - `knowledge/scenario_variants.json` – one random hook per dimension per session.
-- `gemini_service.py` – model calls.
+- `llm_service.py` – model calls (OpenAI primary; Gemini/Ollama fallbacks): variation, opening, paste classifier, transcript scoring.
+- `conversation_engine.py` – LLM-driven interview turns (scenario as material, six-dimension coverage checklist).
+- `scenario_engine.py` – scenario selection + post-session evidence → scores → narrative pipeline.
 - `db.py` – DB adapter (SQLite or Postgres via `DATABASE_URL`).
 - `sql/supabase_harden_aiq_tables.sql` – one-shot RLS + revoke for Supabase (also applied automatically from `init_db()` on Postgres).
 - `scripts/migrate_sqlite_to_postgres.py` – one-off copier from local SQLite to Postgres.

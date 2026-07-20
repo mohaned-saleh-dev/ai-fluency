@@ -97,10 +97,6 @@ GEMINI_MODEL = os.environ.get("AIQ_GEMINI_MODEL", "gemini-2.5-flash")
 OPENAI_MODEL = os.environ.get("AIQ_OPENAI_MODEL", "gpt-4o-mini")
 # Second LLM call for "paste" detection: set 1 to use Gemini (more calls, more quota)
 AIQ_LLM_CLASSIFY = os.environ.get("AIQ_LLM_CLASSIFY", "").lower() in ("1", "true", "yes")
-# Scenario mode: prepend a short, tailored "I heard you" acknowledgment to each server-authored
-# question so the chat feels like someone is listening. Costs 1 small LLM call per qualifying turn.
-# Default on; set AIQ_LISTENING_ACK=0/false/off to disable and fall back to question-only replies.
-AIQ_LISTENING_ACK = os.environ.get("AIQ_LISTENING_ACK", "on").strip().lower() not in ("0", "false", "no", "off")
 # who answers: "gemini" | "openai" | "ollama" | "auto"
 # auto/fallback order: openai (if key) -> gemini (if key) -> ollama (if running)
 LLM_PROVIDER = os.environ.get("AIQ_LLM_PROVIDER", "openai").strip().lower() or "openai"

@@ -68,6 +68,7 @@ def ollama_generate_text(
     model: Optional[str] = None,
     temperature: float = 0.2,
     num_predict: int = 1200,
+    timeout: int = 120,
 ) -> str:
     mdl = model or OLLAMA_MODEL
     out = _post(
@@ -78,6 +79,7 @@ def ollama_generate_text(
             "stream": False,
             "options": {"temperature": temperature, "num_predict": num_predict},
         },
+        timeout=timeout,
     )
     return (out.get("response") or "").strip()
 

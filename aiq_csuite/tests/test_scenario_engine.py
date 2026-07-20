@@ -1,4 +1,6 @@
-"""Unit tests for scenario-stack guards (no LLM)."""
+"""Unit tests for scenario_engine's kept surface: scenario routing + shared heuristics.
+(The live turn machinery moved to conversation_engine; scoring paths need an LLM and are
+exercised by scripts/run_scoring_validation.py instead.)"""
 from __future__ import annotations
 
 import sys
@@ -11,150 +13,120 @@ if str(ROOT) not in sys.path:
 import scenario_engine as se  # noqa: E402
 
 
-def test_thin_answer_detection():
-    assert se._is_thin_answer("Nothing specific.")
-    assert se._is_thin_answer("Tell the team to be careful.")
-    assert not se._is_thin_answer(
-        "I paste anonymized requirements, forbid invented policy, second human reviews."
+# --- cluster routing (family × level) -------------------------------------------------
+
+def test_cluster_routing_senior_tiers_get_strategic_scenarios():
+    assert se._scenario_cluster("care_operations", "executive") == "ops_exec"
+    assert se._scenario_cluster("care_operations", "head_of") == "ops_exec"
+    assert se._scenario_cluster("product_engineering", "executive") == "product_exec"
+    assert se._scenario_cluster("general_management", "people_manager") == "coo_office"
+
+
+def test_cluster_routing_hands_on_tiers_keep_base_cluster():
+    assert se._scenario_cluster("care_operations", "ic") == "ops"
+    assert se._scenario_cluster("product_engineering", "ic") == "product"
+    assert se._scenario_cluster("finance", "ic") == "fin"
+    assert se._scenario_cluster("hr_people", "ic") == "people"
+
+
+# --- function-specific scenario decoupling --------------------------------------------
+
+def _assessment(level, family, function=None):
+    from assessment_profiles import build_assessment_block
+
+    return build_assessment_block(level, family, function)
+
+
+def test_job_function_selects_dedicated_scenario():
+    """Care → Strategy & Ops routes to its own scenario while keeping finance weights."""
+    ass = _assessment("ic", "finance", "care_strategy_ops")
+    plan = se.build_scenario_plan(ass, "seed-1")
+    assert plan["cluster"] == "care_strategy_ops"
+    assert plan["primary"]["title"] == "The Monday readout"
+    # The participant-facing label is the function they picked, not the scoring family.
+    assert plan["job_family_label"] == "Strategy & Ops (Care)"
+
+
+def test_no_function_falls_back_to_family_cluster():
+    ass = _assessment("ic", "finance", None)
+    plan = se.build_scenario_plan(ass, "seed-1")
+    assert plan["cluster"] == "fin"
+    assert plan["primary"]["title"] == "Board deck numbers"
+
+
+def _fake_library_with_blank(monkeypatch, blank_keys):
+    """Real library with the given entries blanked — a synthetic fixture so tests never
+    depend on (or encourage) blank scaffolds in the shipped scenario_library.json."""
+    lib = se._load_library()
+    for k in blank_keys:
+        lib[k] = {f: "" for f in ("primary_title", "primary_setup", "primary_stakes",
+                                  "complication_inject", "standards_prompt",
+                                  "standards_question")} | {"probe_bank": []}
+    monkeypatch.setattr(se, "_load_library", lambda: lib)
+    return lib
+
+
+def test_unpopulated_function_scenario_falls_back(monkeypatch):
+    """A function key whose library entry has a blank primary_setup must not be selected."""
+    _fake_library_with_blank(monkeypatch, ["ops"])
+    ass = dict(_assessment("ic", "care_operations", None))
+    ass["job_function"] = "ops"
+    plan = se.build_scenario_plan(ass, "seed-1")
+    # The blank entry is skipped on the function path AND on the family path (which also
+    # resolves to "ops" here), so the plan lands on the generic scenario, never a blank one.
+    assert plan["cluster"] == "gm"
+    assert plan["primary"]["setup"].strip()
+
+
+def test_blank_family_cluster_falls_back_to_generic(monkeypatch):
+    """If a family-routed cluster entry is ever blanked, sessions get the generic scenario
+    instead of silently running with no scenario material (regression: ops/ops_exec were
+    blanked as scaffolds and care_operations sessions lost their scenario entirely)."""
+    _fake_library_with_blank(monkeypatch, ["ops_exec"])
+    ass = _assessment("executive", "care_operations", None)
+    plan = se.build_scenario_plan(ass, "seed-1")
+    assert plan["cluster"] == "gm"
+    assert plan["primary"]["setup"].strip()
+
+
+def test_all_router_reachable_clusters_are_populated():
+    """Every cluster the family x level router can emit must have real scenario content
+    in the shipped library — a blank entry silently degrades live interviews."""
+    from assessment_profiles import JOB_FAMILIES, LEVELS
+
+    lib = se._load_library()
+    required = ("primary_title", "primary_setup", "primary_stakes",
+                "complication_inject", "standards_prompt")
+    for fam in (x["slug"] for x in JOB_FAMILIES):
+        for lev in (x["slug"] for x in LEVELS):
+            cluster = se._scenario_cluster(fam, lev)
+            entry = lib.get(cluster)
+            assert isinstance(entry, dict), f"{fam}/{lev} -> {cluster}: missing from library"
+            for field in required:
+                assert str(entry.get(field) or "").strip(), (
+                    f"{fam}/{lev} -> {cluster}: blank {field}"
+                )
+
+
+# --- clarification / purpose heuristics (used by app.py effort signal) ----------------
+
+def test_purpose_questions_detected():
+    assert se._is_purpose_question("Okay, but what is the purpose of this chat")
+    assert se._is_purpose_question("is this a test?")
+    assert se._is_purpose_question("who are you")
+    assert not se._is_purpose_question("I'd check the numbers against the export first.")
+
+
+def test_clarification_detection():
+    assert se._is_clarification_request("what do you mean?")
+    assert se._is_clarification_request("Okay, but what is the purpose of this chat")
+    assert se._is_clarification_request("?")
+    assert not se._is_clarification_request(
+        "I'd clean the export, remove customer names, then ask for grouping by queue."
     )
-
-
-def test_complication_signal_skips_portfolio_loop():
-    assert se._user_signals_complication("Kill the thread, ping security, check retention.")
-
-
-def test_banned_stem_detected():
-    q = "In the scenario where you must choose between automation and forecasting, what criteria?"
-    assert se._question_is_repetitive(q, [])
-
-
-def test_coo_cluster_for_gm_exec():
-    assert se._scenario_cluster("general_management", "head_of") == "coo_office"
-    assert se._scenario_cluster("product_engineering", "head_of") == "product"
-
-
-def test_finalize_uses_thin_probe():
-    q = se._finalize_question(
-        "In the scenario where you choose automation, what trade-offs?",
-        "primary",
-        {"probe_bank": ["probe a", "probe b", "probe c"]},
-        [],
-        thin=True,
-        vague=False,
-        probe_slot=1,
-    )
-    assert "concrete" in q.lower() or "first" in q.lower()
-
-
-def test_clarification_you_mean_published():
-    assert se._is_clarification_request(
-        "you mean it rewrote it and it was published already?"
-    )
-
-
-def _anchor_msgs(role_line: str):
-    return [
-        {"role": "model", "content": "What is your role?"},
-        {"role": "user", "content": role_line},
-    ]
-
-
-def test_ta_anchor_swaps_people_scenario():
-    plan = se.build_scenario_plan(
-        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
-        "seed",
-    )
-    out = se._apply_anchor_context(plan, _anchor_msgs(
-        "Head of Talent Acquisition. ChatGPT for job descriptions and outreach."
-    ))
-    assert out.get("cluster") == "people_ta"
-    assert "recruiter" in (out.get("primary") or {}).get("setup", "").lower()
-
-
-def test_hrbp_anchor_swaps_people_scenario():
-    plan = se.build_scenario_plan(
-        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
-        "seed",
-    )
-    out = se._apply_anchor_context(plan, _anchor_msgs(
-        "HR Business Partner supporting sales leaders. Copilot for manager coaching notes."
-    ))
-    assert out.get("cluster") == "people_hrbp"
-    assert "performance" in (out.get("primary") or {}).get("setup", "").lower()
-
-
-def test_er_anchor_swaps_people_scenario():
-    plan = se.build_scenario_plan(
-        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
-        "seed",
-    )
-    out = se._apply_anchor_context(plan, _anchor_msgs(
-        "Employee relations lead. ChatGPT to summarize investigation notes."
-    ))
-    assert out.get("cluster") == "people_er"
-
-
-def test_gtm_sales_anchor_swaps_scenario():
-    plan = se.build_scenario_plan(
-        {"job_family": "go_to_market", "level": "head_of", "job_family_label": "GTM"},
-        "seed",
-    )
-    out = se._apply_anchor_context(plan, _anchor_msgs(
-        "Head of enterprise sales. ChatGPT for outreach personalization."
-    ))
-    assert out.get("cluster") == "gtm_sales"
-
-
-def test_standards_question_from_library():
-    plan = se._scenario_from_library_key("people_comp")
-    q = se._pick_probe("standards", plan, 0)
-    assert "comp" in q.lower() or "pay" in q.lower()
-
-def test_talent_acquisition_typo_routes_to_ta():
-    plan = se.build_scenario_plan(
-        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
-        "seed",
-    )
-    line = "I'm the head of Talent acquistion, I use gemini and notion ai"
-    out = se._apply_anchor_context(
-        plan,
-        [{"role": "model", "content": "What is your role?"},
-         {"role": "user", "content": line}],
-    )
-    assert out.get("cluster") == "people_ta"
-    assert "recruiter" in (out.get("primary") or {}).get("setup", "").lower()
-    assert "return-to-office" not in (out.get("primary") or {}).get("setup", "").lower()
-
-
-def test_anchor_in_flight_user_message_personalizes_before_primary():
-    """Regression: anchor answer is user_message, not history — must not mix RTO + TA probes."""
-    plan = se.build_scenario_plan(
-        {"job_family": "hr_people", "level": "head_of", "job_family_label": "HR"},
-        "seed",
-    )
-    opening_only = [{"role": "model", "content": "What is your role?"}]
-    anchor_line = "Head of Talent Acquisition. ChatGPT for job descriptions."
-    without_current = se._apply_anchor_context(plan, opening_only)
-    assert without_current.get("cluster") == "people"
-    with_current = se._apply_anchor_context(
-        plan, se._messages_for_context(opening_only, anchor_line)
-    )
-    assert with_current.get("cluster") == "people_ta"
-    assert "offer" in with_current.get("probe_bank", [""])[1].lower()
 
 
 if __name__ == "__main__":
-    test_thin_answer_detection()
-    test_complication_signal_skips_portfolio_loop()
-    test_banned_stem_detected()
-    test_coo_cluster_for_gm_exec()
-    test_finalize_uses_thin_probe()
-    test_clarification_you_mean_published()
-    test_ta_anchor_swaps_people_scenario()
-    test_hrbp_anchor_swaps_people_scenario()
-    test_er_anchor_swaps_people_scenario()
-    test_gtm_sales_anchor_swaps_scenario()
-    test_standards_question_from_library()
-    test_anchor_in_flight_user_message_personalizes_before_primary()
-    test_talent_acquisition_typo_routes_to_ta()
-    print("ok")
+    import pytest
+
+    raise SystemExit(pytest.main([__file__, "-q"]))

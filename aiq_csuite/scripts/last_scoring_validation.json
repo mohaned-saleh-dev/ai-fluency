@@ -1,0 +1,152 @@
+[
+  {
+    "family": "product_engineering",
+    "level": "ic",
+    "strong_composite": 78.0,
+    "weak_composite": 29.9,
+    "separation": 48.1,
+    "strong_band": "AiQ3",
+    "weak_band": "AiQ2",
+    "strong_dims": [
+      8.0,
+      7.5,
+      8.0,
+      8.0,
+      7.0,
+      8.0
+    ],
+    "weak_dims": [
+      4.0,
+      2.0,
+      3.0,
+      3.0,
+      2.0,
+      4.0
+    ]
+  },
+  {
+    "family": "product_engineering",
+    "level": "executive",
+    "strong_composite": 72.8,
+    "weak_composite": 27.5,
+    "separation": 45.3,
+    "strong_band": "AiQ3",
+    "weak_band": "AiQ2",
+    "strong_dims": [
+      8.0,
+      7.0,
+      7.0,
+      8.0,
+      6.0,
+      7.0
+    ],
+    "weak_dims": [
+      3.0,
+      2.0,
+      3.0,
+      2.5,
+      3.0,
+      3.0
+    ]
+  },
+  {
+    "family": "go_to_market",
+    "level": "ic",
+    "strong_composite": 75.9,
+    "weak_composite": 37.5,
+    "separation": 38.4,
+    "strong_band": "AiQ3",
+    "weak_band": "AiQ2",
+    "strong_dims": [
+      8.0,
+      7.0,
+      8.0,
+      8.0,
+      7.0,
+      7.0
+    ],
+    "weak_dims": [
+      5.0,
+      3.0,
+      4.0,
+      2.0,
+      5.0,
+      3.0
+    ]
+  },
+  {
+    "family": "go_to_market",
+    "level": "executive",
+    "strong_composite": 77.5,
+    "weak_composite": 32.9,
+    "separation": 44.6,
+    "strong_band": "AiQ3",
+    "weak_band": "AiQ2",
+    "strong_dims": [
+      8.0,
+      7.0,
+      8.0,
+      8.0,
+      7.0,
+      8.0
+    ],
+    "weak_dims": [
+      4.0,
+      2.0,
+      4.0,
+      2.0,
+      5.0,
+      3.0
+    ]
+  },
+  {
+    "family": "care_operations",
+    "level": "ic",
+    "strong_composite": 72.0,
+    "weak_composite": 31.2,
+    "separation": 40.8,
+    "strong_band": "AiQ3",
+    "weak_band": "AiQ2",
+    "strong_dims": [
+      8.0,
+      7.5,
+      8.0,
+      7.5,
+      7.0,
+      3.0
+    ],
+    "weak_dims": [
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      4.0,
+      3.0
+    ]
+  },
+  {
+    "family": "care_operations",
+    "level": "executive",
+    "strong_composite": 79.9,
+    "weak_composite": 30.0,
+    "separation": 49.9,
+    "strong_band": "AiQ3",
+    "weak_band": "AiQ2",
+    "strong_dims": [
+      8.0,
+      7.0,
+      8.0,
+      8.0,
+      7.0,
+      9.0
+    ],
+    "weak_dims": [
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0
+    ]
+  }
+]

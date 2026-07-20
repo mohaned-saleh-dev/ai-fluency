@@ -219,18 +219,5 @@
       "The numbers look good on average — what would make you dig deeper before rolling out further?",
       "Who owns the decision to pause or roll back if something goes wrong mid-rollout?"
     ]
-  },
-  "care_strategy_ops": {
-    "primary_title": "The Monday readout",
-    "primary_setup": "The Head of Strategy & Ops asks you to explain why Care's escalation resolution times slipped last month — he needs a short readout before Monday's leadership review. You have a raw ticket export from the Care system, and you're planning to drop it into ChatGPT to find the pattern and draft the summary.",
-    "primary_stakes": "Leadership will decide staffing and SLA changes off your readout. A pattern that isn't really there — or a number that doesn't tie back to the source — sends the whole team fixing the wrong thing, and it's your name on the analysis.",
-    "complication_inject": "ChatGPT confidently pins the slip on one product queue and hands you a clean chart and narrative. But when you glance at the raw export, that queue's volume barely moved — the model latched onto a mislabeled column.",
-    "standards_prompt": "If analysts across Strategy & Ops start using AI to turn raw operational data into leadership readouts, what would you want them to check before it reaches a Head or exec — and what data should never go into the tool?",
-    "standards_question": "What's one rule you'd want every analyst to follow before an AI-assisted readout goes to leadership?",
-    "probe_bank": [
-      "What would you actually put into the tool first — and what would you tell it about the question you're answering?",
-      "The summary reads clean and confident — what would you check before you put your name on it?",
-      "Who owns the numbers once this goes up — you, the data team, or the Care lead?"
-    ]
   }
 }

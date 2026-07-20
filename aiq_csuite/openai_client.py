@@ -105,6 +105,8 @@ def openai_generate_text(
     max_output_tokens: int = 1200,
     system_instruction: Optional[str] = None,
     response_json: bool = False,
+    timeout: int = 120,
+    max_tries: int = 3,
 ) -> str:
     mdl = model or OPENAI_MODEL
     messages: List[Dict[str, str]] = []
@@ -119,5 +121,5 @@ def openai_generate_text(
     }
     if response_json:
         body["response_format"] = {"type": "json_object"}
-    resp = _post_json("/chat/completions", body)
+    resp = _post_json("/chat/completions", body, timeout=timeout, max_tries=max_tries)
     return _extract_text(resp)

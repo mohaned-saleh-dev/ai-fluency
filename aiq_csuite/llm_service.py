@@ -1,4 +1,14 @@
+"""
+Provider-agnostic LLM service for AiQ (OpenAI primary; Gemini and Ollama fallbacks).
+
+Owns: per-session variation + opening message, the AI-paste classifier, transcript
+scoring (behavioral anchors → weighted composite → maturity band), the legacy
+dimension-mode interviewer (pre-scenario sessions), and shared JSON parsing helpers.
+Live conversational turns are composed in conversation_engine.
+"""
+
 import json
+import logging
 import os
 import random
 import re
@@ -19,6 +29,12 @@ from openai_client import openai_chat, openai_generate_text
 from ollama_client import ollama_available, ollama_chat, ollama_generate_text, resolve_backend
 
 _ORCH_PROMPT_PATH = BASE_DIR / "knowledge" / "orchestrator_prompt_append.md"
+
+_log = logging.getLogger(__name__)
+
+# Per-turn calls (e.g. the generated opening) must fail FAST: each has a safe static
+# fallback, so a slow provider should degrade the wording, never stall the session.
+_TURN_LLM_TIMEOUT_SEC = 12
 
 
 def _load_orchestrator_prompt_append() -> str:
@@ -654,81 +670,43 @@ You aim for *breadth* across the six areas in the RAG without making it feel lik
     return _postprocess_interviewer_reply(out)
 
 
-_ACK_MAX_WORDS = 24
-_ACK_GENERIC_PRAISE = (
-    "great answer", "good answer", "good point", "great point", "excellent",
-    "well said", "that's a great", "thats a great", "perfect", "amazing", "wonderful",
-)
-
-
-def _clean_ack(s: str) -> str:
-    """Keep the ack to short, statement-only prose; drop any question sentence and generic praise."""
-    t = (s or "").strip().strip('"').strip("'").replace("\n", " ").strip()
-    if not t:
-        return ""
-    # The ack must never ask anything (the server question follows). Keep only statement sentences.
-    parts = re.split(r"(?<=[.!?])\s+", t)
-    kept = [p.strip() for p in parts if p.strip() and "?" not in p]
-    t = " ".join(kept).strip()
-    if not t:
-        return ""
-    low = t.lower()
-    for bad in _ACK_GENERIC_PRAISE:
-        if low.startswith(bad):
-            return ""
-    words = t.split()
-    if len(words) > _ACK_MAX_WORDS + 8:
-        t = " ".join(words[:_ACK_MAX_WORDS]).rstrip(" ,;:-") + "…"
-    if t[-1] not in ".!…":
-        t += "."
-    return t
-
-
-def generate_listening_ack(
-    user_message: str,
-    *,
-    scenario_title: str = "",
-    level_label: str = "",
-) -> str:
-    """
-    One short sentence that reflects the participant's *specific* reply back to them, so the
-    scenario chat feels heard. It never asks a question, gives advice, judges quality, adds new
-    information, or moves the conversation on — the server-authored question always follows it.
-    Returns "" on a thin answer or any LLM issue, so the caller falls back to the question alone.
-    """
-    text = (user_message or "").strip()
-    if len(text.split()) < 7:
-        return ""  # nothing substantive to reflect; also avoids rewarding one-word replies
+def generate_opening_message(level_label: str = "", job_family_label: str = "") -> str:
+    """Conversational opening for an AiQ session. Returns "" on failure so the caller
+    can fall back to the static opening."""
     mode, _ = _llm_mode()
     if mode == "error":
         return ""
+    ctx = ""
+    if job_family_label or level_label:
+        parts = []
+        if level_label:
+            parts.append(f"{level_label} level")
+        if job_family_label:
+            parts.append(job_family_label)
+        ctx = f"This conversation is with someone who works as {' / '.join(parts)}.\n"
     sys = (
-        "You are an attentive interviewer in a short workplace conversation about how someone uses AI at work. "
-        "The participant has just replied. Respond with EXACTLY ONE short sentence (max 24 words) that shows you "
-        "listened: mirror back a specific, concrete detail they actually mentioned, or briefly restate their point "
-        "in your own words so they feel heard.\n"
-        "Hard rules:\n"
-        "- Do NOT ask a question of any kind.\n"
-        "- Do NOT give advice, opinions on how good their answer was, or any new information.\n"
-        "- Do NOT introduce a new topic or move the conversation forward.\n"
-        "- Do NOT use generic praise ('great answer', 'good point').\n"
-        "- No emojis, no lists, no quotation marks. Warm, natural, professional, plain."
+        "You are a warm, professional interviewer starting a short ~10-minute conversation about how someone uses AI at work. "
+        "Write ONE short opening message (max 65 words) that feels like a real person greeting them, not a form. "
+        "Be approachable, hint that this is a practical chat (not a test with right answers), and naturally ask for: "
+        "(1) their role in a sentence or two, and (2) which AI tools they actually use in a normal week. "
+        "Vary your phrasing every time — no fixed template. No lists, no emojis, no markdown.\n"
+        "Hard rules: no jokes; never invent or assume anything about their day, workload, mood, or situation "
+        "(no 'I hope you're not drowning in...' style lines); no exclamation marks; warm but plain — "
+        "two short sentences of welcome at most, then the question."
     )
-    ctx = f"(Background scenario, do not mention it directly: {scenario_title}.) " if scenario_title else ""
-    prompt = (
-        f"{ctx}The participant said:\n\"\"\"\n{text[:1400]}\n\"\"\"\n\n"
-        "Your one-sentence reflective acknowledgment (statement only, no question):"
-    )
+    prompt = f"{ctx}Your opening message:"
     try:
         if mode == "ollama":
-            out = ollama_generate_text(sys + "\n\n" + prompt, temperature=0.5)
+            out = ollama_generate_text(sys + "\n\n" + prompt, temperature=0.7, timeout=_TURN_LLM_TIMEOUT_SEC)
         elif mode == "openai":
             out = openai_generate_text(
                 prompt,
                 model=OPENAI_MODEL,
-                temperature=0.5,
-                max_output_tokens=60,
+                temperature=0.7,
+                max_output_tokens=120,
                 system_instruction=sys,
+                timeout=_TURN_LLM_TIMEOUT_SEC,
+                max_tries=1,
             )
         else:
             import google.generativeai as genai
@@ -736,12 +714,18 @@ def generate_listening_ack(
             model = genai.GenerativeModel(GEMINI_MODEL, system_instruction=sys)
             r = model.generate_content(
                 prompt,
-                generation_config={"temperature": 0.5, "max_output_tokens": 60},
+                generation_config={"temperature": 0.7, "max_output_tokens": 120},
+                request_options={"timeout": _TURN_LLM_TIMEOUT_SEC},
             )
             out = r.text or ""
     except Exception:
         return ""
-    return _clean_ack(out)
+    t = (out or "").strip().strip('"').strip("'").strip()
+    if not t or "?" not in t:
+        return ""
+    if len(t.split()) > 75:
+        return ""
+    return t
 
 
 def opening_message(variation: dict) -> str:
@@ -828,6 +812,9 @@ _RE_ASSESSOR_VOICE = re.compile(
     r"(\bthe user\b|"
     r"\bthe participant\b|"
     r"\bthe interviewee\b|"
+    r"\bthe candidate\b|"
+    r"\bthe respondent\b|"
+    r"\bthe subject\b|"
     r"preventing assessment\b|"
     r"no information beyond|"
     r"(?:only|merely) (?:their|the) job title|"
@@ -902,7 +889,7 @@ def _ground_evidence_quotes(out: dict, msgs: Optional[List[dict]]) -> dict:
     Coerce each dimension's `evidence_quotes` to a clean list (<=2 short strings) and drop any
     quote not actually grounded in the participant's own USER turns. Guards against the scorer
     inventing or paraphrasing quotes: a quote survives only if its normalized text is a substring
-    of the participant's words, or >=80% of its words appear there (tolerates minor re-quoting).
+    of the participant's words, or >=70% of its words appear there (tolerates minor re-quoting).
     """
     if not isinstance(out, dict):
         return out
@@ -935,7 +922,7 @@ def _ground_evidence_quotes(out: dict, msgs: Optional[List[dict]]) -> dict:
                     qw = nq.split()
                     if qw:
                         overlap = sum(1 for w in qw if w in user_words) / len(qw)
-                        grounded = overlap >= 0.8
+                        grounded = overlap >= 0.7
                 if grounded:
                     cleaned.append(qt)
                 if len(cleaned) >= 2:
@@ -944,20 +931,129 @@ def _ground_evidence_quotes(out: dict, msgs: Optional[List[dict]]) -> dict:
     return out
 
 
-def _finalize_scoring_for_session(
-    out: dict, weights: Optional[dict], msgs: Optional[List[dict]] = None
+# Which extracted-evidence facet backs which dimension (same mapping the scoring prompt uses).
+_FACET_BY_DIM = {
+    "D1": "tools_in_use",
+    "D2": "prompt_behavior",
+    "D3": "verification",
+    "D4": "workflow_ownership",
+    "D5": "output_bar",
+    "D6": "risk_floor",
+}
+
+
+def _backfill_quotes_from_evidence(
+    out: dict, evidence: Optional[dict], msgs: Optional[List[dict]]
 ) -> dict:
-    return sanitize_scoring_for_participant_view(
-        _apply_session_weights_to_composite(
-            _ground_evidence_quotes(out, msgs), weights
+    """
+    If the scorer paraphrased its evidence_quotes (so grounding dropped them) but the
+    evidence-extraction pass already holds grounded verbatim quotes for the matching facet,
+    use those instead of letting the no-evidence cap floor a genuinely evidenced dimension.
+    Facet quotes are re-checked against the participant's own turns before use, so the
+    "no score without a verbatim quote" guarantee is unchanged.
+    """
+    if not isinstance(out, dict) or not isinstance(evidence, dict) or not msgs:
+        return out
+    facets = evidence.get("facets")
+    if not isinstance(facets, dict):
+        return out
+    user_text = _normalize_for_match(
+        " ".join(
+            str(m.get("content") or "") for m in msgs if (m.get("role") or "") == "user"
         )
     )
+    user_words = set(user_text.split())
+    for dim_key, facet_key in _FACET_BY_DIM.items():
+        b = out.get(dim_key)
+        if not isinstance(b, dict) or (b.get("evidence_quotes") or []):
+            continue
+        facet = facets.get(facet_key)
+        raw = facet.get("quotes") if isinstance(facet, dict) else None
+        if isinstance(raw, str):
+            raw = [raw]
+        if not isinstance(raw, list):
+            continue
+        picked: List[str] = []
+        for q in raw:
+            if not isinstance(q, str) or not q.strip():
+                continue
+            qt = q.strip()[:160]
+            nq = _normalize_for_match(qt)
+            grounded = bool(nq) and nq in user_text
+            if not grounded and nq and user_words:
+                qw = nq.split()
+                grounded = bool(qw) and sum(1 for w in qw if w in user_words) / len(qw) >= 0.7
+            if grounded:
+                picked.append(qt)
+            if len(picked) >= 2:
+                break
+        if picked:
+            b["evidence_quotes"] = picked
+            b["quotes_backfilled_from_evidence"] = True
+    return out
+
+
+def _cap_unevidenced_scores(out: dict) -> dict:
+    """
+    Enforce "no score without a quote to point to": after grounding, a dimension whose
+    evidence_quotes came back empty can only sit in the low anchor band (0-3). This is the
+    code-level guarantee behind the rubric — a confident-sounding transcript can't earn a
+    high dimension score that no verbatim participant quote backs up.
+    """
+    if not isinstance(out, dict):
+        return out
+    for i in range(1, 7):
+        b = out.get(f"D{i}")
+        if not isinstance(b, dict):
+            continue
+        quotes = b.get("evidence_quotes")
+        has_quotes = isinstance(quotes, list) and len(quotes) > 0
+        try:
+            score = float(b.get("score", 0) or 0)
+        except (TypeError, ValueError):
+            score = 0.0
+        if not has_quotes and score > 3.0:
+            b["score"] = 3.0
+            b["capped_no_evidence"] = True
+    return out
+
+
+def _finalize_scoring_for_session(
+    out: dict,
+    weights: Optional[dict],
+    msgs: Optional[List[dict]] = None,
+    evidence: Optional[dict] = None,
+) -> dict:
+    grounded = _ground_evidence_quotes(out, msgs)
+    # Only enforce the quote-backed cap when we actually had user turns to ground against;
+    # otherwise (legacy callers passing no msgs) grounding never ran and empty quote lists
+    # would wrongly floor every dimension.
+    if msgs:
+        grounded = _backfill_quotes_from_evidence(grounded, evidence, msgs)
+        grounded = _cap_unevidenced_scores(grounded)
+    return sanitize_scoring_for_participant_view(
+        _apply_session_weights_to_composite(grounded, weights)
+    )
+
+
+def _band_for_composite(aiq: float) -> str:
+    """SRS band boundaries: AiQ1 0-25, AiQ2 26-55, AiQ3 56-80, AiQ4 81-100."""
+    if aiq <= 25.0:
+        return "AiQ1"
+    if aiq <= 55.0:
+        return "AiQ2"
+    if aiq <= 80.0:
+        return "AiQ3"
+    return "AiQ4"
 
 
 def _apply_session_weights_to_composite(
     out: dict, weights: Optional[dict]
 ) -> dict:
-    """Enforce AiQ_0_100 = 10 * Σ w_i * D_i (D_i on 0–10). Source of truth: code + session weights."""
+    """Enforce AiQ_0_100 = 10 * Σ w_i * D_i (D_i on 0–10). Source of truth: code + session weights.
+    The maturity band is derived from that recomputed composite here — the model's own band
+    guess tracked its pre-recompute number (and in practice defaulted to AiQ3 regardless), so a
+    25-point transcript and an 80-point one could both read 'AiQ3'."""
     if not isinstance(out, dict) or not weights:
         return out
     s = 0.0
@@ -968,6 +1064,7 @@ def _apply_session_weights_to_composite(
         dv = float(sc.get("score", 0) or 0) if isinstance(sc, dict) else 0.0
         s += wv * dv
     out["AiQ_0_100"] = round(10.0 * s, 1)
+    out["maturity_band"] = _band_for_composite(out["AiQ_0_100"])
     return out
 
 
@@ -977,10 +1074,10 @@ def _apply_session_weights_to_composite(
 _SCORING_ANCHORS = """**Behavioral anchor bands (score against these; 0-3 low, 4-7 mid, 8-10 high):**
 - **D1 Awareness & opportunity** — LOW: names at most one AI tool in passing, no concrete use case beyond generic time-saving. MID: names two or more tools or use cases actually used and can say which task each is for. HIGH: maps where AI is worth it across their function, not just personal tasks, and can name a case where they chose *not* to use AI and why.
 - **D2 Prompts & communication** — LOW: vague one-shot prompting, no context, examples, or iteration. MID: supplies context and constraints and iterates on a weak output at least once with a concrete example. HIGH: describes a repeatable approach (templates, structured context) adapted deliberately per task type.
-- **D3 Critical judgment** — LOW: takes AI output at face value, no example of catching an error. MID: describes at least one concrete instance of catching a wrong or misleading output before it was used. HIGH: has a standing habit or checklist for verification and distinguishes where AI is reliable vs not in their domain.
+- **D3 Critical judgment** — LOW: takes AI output at face value, no example of catching an error. Noticing a discrepancy but deferring to the AI's version anyway is still LOW — a check only counts if it changes what ships. MID: describes at least one concrete instance of catching a wrong or misleading output before it was used. HIGH: has a standing habit or checklist for verification and distinguishes where AI is reliable vs not in their domain.
 - **D4 Workflows & org design** — LOW: AI use is ad hoc and individual, cannot describe how it fits with teammates. MID: AI is embedded in at least one defined workflow with a clear owner or handoff. HIGH: has redesigned a process around AI (not bolted it on) with explicit accountability and handoffs.
 - **D5 Clarity, craft & output fit** — LOW: ships AI output largely unedited, no sense of the audience bar. MID: edits AI drafts for tone and accuracy before others see them and has a rough quality bar. HIGH: has an explicit, articulable standard AI-assisted output must meet before it reaches its audience, and can say how it is enforced.
-- **D6 Risk & responsible use** — LOW: no mention of data boundaries, escalation, or what they would avoid feeding a model. MID: names at least one concrete boundary (a data type or decision type) they would not hand to AI and knows who to escalate to. HIGH: has a proactive, consistent data-handling and escalation practice they apply by default, not only when asked."""
+- **D6 Risk & responsible use** — LOW: no mention of data boundaries, escalation, or what they would avoid feeding a model. Generic caution with no named boundary ("be careful", "use common sense", "if you wouldn't put it on a billboard") is still LOW. MID: names at least one concrete boundary (a data type or decision type) they would not hand to AI and knows who to escalate to. HIGH: has a proactive, consistent data-handling and escalation practice they apply by default, not only when asked."""
 
 
 def score_transcript(
@@ -1056,6 +1153,7 @@ Return **one** JSON object only, **no** markdown, **no** code fences, **no** key
 }}
 
 **Anchoring (mandatory):** For each dimension, place the score in the band from the anchor table above that best matches what the participant actually demonstrated, then fine-tune within the band using 0.5 steps. Do **not** reward a good job title, confident tone, or generic enthusiasm — only observable behavior in the transcript.
+**Band discipline (mandatory):** the numeric score must sit inside the band your own rationale describes — never split the difference between bands. If the rationale describes low-band behavior (took AI output at face value, deferred to the AI over source data, named no concrete boundary or escalation path), the score is **3.0 or lower**, even if the participant sounded thoughtful while doing it.
 
 **Evidence quotes (mandatory):** For each dimension, `evidence_quotes` is an array of **1-2 short verbatim excerpts** copied *word-for-word* from the participant's own USER turns that justify the score. Copy exactly; do **not** paraphrase, invent, summarize, or quote the ASSISTANT. Trim each quote to under 160 characters. If the participant genuinely said nothing relevant to a dimension, use an **empty array** `[]` and score that dimension in the low band — never fabricate a quote to fill it.
 
@@ -1072,10 +1170,10 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
 """
     if mode == "ollama":
         out = _score_with_ollama_from_prompt_body(prompt)
-        return _finalize_scoring_for_session(out, w, msgs)
+        return _finalize_scoring_for_session(out, w, msgs, evidence=evidence)
     if mode == "openai":
         out = _score_with_openai_from_prompt_body(prompt)
-        return _finalize_scoring_for_session(out, w, msgs)
+        return _finalize_scoring_for_session(out, w, msgs, evidence=evidence)
     import google.generativeai as genai
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel(
@@ -1104,7 +1202,7 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
                 ) from e
             raise
         return _finalize_scoring_for_session(
-            _score_with_ollama_from_prompt_body(prompt), w
+            _score_with_ollama_from_prompt_body(prompt), w, msgs
         )
     t0 = r.text or ""
     try:
@@ -1128,7 +1226,7 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
         except Exception as ge2:
             if ollama_available():
                 out = _score_with_ollama_from_prompt_body(prompt)
-                return _finalize_scoring_for_session(out, w, msgs)
+                return _finalize_scoring_for_session(out, w, msgs, evidence=evidence)
             raise RuntimeError(
                 f"Scoring repair call failed: {ge2!s}"
             ) from ge2
@@ -1142,7 +1240,7 @@ Recompute AiQ_0_100 = 10 * ({w1}*D1 + {w2}*D2 + {w3}*D3 + {w4}*D4 + {w5}*D5 + {w
                     "Scoring returned data we could not read as JSON. Please tap “View results” again; "
                     "if it repeats, the model may need a retry or a local Ollama fallback for scoring."
                 ) from None
-    return _finalize_scoring_for_session(out, w, msgs)
+    return _finalize_scoring_for_session(out, w, msgs, evidence=evidence)
 
 
 def get_rag_for_app() -> str:

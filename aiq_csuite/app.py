@@ -4,6 +4,7 @@ import os
 import re
 import time
 import sys
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -57,7 +58,8 @@ from db import (
     update_session_enrichment,
     update_session_variation,
 )
-import gemini_service as gs
+import conversation_engine as ce
+import llm_service as llm
 import scenario_engine as se
 from assessment_profiles import (
     DEFAULT_FAMILY,
@@ -121,6 +123,28 @@ def _admin_ok() -> bool:
 def _expire_stale_sessions() -> int:
     """End sessions that are still open but past SESSION_MAX_AGE_SEC from created_at. Returns rows updated."""
     return expire_stale_open_sessions(SESSION_MAX_AGE_SEC)
+
+
+_RATE_LIMIT_WINDOW = 60.0
+_RATE_LIMITS = {
+    "session_start": 10,
+    "session_message": 30,
+    "session_complete": 10,
+    "session_event": 120,
+}
+_rate_buckets: Dict[str, list] = defaultdict(list)
+
+
+def _rate_limited(key: str, limit: int) -> bool:
+    now = time.time()
+    bucket = _rate_buckets[key]
+    cutoff = now - _RATE_LIMIT_WINDOW
+    while bucket and bucket[0] < cutoff:
+        bucket.pop(0)
+    if len(bucket) >= limit:
+        return True
+    bucket.append(now)
+    return False
 
 
 def _init_db_or_response():
@@ -235,7 +259,7 @@ def orchestrator_state():
     return jsonify(
         {
             "tool": "AI Fluency Orchestrator",
-            "agent_role": "Interviewer (OpenAI / Gemini / Ollama via gemini_service.run_interviewer_reply)",
+            "agent_role": "Interviewer (OpenAI / Gemini / Ollama via llm_service.run_interviewer_reply)",
             "llm": {
                 "ok": ok,
                 "backend": mode,
@@ -451,10 +475,7 @@ def _progress_payload_for_session(session_id: str, var: Optional[dict] = None) -
             ).fetchone()
         var = json.loads(_row_get(row, "variation_json") or "{}") if row else {}
     if _uses_scenario_stack(var):
-        phases = get_phase_shift_codes(session_id)
-        flow = se.compute_flow_state(list_messages(session_id), phases, last_user_message="")
-        p = se.progress_payload_from_flow(flow, target)
-        p["user_turns"] = int(st.get("user_messages") or 0)
+        p = ce.progress_payload(list_messages(session_id), target)
         p["elapsed_sec"] = round(elapsed, 1)
         return p
     codes = get_dimension_shift_codes(session_id)
@@ -562,6 +583,9 @@ def get_session_resume(session_id: str):
 
 @app.route("/api/session/start", methods=["POST"])
 def start_session():
+    ip = request.remote_addr or "unknown"
+    if _rate_limited(f"start:{ip}", _RATE_LIMITS["session_start"]):
+        return jsonify({"error": "rate_limit", "message": "Too many requests. Wait a moment."}), 429
     ok, _, detail, _ = _llm_status()
     if not ok:
         return jsonify({"error": detail or "No LLM backend. See /api/health/llm."}), 503
@@ -571,10 +595,9 @@ def start_session():
     client_meta = body.get("client_meta")
     level = body.get("level")
     job_family = body.get("job_family")
-    init_db()
-    ensure_instance()
-    ass = build_assessment_block(level, job_family)
-    var = gs.build_variation_for_session(client_seed, ass)
+    job_function = body.get("job_function")
+    ass = build_assessment_block(level, job_family, job_function)
+    var = llm.build_variation_for_session(client_seed, ass)
     var["assessment"] = ass
     sid = new_session(
         user_agent, client_meta, var, target_role=ass.get("profile_id", "all_levels")
@@ -585,7 +608,7 @@ def start_session():
             "phase_shift",
             {"phase": "anchor", "label": "Context"},
         )
-    opening = gs.opening_message(var)
+    opening = llm.opening_message(var)
     insert_message(sid, "model", opening)
     return jsonify(
         {
@@ -601,6 +624,9 @@ def start_session():
 
 @app.route("/api/session/<session_id>/event", methods=["POST"])
 def track_event(session_id: str):
+    ip = request.remote_addr or "unknown"
+    if _rate_limited(f"event:{ip}:{session_id}", _RATE_LIMITS["session_event"]):
+        return jsonify({"error": "rate_limit", "message": "Too many events. Wait a moment."}), 429
     init_db()
     _expire_stale_sessions()
     with get_conn() as c:
@@ -623,6 +649,9 @@ def track_event(session_id: str):
 
 @app.route("/api/session/<session_id>/message", methods=["POST"])
 def send_message(session_id: str):
+    ip = request.remote_addr or "unknown"
+    if _rate_limited(f"msg:{ip}:{session_id}", _RATE_LIMITS["session_message"]):
+        return jsonify({"error": "rate_limit", "message": "Too many messages. Wait a moment."}), 429
     ok, _, detail, _ = _llm_status()
     if not ok:
         return jsonify({"error": detail or "No LLM backend. See /api/health/llm."}), 503
@@ -633,7 +662,7 @@ def send_message(session_id: str):
 
     init_db()
     _expire_stale_sessions()
-    rag = gs.get_rag_for_app()
+    rag = llm.get_rag_for_app()
     with get_conn() as c:
         row = c.execute(
             "SELECT variation_json, ended_at FROM sessions WHERE id = ?",
@@ -651,11 +680,13 @@ def send_message(session_id: str):
     var = json.loads(_row_get(row, "variation_json") or "{}")
     if not (var or {}).get("assessment"):
         a = build_assessment_block(
-            (var or {}).get("level") or DEFAULT_LEVEL, (var or {}).get("job_family") or DEFAULT_FAMILY
+            (var or {}).get("level") or DEFAULT_LEVEL,
+            (var or {}).get("job_family") or DEFAULT_FAMILY,
+            (var or {}).get("job_function"),
         )
         var = {**var, "assessment": a}
 
-    likelihood, reason = gs.classify_ai_paste_likeness(user_text)
+    likelihood, reason = llm.classify_ai_paste_likeness(user_text)
     flags: dict = {}
     if likelihood >= 0.6:
         flags = {"suspected_generic_ai": True, "likelihood": round(likelihood, 2), "reason": reason}
@@ -676,53 +707,23 @@ def send_message(session_id: str):
     session_suggests_complete = False
     try:
         if _uses_scenario_stack(var):
-            phases = get_phase_shift_codes(session_id)
+            # v3 conversational engine: the LLM owns the whole turn — reacting to what the
+            # participant said, weaving in the scenario material, answering meta questions,
+            # steering toward thin evidence areas. The server only enforces the turn cap.
             user_turn_n = sum(1 for m in all_m if (m.get("role") or "") == "user")
-            force_close = user_turn_n >= se.MAX_USER_TURNS
-            flow = se.compute_flow_state(
-                all_m[:-1],
-                phases,
-                last_user_message=user_text,
+            force_close = user_turn_n >= ce.MAX_USER_TURNS
+            turn = ce.run_turn(
+                var,
+                hist,
+                user_text,
                 force_close=force_close,
+                context_note=ctx,
             )
-            turn = se.plan_and_render_turn(flow, var, hist, user_text, ctx)
-            personalized = se._apply_anchor_context(
-                dict(var.get("scenario_plan") or {}),
-                [{"role": m["role"], "content": m["content"]} for m in all_m],
-            )
-            if personalized != (var.get("scenario_plan") or {}):
-                var = {**var, "scenario_plan": personalized}
-                update_session_variation(session_id, var)
             reply = (turn.get("reply") or "").strip()
-            reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
-            phase_shift = turn.get("phase_shift")
-            # Listening layer: a one-line, tailored acknowledgment of what they actually said, so
-            # the chat feels heard — without advancing the scenario or leaving scope (the
-            # server-authored question still follows). It reflects their prior answer, then the
-            # reply moves on; on scene changes it reads as a natural bridge into the next scene.
-            # Skipped on the primary-scene entry (which already carries its own role framing),
-            # on clarification turns, and on thin answers. Best-effort: any failure just leaves
-            # the question-only reply.
-            meta = turn.get("planner_meta") or {}
-            _primary_entry = bool(meta.get("is_phase_entry")) and meta.get("phase") == "primary"
-            if (
-                config.AIQ_LISTENING_ACK
-                and not _primary_entry
-                and not meta.get("clarifying")
-                and not meta.get("thin")
-                and reply
-            ):
-                primary = (var.get("scenario_plan") or {}).get("primary") or {}
-                ack = gs.generate_listening_ack(
-                    user_text,
-                    scenario_title=primary.get("title") or "",
-                    level_label=(var.get("assessment") or {}).get("level_label") or "",
-                )
-                if ack:
-                    reply = f"{ack}\n\n{reply}"
+            session_suggests_complete = bool(turn.get("session_suggests_complete"))
         else:
             coverage_state = _coverage_state_for_session(session_id)
-            reply = gs.run_interviewer_reply(
+            reply = llm.run_interviewer_reply(
                 rag,
                 var,
                 hist,
@@ -732,8 +733,8 @@ def send_message(session_id: str):
             )
             if not (reply and reply.strip()):
                 return jsonify({"error": "Empty model response"}), 502
-            reply, dimension_shift = gs.parse_dimension_banner(reply)
-            reply, session_suggests_complete = gs.strip_session_complete_flag(reply)
+            reply, dimension_shift = llm.parse_dimension_banner(reply)
+            reply, session_suggests_complete = llm.strip_session_complete_flag(reply)
             current_dim = coverage_state.get("current")
             force_dim = coverage_state.get("force_dim")
             must_switch_now = bool(coverage_state.get("must_switch_now"))
@@ -811,7 +812,14 @@ def _session_effort_signal(msgs: List[dict]) -> dict:
     avg_words = sum(word_counts) / float(n)
 
     def _is_thin(text: str, wc: int) -> bool:
-        return wc <= 4 or bool(_LOW_EFFORT_NONANSWERS.match(text))
+        # Clarification requests are a legitimate part of a chat, but they carry no assessable
+        # signal about the person's AI fluency — a session made mostly of "what do you mean?"
+        # must not read as substantive effort, or it games the can_complete gate.
+        return (
+            wc <= 4
+            or bool(_LOW_EFFORT_NONANSWERS.match(text))
+            or se._is_clarification_request(text)
+        )
 
     thin_n = sum(1 for u, wc in zip(users, word_counts) if _is_thin(u, wc))
     thin_ratio = thin_n / float(n)
@@ -851,13 +859,24 @@ def _session_readiness_payload(session_id: str) -> dict:
     msgs = list_messages(session_id)
     effort = _session_effort_signal(msgs)
 
+    can_complete = False
+    if u >= 3 and effort["level"] != "thin":
+        if _uses_scenario_stack(var):
+            prog = ce.progress_payload(msgs, target)
+            if prog.get("current") != "intro" or u >= 5:
+                can_complete = True
+        else:
+            codes = get_dimension_shift_codes(session_id)
+            n = len(codes)
+            if n >= 2 or u >= 5:
+                can_complete = True
+
     if _uses_scenario_stack(var):
-        phases = get_phase_shift_codes(session_id)
-        flow = se.compute_flow_state(msgs, phases, last_user_message="")
-        current = flow.get("current_phase") or "anchor"
-        current_label = flow.get("current_label") or current
-        max_turns = int(se.MAX_USER_TURNS)
-        all_done = bool(flow.get("all_phases_done")) or current == "close"
+        prog = ce.progress_payload(msgs, target)
+        current = prog.get("current") or "intro"
+        current_label = prog.get("current_label") or current
+        max_turns = int(ce.MAX_USER_TURNS)
+        all_done = current == "wrap"
         if all_done or u >= max_turns:
             w_level = "none"
         elif u <= 1:
@@ -880,6 +899,7 @@ def _session_readiness_payload(session_id: str) -> dict:
             "effort_avg_words": effort["avg_words"],
             "effort_thin_ratio": effort["thin_ratio"],
             "low_effort": effort["level"] == "thin",
+            "can_complete": can_complete,
             "breadth_incomplete": not all_done,
             "topic_label_note": (
                 "This reflects how far the conversation got, not a checklist the interviewer "
@@ -923,6 +943,7 @@ def _session_readiness_payload(session_id: str) -> dict:
         "effort_avg_words": effort["avg_words"],
         "effort_thin_ratio": effort["thin_ratio"],
         "low_effort": effort["level"] == "thin",
+        "can_complete": can_complete,
         "breadth_incomplete": n < 6,
         "topic_label_note": (
             "The “/6” count is how many times a new topic label appeared in this chat, "
@@ -955,6 +976,9 @@ def _with_typical_composite(ass):
 
 @app.route("/api/session/<session_id>/complete", methods=["POST"])
 def complete(session_id: str):
+    ip = request.remote_addr or "unknown"
+    if _rate_limited(f"complete:{ip}:{session_id}", _RATE_LIMITS["session_complete"]):
+        return jsonify({"error": "rate_limit", "message": "Too many completion requests. Wait a moment."}), 429
     init_db()
     _expire_stale_sessions()
     msgs = list_messages(session_id)
@@ -1000,6 +1024,19 @@ def complete(session_id: str):
             400,
         )
 
+    readiness = _session_readiness_payload(session_id)
+    if not readiness.get("can_complete"):
+        return (
+            jsonify(
+                {
+                    "error": "We need a bit more conversation to build an accurate summary. Please keep chatting — a few more replies will give us much more to work with.",
+                    "code": "not_enough_data",
+                    "readiness": readiness,
+                }
+            ),
+            400,
+        )
+
     mlist = [{"role": m["role"], "content": m["content"]} for m in msgs]
     is_v2 = _uses_scenario_stack(var)
 
@@ -1010,10 +1047,10 @@ def complete(session_id: str):
                 evidence = se.extract_session_evidence(mlist, var)
             except Exception:
                 evidence = {}
-            scores = gs.score_transcript(mlist, var, evidence=evidence)
+            scores = llm.score_transcript(mlist, var, evidence=evidence)
         else:
             evidence = None
-            scores = gs.score_transcript(mlist, var)
+            scores = llm.score_transcript(mlist, var)
     except Exception as e:
         msg = (str(e) or "Scoring failed")[:500]
         user_msg = (

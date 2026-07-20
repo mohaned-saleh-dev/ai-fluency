@@ -6,129 +6,315 @@
   <title>AiQ assessment — Tamara</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    rel="icon"
-    href="/static/brand/tamara-mark-icon.png"
-    type="image/png"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
-    rel="stylesheet"
-  />
+  <link rel="icon" href="/static/brand/tamara-mark-icon.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/brand.css" />
+  <style>
+    /* ——— Onboarding wizard: same brand theme as the rest of the app — white slide-plate
+       cards over the motion background, tam-lavender primary, brand.css tokens only. ——— */
+    .onboard-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1.25rem; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+    .onboard-nav__brand { display: flex; align-items: center; gap: 0.45rem; }
+    .onboard-nav__brand img { width: 28px; height: 28px; }
+    .onboard-nav__brand span { font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: 1rem; letter-spacing: -0.01em; }
+    .onboard-nav__profile { position: relative; }
+    .onboard-nav__profile-btn { font-family: var(--font-body); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 0.35rem 0.8rem; font-size: 0.85rem; font-weight: 600; color: var(--ink-muted); cursor: pointer; }
+    .onboard-nav__profile-btn:hover { background: var(--surface-mist); color: var(--ink); }
+    .onboard-nav__profile-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--paper); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow-sm); padding: 0.35rem 0; min-width: 200px; display: none; z-index: 60; }
+    .onboard-nav__profile-menu.open { display: block; }
+    .onboard-nav__profile-menu button { width: 100%; text-align: left; background: none; border: none; padding: 0.55rem 1rem; font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; color: var(--ink); cursor: pointer; }
+    .onboard-nav__profile-menu button:hover { background: var(--surface-mist); }
+
+    .progress-dots { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 3.4rem 0 1.1rem; }
+    .progress-dots__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(42, 48, 81, 0.22); transition: all 0.3s ease; }
+    .progress-dots__dot.active { background: var(--tam-lavender); width: 24px; }
+    .progress-dots__dot.done { background: var(--dreamy-lilac); }
+
+    .onboard-panel { display: none; animation: fadeUp 0.35s ease; }
+    .onboard-panel.active { display: block; }
+    /* Home has no progress dots above it, so it needs its own clearance below the fixed nav —
+       generous on purpose so the landing card breathes instead of hugging the top bar. */
+    #step-home.active { margin-top: clamp(4.5rem, 16vh, 9rem); margin-bottom: 2rem; }
+    .home-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin: 0.85rem 0 0; }
+    .home-badges .badge { border-radius: 999px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .onboard-panel .display-title { text-align: center; font-size: clamp(1.5rem, 3.4vw, 2rem); }
+    .onboard-panel .sub { text-align: center; margin-left: auto; margin-right: auto; font-size: 0.98rem; }
+
+    .chart-wrap { background: var(--surface-mist); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.1rem 1.1rem 1rem; margin: 1.25rem 0 0; }
+    .chart-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin: 0 0 0.85rem; text-align: center; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 0.5rem; height: 120px; padding: 0 0.25rem; }
+    /* min-width: 0 lets columns shrink below their label's intrinsic width — without it the
+       longest label ("Developing") props the whole chart wider than the card on phones. */
+    .bar-chart__col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+    .bar-chart__bar { width: 100%; border-radius: 6px 6px 0 0; background: var(--dreamy-lilac); transition: height 0.5s ease; }
+    .bar-chart__bar.highlight { background: var(--tam-lavender); }
+    .bar-chart__label { font-size: 0.65rem; font-weight: 600; color: var(--ink-soft); text-align: center; margin-top: 0.35rem; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Phone widths: five horizontal labels can't fit under 5 narrow bars, so keep only the
+       endpoints ("Emerging" → "Expert") — they carry the scale; the middle ones are decoration. */
+    @media (max-width: 430px) {
+      .bar-chart__label { display: none; }
+      .bar-chart__col:first-child .bar-chart__label { display: block; overflow: visible; max-width: none; align-self: flex-start; text-align: left; }
+      .bar-chart__col:last-child .bar-chart__label { display: block; overflow: visible; max-width: none; align-self: flex-end; text-align: right; }
+    }
+
+    .histogram { display: flex; align-items: flex-end; gap: 0.25rem; height: 100px; margin-bottom: 1.6rem; }
+    .histogram__bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--dreamy-lilac); position: relative; transition: background 0.15s ease; }
+    .histogram__bar.active { background: var(--tam-lavender); }
+    .histogram__label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+    .slider-wrap { position: relative; margin-top: 2rem; }
+    .slider-wrap input[type=range] { width: 100%; accent-color: var(--tam-lavender); }
+    .slider-marker { position: absolute; top: -28px; transform: translateX(-50%); background: var(--ink); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; pointer-events: none; transition: left 0.1s ease; }
+    .slider-marker::after { content: ""; position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--ink); }
+
+    .card-grid { display: flex; flex-direction: column; gap: 0.65rem; margin-top: 1.25rem; }
+    .role-group-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin: 1.2rem 0 0.15rem; }
+    .card-grid--compact { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+    .card-grid--compact .choice-card { padding: 0.6rem 0.7rem; }
+    .card-grid--compact .choice-card__check { width: 16px; height: 16px; }
+    .card-grid--compact .choice-card__check::after { width: 4px; height: 8px; }
+    .card-grid--compact .choice-card__text { font-size: 0.85rem; }
+    .card-grid--compact .choice-card__sub { font-size: 0.72rem; }
+    @media (max-width: 480px) { .card-grid--compact { grid-template-columns: 1fr; } }
+    /* Two-up at full card size: fits one viewport without the shrunken "compact" look */
+    .card-grid--two { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.1rem; }
+    .card-grid--two .choice-card { align-items: center; }
+    @media (max-width: 560px) { .card-grid--two { grid-template-columns: 1fr; gap: 0.55rem; } }
+    .choice-card { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.85rem 1.1rem; background: var(--paper); border: 2px solid var(--border); border-radius: var(--r); cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; text-align: left; font-family: var(--font-body); width: 100%; }
+    .choice-card:hover { border-color: var(--dreamy-lilac); }
+    .choice-card:focus-visible { outline: none; border-color: var(--tam-lavender); box-shadow: 0 0 0 3px rgba(150, 0, 241, 0.18); }
+    .choice-card.selected { border-color: var(--tam-lavender); background: rgba(150, 0, 241, 0.04); }
+    .choice-card__check { width: 20px; height: 20px; border-radius: 999px; border: 2px solid var(--border); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: background 0.15s ease, border-color 0.15s ease; }
+    .choice-card.selected .choice-card__check { background: var(--tam-lavender); border-color: var(--tam-lavender); }
+    .choice-card__check::after { content: ""; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); opacity: 0; transition: opacity 0.15s ease; }
+    .choice-card.selected .choice-card__check::after { opacity: 1; }
+    .choice-card__text { display: block; font-size: 0.95rem; font-weight: 600; color: var(--ink); line-height: 1.35; }
+    .choice-card__sub { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-soft); margin-top: 0.1rem; }
+    .choice-card.disabled { cursor: not-allowed; opacity: 0.45; }
+    .choice-card.disabled:hover { border-color: var(--border); }
+
+    /* Collapsible pick sections (role step): fold each group to a one-line summary once chosen */
+    .acc-section { border: 2px solid var(--border); border-radius: var(--r); margin-top: 0.6rem; background: var(--paper); overflow: hidden; }
+    .acc-section.done { border-color: var(--dreamy-lilac); }
+    .acc-head { display: flex; align-items: center; gap: 0.6rem; width: 100%; padding: 0.6rem 0.9rem; background: transparent; border: 0; cursor: pointer; font-family: var(--font-body); text-align: left; }
+    .acc-head .role-group-label { margin: 0; }
+    .acc-value { margin-left: auto; font-size: 0.85rem; font-weight: 700; color: var(--zingy-purple); text-align: right; }
+    .acc-value.placeholder { color: var(--ink-soft); font-weight: 600; }
+    .acc-chev { width: 8px; height: 8px; border: solid var(--ink-soft); border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform 0.15s ease; flex-shrink: 0; margin-top: -3px; }
+    .acc-section.open .acc-chev { transform: rotate(-135deg); margin-top: 3px; }
+    .acc-body { display: none; padding: 0 0.9rem 0.6rem; }
+    .acc-section.open .acc-body { display: block; }
+    .acc-body .card-grid { margin-top: 0.3rem; }
+    /* Long department list: 3-up so the folded step fits without scrolling */
+    /* Self-sizing columns: 3-up when the plate is wide, 2-up on narrower windows —
+       never lets a long name ("Communications") push cards past the box edge */
+    #deptGrid.card-grid--compact { grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 0.4rem; }
+    #deptGrid.card-grid--compact .choice-card { padding: 0.45rem 0.6rem; min-width: 0; }
+    #deptGrid[hidden] { display: none; } /* beat the .card-grid display:grid rule */
+    .dept-back { background: none; border: 0; padding: 0.15rem 0; margin: 0.35rem 0 0; cursor: pointer; font-family: var(--font-body); font-size: 0.82rem; font-weight: 700; color: var(--zingy-purple); }
+    .dept-back:hover { text-decoration: underline; }
+
+    .rules-box { background: var(--surface-mist); border: 1px solid var(--border); border-radius: var(--r); padding: 0.85rem 1.1rem; margin: 0 0 0.65rem; display: flex; gap: 0.7rem; align-items: flex-start; }
+    .rules-box:first-of-type { margin-top: 1.25rem; }
+    .rules-box__icon { font-size: 1.15rem; flex-shrink: 0; margin-top: 1px; }
+    .rules-box__text { font-size: 0.9rem; font-weight: 500; color: var(--ink-muted); line-height: 1.45; }
+
+    /* Sticky within the card: on steps taller than the viewport (e.g. About your role on
+       mobile) the Back/Next row pins to the bottom of the screen instead of hiding below
+       the fold. On short steps sticky has no effect. Requires the card to NOT clip overflow
+       (slide-plate's default overflow:hidden breaks position:sticky for descendants). */
+    .onboard-panel .slide-plate { overflow: visible; }
+    .onboard-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 1rem; position: sticky; bottom: 0.75rem; background: var(--paper); padding: 0.65rem 0; border-radius: 10px; }
+    .onboard-actions .btn { margin-top: 0; }
+
+    /* Chat-level error banner lives inside the chat column, above the composer. */
+    #chatErr { margin: 0 clamp(1.25rem, 3vw, 2rem) 0.5rem; flex-shrink: 0; }
+
+    .privacy-link { font-size: 0.75rem; color: var(--ink-soft); text-align: center; margin: 1rem 0 0; }
+  </style>
 </head>
 <body>
   <div class="motion-bg" id="motionBg" aria-hidden="true">
-    <video autoplay loop muted playsinline
-           src="/static/video/motion-bg.mp4"
-           type="video/mp4">
-    </video>
+    <video autoplay loop muted playsinline src="/static/video/motion-bg.mp4" type="video/mp4"></video>
     <div class="motion-bg__overlay"></div>
   </div>
 
   <div class="shell" id="app">
-    <!-- Screen A: Welcome -->
-    <div class="intro-panel" id="step-welcome">
-      <div class="slide-plate no-hero-num" style="max-width: 480px; margin: 0 auto;">
+    <nav class="onboard-nav" id="onboardNav">
+      <div class="onboard-nav__brand">
+        <img src="/static/brand/tamara-mark-icon.png" alt="" />
+        <span>tamara</span>
+      </div>
+      <button class="onboard-nav__profile-btn" id="navNewBtn" type="button">New assessment</button>
+    </nav>
+
+    <div class="progress-dots" id="progressDots" aria-hidden="true">
+      <span class="progress-dots__dot active" data-step="1"></span>
+      <span class="progress-dots__dot" data-step="2"></span>
+      <span class="progress-dots__dot" data-step="3"></span>
+      <span class="progress-dots__dot" data-step="4"></span>
+      <span class="progress-dots__dot" data-step="5"></span>
+      <span class="progress-dots__dot" data-step="6"></span>
+    </div>
+
+    <!-- Step 0: Home -->
+    <div class="onboard-panel active" id="step-home">
+      <div class="slide-plate no-hero-num">
         <div class="brand-bar" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 1.1rem;">
           <div class="logo-wordmark" title="tamara">
             <div class="logo-lockup" aria-label="tamara">
-              <img
-                class="tamara-mark"
-                src="/static/brand/tamara-mark-icon.png"
-                width="160"
-                height="160"
-                alt=""
-                loading="eager"
-                decoding="async"
-              />
+              <img class="tamara-mark" src="/static/brand/tamara-mark-icon.png" width="160" height="160" alt="" loading="eager" decoding="async" />
               <span class="tamara-word">tamara</span>
             </div>
           </div>
         </div>
-        <h1 class="display-title" style="text-align: center; font-size: clamp(1.6rem, 3.6vw, 2.2rem);">AiQ assessment</h1>
-        <p class="sub" style="text-align: center; max-width: 32ch; margin: 0.25rem auto 0.75rem;">
-          A short chat about how you use AI at work — not a test. You can end whenever you&rsquo;re ready.
-        </p>
-        <p class="sub" style="text-align: center; max-width: 36ch; margin: 0 auto 1.25rem; font-size: 0.95rem;">
-          This ~10-minute conversation is private to this session. Answer in your own words — short or detailed is fine.
-        </p>
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem;">
-          <span class="badge" style="background: #f4f3f8; color: var(--ink-muted); border-radius: 999px;">~10 min</span>
-          <span class="badge" style="background: #f4f3f8; color: var(--ink-muted); border-radius: 999px;">Conversational</span>
-          <span class="badge" style="background: #f4f3f8; color: var(--ink-muted); border-radius: 999px;">Private to this session</span>
+        <h1 class="display-title">AiQ assessment</h1>
+        <p class="sub">A short chat about how you use AI at work — not a test. You can end whenever you&rsquo;re ready.</p>
+        <div class="home-badges">
+          <span class="badge">~10 min</span>
+          <span class="badge">Conversational</span>
+          <span class="badge">Private to this session</span>
         </div>
-        <div style="text-align: center;">
-          <button class="btn prim" type="button" id="btnContinue" style="margin-top: 0;">Continue</button>
+        <div class="err-banner" id="startErr" role="alert"></div>
+        <div style="text-align: center; margin-top: 1.5rem;">
+          <button class="btn prim" id="btnStartHome" type="button" style="margin-top: 0;">Start assessment &rarr;</button>
         </div>
       </div>
     </div>
 
-    <!-- Screen B: About you -->
-    <div class="intro-panel" id="step-about" style="display: none">
-      <div class="slide-plate no-hero-num" style="max-width: 100%; margin: 0 auto;">
-        <div class="brand-bar" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 0.75rem;">
-          <div class="logo-wordmark logo-surface" title="tamara">
-            <div class="logo-lockup" aria-label="tamara">
-              <img
-                class="tamara-mark"
-                src="/static/brand/tamara-mark-icon.png"
-                width="160"
-                height="160"
-                alt=""
-                loading="eager"
-                decoding="async"
-              />
-              <span class="tamara-word">tamara</span>
+    <!-- Step 1: Intro -->
+    <div class="onboard-panel" id="step-intro">
+      <div class="slide-plate no-hero-num">
+        <h2 class="display-title">Ready for a chat?</h2>
+        <p class="sub">Here&rsquo;s where other participants typically land — then we&rsquo;ll build your personalised report.</p>
+        <div class="chart-wrap">
+          <div class="chart-title">Where people typically score</div>
+          <div class="bar-chart" id="introChart"></div>
+        </div>
+        <div class="onboard-actions">
+          <button class="btn btn--ghost" id="btnIntroBack" type="button">&larr; Back</button>
+          <button class="btn prim" id="btnIntroNext" type="button">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Intent -->
+    <div class="onboard-panel" id="step-intent">
+      <div class="slide-plate no-hero-num">
+        <h2 class="display-title">Before we start&hellip;</h2>
+        <p class="sub">What brings you here today?</p>
+        <div class="card-grid card-grid--two" id="intentGrid"></div>
+        <div class="err-banner" id="intentErr" role="alert">Please select an option to continue.</div>
+        <div class="onboard-actions">
+          <button class="btn btn--ghost" id="btnIntentBack" type="button">&larr; Back</button>
+          <button class="btn prim" id="btnIntentNext" type="button">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Role (seniority + job family — drives scenario choice and scoring weights) -->
+    <div class="onboard-panel" id="step-role">
+      <div class="slide-plate no-hero-num">
+        <h2 class="display-title">About your role</h2>
+        <p class="sub">This picks the work scenario you&rsquo;ll walk through and how your answers are read.</p>
+        <div class="acc-section open" id="accLevel">
+          <button type="button" class="acc-head" id="accLevelHead">
+            <span class="role-group-label">Your seniority</span>
+            <span class="acc-value placeholder" id="accLevelValue">Choose&hellip;</span>
+            <span class="acc-chev" aria-hidden="true"></span>
+          </button>
+          <div class="acc-body">
+            <div class="card-grid card-grid--compact" id="levelGrid"></div>
+          </div>
+        </div>
+        <div class="acc-section" id="accDept">
+          <button type="button" class="acc-head" id="accDeptHead">
+            <span class="role-group-label">Your department</span>
+            <span class="acc-value placeholder" id="accDeptValue">Choose&hellip;</span>
+            <span class="acc-chev" aria-hidden="true"></span>
+          </button>
+          <div class="acc-body">
+            <div class="card-grid card-grid--compact" id="deptGrid"></div>
+            <div id="deptChildWrap" hidden>
+              <p class="role-group-label">Your function within <span id="deptChildParentName"></span></p>
+              <div class="card-grid card-grid--compact" id="deptChildGrid"></div>
+              <button type="button" class="dept-back" id="deptBackBtn">&larr; Change department</button>
             </div>
           </div>
         </div>
-        <p class="sub" style="text-align: center; max-width: 28ch; margin: 0 auto 1.25rem; font-size: 0.9rem; color: var(--ink-soft);">
-          Step 2 of 3
-        </p>
-        <h2 class="display-title" style="text-align: center; font-size: clamp(1.3rem, 3vw, 1.7rem); margin-bottom: 1.25rem;">About you</h2>
-        <div class="assessment-picks" id="assessmentPicks" style="margin-bottom: 0.5rem;">
-          <label class="apick">
-            <span class="apick-lbl">Level</span>
-            <select id="selLevel" class="apick-ctrl" aria-label="Your level"></select>
-          </label>
-          <label class="apick">
-            <span class="apick-lbl">Job family</span>
-            <select id="selJobFamily" class="apick-ctrl" aria-label="Your job family"></select>
-          </label>
-          <label class="apick">
-            <span class="apick-lbl">Intent</span>
-            <select id="selIntent" class="apick-ctrl" aria-label="Your intent">
-              <option value="">Select intent</option>
-              <option value="growing">Growing in my role</option>
-              <option value="leading">Leading a team</option>
-              <option value="employer">Employer asked</option>
-              <option value="curious">Curious</option>
-            </select>
-          </label>
-        </div>
-        <p class="sub" style="text-align: center; font-size: 0.78rem; color: var(--ink-soft); margin: 0 0 1.25rem;">
-          Transcript stored for L&amp;D; don&rsquo;t paste customer data.
-        </p>
-        <div class="err-banner" id="startErr"></div>
-        <div style="text-align: center;">
-          <button class="btn prim" type="button" id="btnBegin" style="margin-top: 0;">Start chat</button>
+        <p class="family-hint" id="familyHint" hidden></p>
+        <div class="err-banner" id="roleErr" role="alert">Please pick both your seniority and your department to continue.</div>
+        <div class="onboard-actions">
+          <button class="btn btn--ghost" id="btnRoleBack" type="button">&larr; Back</button>
+          <button class="btn prim" id="btnRoleNext" type="button">Next &rarr;</button>
         </div>
       </div>
     </div>
 
-    <!-- Screen C: Chat -->
+    <!-- Step 4: Self-Assessment -->
+    <div class="onboard-panel" id="step-skill">
+      <div class="slide-plate no-hero-num">
+        <h2 class="display-title">How would you rate your AI skills?</h2>
+        <p class="sub">Be honest — you&rsquo;ll see how it compares with your actual score at the end.</p>
+        <div class="card-grid card-grid--two" id="skillGrid"></div>
+        <div class="err-banner" id="skillErr" role="alert">Please select an option to continue.</div>
+        <div class="onboard-actions">
+          <button class="btn btn--ghost" id="btnSkillBack" type="button">&larr; Back</button>
+          <button class="btn prim" id="btnSkillNext" type="button">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Bet -->
+    <div class="onboard-panel" id="step-bet">
+      <div class="slide-plate no-hero-num">
+        <h2 class="display-title">Place your bet</h2>
+        <p class="sub">Where do you think you&rsquo;ll land on the 0&ndash;100 AiQ scale? Take a guess.</p>
+        <div class="chart-wrap">
+          <div class="chart-title">Guesses from other participants</div>
+          <div class="histogram" id="betHistogram"></div>
+          <div class="slider-wrap">
+            <div class="slider-marker" id="sliderMarker">50</div>
+            <input type="range" id="betSlider" min="0" max="100" value="50" aria-label="Your expected AiQ score, 0 to 100" />
+          </div>
+        </div>
+        <div class="onboard-actions">
+          <button class="btn btn--ghost" id="btnBetBack" type="button">&larr; Back</button>
+          <button class="btn prim" id="btnBetNext" type="button">Let&rsquo;s find out &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Rules -->
+    <div class="onboard-panel" id="step-rules">
+      <div class="slide-plate no-hero-num">
+        <h2 class="display-title">One last thing&hellip;</h2>
+        <p class="sub">A few quick house rules before we start.</p>
+        <div class="rules-box">
+          <div class="rules-box__icon">🚫</div>
+          <div class="rules-box__text">Please don&rsquo;t use other AI tools during the chat — answer in your own words. Short or detailed is fine.</div>
+        </div>
+        <div class="rules-box">
+          <div class="rules-box__icon">📊</div>
+          <div class="rules-box__text">The progress bar at the top shows which part of the conversation you&rsquo;re in. You can end once the minimum is covered — or keep going for a deeper report.</div>
+        </div>
+        <div class="rules-box">
+          <div class="rules-box__icon">💬</div>
+          <div class="rules-box__text">Give real examples of how you use AI — tools, workflows, wins and misses. Specifics make your report sharper.</div>
+        </div>
+        <div class="err-banner" id="beginErr" role="alert"></div>
+        <div class="onboard-actions">
+          <button class="btn btn--ghost" id="btnRulesBack" type="button">&larr; Back</button>
+          <button class="btn prim" id="btnBeginChat" type="button">Begin conversation &rarr;</button>
+        </div>
+        <p class="privacy-link">Transcript is stored for L&amp;D review — please don&rsquo;t paste customer data.</p>
+      </div>
+    </div>
+
+    <!-- Chat -->
     <div class="card" id="step-chat" style="display: none">
       <header class="card-h">
         <div class="card-h__brand">
-          <img
-            class="card-h__mark tamara-mark"
-            src="/static/brand/tamara-mark-icon.png"
-            width="160"
-            height="160"
-            alt=""
-            role="presentation"
-          />
+          <img class="card-h__mark tamara-mark" src="/static/brand/tamara-mark-icon.png" width="160" height="160" alt="" role="presentation" />
           <div class="card-h__brand-text">
             <span class="card-h__name tamara-word">tamara</span>
             <span class="card-h__subtitle">AiQ assessment</span>
@@ -150,21 +336,15 @@
             <span class="session-timer__lbl">Time</span>
             <span class="session-timer__val" id="timer">0:00</span>
           </div>
+          <button class="session-home" type="button" id="linkHome">Home</button>
           <button class="session-end" type="button" id="linkDone">End session</button>
         </div>
       </header>
       <div class="chat-main">
         <div class="messages" id="msgBox"></div>
-        <div
-          class="wrap-cta"
-          id="wrapCta"
-          role="status"
-          aria-live="polite"
-          hidden
-        >
-          <p class="wrap-cta__text">
-            Whenever you&rsquo;re ready, tap <strong>End session &amp; view results</strong> below — or keep going.
-          </p>
+        <div class="err-banner" id="chatErr" role="alert"></div>
+        <div class="wrap-cta" id="wrapCta" role="status" aria-live="polite" hidden>
+          <p class="wrap-cta__text">Whenever you&rsquo;re ready, tap <strong>End session &amp; view results</strong> below — or keep going.</p>
         </div>
       </div>
       <footer class="composer">
@@ -182,55 +362,31 @@
       </footer>
     </div>
 
-    <!-- Screen D: Scoring wait -->
+    <!-- Scoring -->
     <div class="intro-panel" id="step-scoring" style="display: none">
       <div class="slide-plate no-hero-num" style="max-width: 420px; margin: 0 auto; text-align: center;">
         <div class="brand-bar" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 1.25rem;">
           <div class="logo-wordmark logo-surface" title="tamara">
             <div class="logo-lockup" aria-label="tamara">
-              <img
-                class="tamara-mark"
-                src="/static/brand/tamara-mark-icon.png"
-                width="160"
-                height="160"
-                alt=""
-                loading="eager"
-                decoding="async"
-              />
+              <img class="tamara-mark" src="/static/brand/tamara-mark-icon.png" width="160" height="160" alt="" loading="eager" decoding="async" />
               <span class="tamara-word">tamara</span>
             </div>
           </div>
         </div>
-        <p class="sub" style="text-align: center; margin: 0 auto 0.5rem; font-size: 1.05rem; color: var(--ink);">
-          Reviewing your conversation…
-        </p>
-        <p class="sub" style="text-align: center; margin: 0 auto 1.25rem; font-size: 0.9rem; color: var(--ink-muted);">
-          This usually takes under a minute.
-        </p>
+        <p class="sub" style="text-align: center; margin: 0 auto 0.5rem; font-size: 1.05rem; color: var(--ink);">Reviewing your conversation…</p>
+        <p class="sub" style="text-align: center; margin: 0 auto 1.25rem; font-size: 0.9rem; color: var(--ink-muted);">This usually takes under a minute.</p>
         <div class="aiq-progress__bar" style="max-width: 16rem; margin: 0 auto; height: 6px;">
           <div class="aiq-progress__bar-fill" id="scoringFill" style="width: 0%; transition: width 1.2s ease;"></div>
         </div>
       </div>
     </div>
 
-    <div class="err-banner" id="chatErr"></div>
-    <section
-      class="step-results"
-      id="step-results"
-      style="display: none"
-      aria-label="Your AiQ results"
-    >
+    <section class="step-results" id="step-results" style="display: none" aria-label="Your AiQ results">
       <div id="resultsMount" class="results-mount"></div>
     </section>
   </div>
-  <div
-    class="end-modal"
-    id="endModal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="endModalTitle"
-    hidden
-  >
+
+  <div class="end-modal" id="endModal" role="dialog" aria-modal="true" aria-labelledby="endModalTitle" hidden>
     <div class="end-modal__backdrop" id="endModalBackdrop" aria-hidden="true"></div>
     <div class="end-modal__panel slide-plate no-hero-num" role="document">
       <h2 class="end-modal__title" id="endModalTitle">Finish and see your summary?</h2>
@@ -242,6 +398,21 @@
       <div class="end-modal__actions">
         <button type="button" class="btn btn--secondary" id="endModalContinue">Keep chatting</button>
         <button type="button" class="btn prim" id="endModalConfirm">See my summary</button>
+      </div>
+    </div>
+  </div>
+  <div class="end-modal" id="homeModal" role="dialog" aria-modal="true" aria-labelledby="homeModalTitle" hidden>
+    <div class="end-modal__backdrop" id="homeModalBackdrop" aria-hidden="true"></div>
+    <div class="end-modal__panel slide-plate no-hero-num" role="document">
+      <h2 class="end-modal__title" id="homeModalTitle">Leave this session?</h2>
+      <div class="end-modal__body" id="homeModalBody">
+        <p class="end-modal__lede">Going home will end your current session. You can start a new assessment anytime.</p>
+      </div>
+      <p class="end-modal__err" id="homeModalError" hidden></p>
+      <p class="end-modal__loading" id="homeModalLoading" hidden></p>
+      <div class="end-modal__actions">
+        <button type="button" class="btn btn--secondary" id="homeModalCancel">Stay in session</button>
+        <button type="button" class="btn prim" id="homeModalConfirm">Go home</button>
       </div>
     </div>
   </div>

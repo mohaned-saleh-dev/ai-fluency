@@ -1,8 +1,6 @@
 (function () {
   const $ = (s) => document.querySelector(s);
   const msgBox = $("#msgBox");
-  const stepWelcome = $("#step-welcome");
-  const stepAbout = $("#step-about");
   const stepChat = $("#step-chat");
   const stepResults = $("#step-results");
   const stepScoring = $("#step-scoring");
@@ -22,6 +20,361 @@
   /** Persisted so reload / new tab / recovery after errors can continue the same server session. */
   const STORAGE_KEY = "aiq_csuite_active_session";
   let wrapCtaCountdown = null;
+
+  /* ——— Onboarding: home landing page, then a 6-step wizard before the chat ——— */
+  const ONBOARD_STEPS = ["step-home", "step-intro", "step-intent", "step-role", "step-skill", "step-bet", "step-rules"];
+  const onboarding = { step: 1, intent: null, level: null, family: null, jobFunction: null, skill: null };
+  const INTRO_DISTRIBUTION = [
+    { label: "Emerging", pct: 16 },
+    { label: "Developing", pct: 31 },
+    { label: "Practicing", pct: 27 },
+    { label: "Advanced", pct: 18 },
+    { label: "Expert", pct: 8 },
+  ];
+  const INTENT_OPTIONS = [
+    { value: "growing", label: "Growing in my current role", sub: "I want AI to make my everyday work better" },
+    { value: "leading", label: "Leading a team with AI", sub: "I set direction and want to lead by example" },
+    { value: "employer", label: "My employer asked me to", sub: "Part of a company programme" },
+    { value: "career", label: "Exploring a career move", sub: "Benchmarking my skills for what's next" },
+    { value: "curious", label: "Just curious about my level", sub: "No agenda — show me the number" },
+    { value: "other", label: "Something else", sub: "None of the above quite fits" },
+  ];
+  // Seniority + job family drive which work scenario the participant walks through and how
+  // their answers are weighted — the Phase 1 pilot runs 4 levels x 3 job families.
+  // Pilot: only the IC (analyst) experience is built for the enabled function
+  // (Care → Strategy & Ops). Other seniorities are shown but not selectable yet.
+  const LEVEL_OPTIONS = [
+    { value: "ic", label: "Individual contributor", sub: "I own my work, not a team", enabled: true },
+    { value: "people_manager", label: "People manager / team lead", sub: "I run a team day to day", enabled: false },
+    { value: "head_of", label: "Head of function / director", sub: "I own a function or department", enabled: false },
+    { value: "executive", label: "Executive", sub: "VP, C-suite, GM", enabled: false },
+  ];
+  // Labels must match assessment_profiles.JOB_FAMILIES on the backend.
+  const FAMILY_LABELS = {
+    general_management: "General management / P&L",
+    product_engineering: "Product, engineering, design & data",
+    go_to_market: "Growth, brand, sales & marketing",
+    care_operations: "Customer care, ops & service delivery",
+    risk_legal: "Risk, legal, compliance & policy",
+    finance: "Finance, strategy, corp dev",
+    hr_people: "HR, people, workplace",
+    other: "Other / not listed",
+  };
+  // Tamara's real department tree. Picking a leaf/function auto-maps to one of the 8
+  // job_family buckets above (used for scenario + scoring weights) — the mapping is
+  // surfaced to the participant via #familyHint rather than asked as a separate question.
+  const TAMARA_DEPARTMENTS = [
+    { id: "4058413101", name: "Business Banking", children: [
+      { id: "4058414101", name: "Product", family: "product_engineering" },
+      { id: "gen-4058413101", name: "General / other", family: "go_to_market" },
+    ] },
+    { id: "4042652101", name: "Care", enabled: true, children: [
+      { id: "4045758101", name: "Product", family: "product_engineering", enabled: false },
+      { id: "4058322101", name: "Data", family: "product_engineering", enabled: false },
+      { id: "4045757101", name: "Engineering", family: "product_engineering", enabled: false },
+      { id: "gen-4042652101", name: "Strategy & Ops", family: "finance", scenario: "care_strategy_ops", enabled: true },
+    ] },
+    { id: "4011393101", name: "CEO Office", family: "general_management" },
+    { id: "4031964101", name: "Commercial", children: [
+      { id: "4031965101", name: "Data", family: "product_engineering" },
+      { id: "4031966101", name: "Product", family: "product_engineering" },
+      { id: "4058438101", name: "Engineering", family: "product_engineering" },
+      { id: "gen-4031964101", name: "General / other", family: "go_to_market" },
+    ] },
+    { id: "4059295101", name: "Communications", children: [
+      { id: "4059296101", name: "Design", family: "go_to_market" },
+      { id: "gen-4059295101", name: "General / other", family: "go_to_market" },
+    ] },
+    { id: "4058415101", name: "Credit", children: [
+      { id: "4058416101", name: "Data", family: "product_engineering" },
+      { id: "4058417101", name: "Engineering", family: "product_engineering" },
+      { id: "4058418101", name: "Product", family: "product_engineering" },
+      { id: "gen-4058415101", name: "General / other", family: "finance" },
+    ] },
+    { id: "4058429101", name: "Embedded Finance", children: [
+      { id: "4058430101", name: "Data", family: "product_engineering" },
+      { id: "4058431101", name: "Design", family: "product_engineering" },
+      { id: "4058432101", name: "Product", family: "product_engineering" },
+      { id: "4058433101", name: "Engineering", family: "product_engineering" },
+      { id: "gen-4058429101", name: "General / other", family: "finance" },
+    ] },
+    { id: "4000623101", name: "Finance", children: [
+      { id: "4031955101", name: "Data", family: "product_engineering" },
+      { id: "gen-4000623101", name: "General / other", family: "finance" },
+    ] },
+    { id: "4000620101", name: "Global Platforms", children: [
+      { id: "4058425101", name: "Data", family: "product_engineering" },
+      { id: "4058428101", name: "Engineering", family: "product_engineering" },
+      { id: "4058443101", name: "Product", family: "product_engineering" },
+      { id: "gen-4000620101", name: "General / other", family: "general_management" },
+    ] },
+    { id: "4058419101", name: "Growth", children: [
+      { id: "4058421101", name: "Engineering", family: "product_engineering" },
+      { id: "4058423101", name: "Design", family: "go_to_market" },
+      { id: "4058420101", name: "Data", family: "product_engineering" },
+      { id: "4058422101", name: "Product", family: "product_engineering" },
+      { id: "gen-4058419101", name: "General / other", family: "go_to_market" },
+    ] },
+    { id: "4058434101", name: "Internal Audit", family: "risk_legal" },
+    { id: "4029205101", name: "Legal", family: "risk_legal" },
+    { id: "4031962101", name: "People & Places", family: "hr_people" },
+    { id: "4058444101", name: "Personal Banking", children: [
+      { id: "4058446101", name: "Design", family: "product_engineering" },
+      { id: "4058445101", name: "Data", family: "product_engineering" },
+      { id: "4058447101", name: "Engineering", family: "product_engineering" },
+      { id: "4058448101", name: "Product", family: "product_engineering" },
+      { id: "gen-4058444101", name: "General / other", family: "go_to_market" },
+    ] },
+    { id: "4031967101", name: "Risk", children: [
+      { id: "4031968101", name: "Engineering", family: "product_engineering" },
+      { id: "4031970101", name: "Data", family: "product_engineering" },
+      { id: "4031969101", name: "Product", family: "product_engineering" },
+      { id: "gen-4031967101", name: "General / other", family: "risk_legal" },
+    ] },
+    { id: "4031941101", name: "User Experience", children: [
+      { id: "4031942101", name: "Design", family: "product_engineering" },
+      { id: "4031944101", name: "Product", family: "product_engineering" },
+      { id: "gen-4031941101", name: "General / other", family: "product_engineering" },
+    ] },
+  ];
+  const SKILL_OPTIONS = [
+    { value: "novice", label: "Just starting", sub: "I rarely touch AI tools" },
+    { value: "explorer", label: "Exploring", sub: "I've tried ChatGPT or similar a few times" },
+    { value: "regular", label: "Regular user", sub: "AI helps me with everyday tasks most weeks" },
+    { value: "confident", label: "Confident", sub: "I use AI daily and know where it falls short" },
+    { value: "power", label: "Power user", sub: "I build prompts and workflows that others reuse" },
+    { value: "expert", label: "Expert", sub: "I design AI systems or coach others" },
+  ];
+  // Bell-ish shape for the "guesses from other participants" histogram, one bar per 10-point bin.
+  const BET_BINS = [3, 6, 10, 14, 17, 16, 13, 10, 7, 4];
+
+  /** Navigate by panel id so inserting a step never silently breaks the others. */
+  function gotoStep(id) {
+    const i = ONBOARD_STEPS.indexOf(id);
+    showOnboardStep(i >= 0 ? i + 1 : 1);
+  }
+
+  function showOnboardStep(n) {
+    onboarding.step = Math.max(1, Math.min(ONBOARD_STEPS.length, n));
+    ONBOARD_STEPS.forEach(function (id, i) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle("active", i === onboarding.step - 1);
+    });
+    // The dots track the 5 wizard steps only — the home landing page (step 1) shows no dots.
+    const dots = document.getElementById("progressDots");
+    if (dots) dots.style.display = onboarding.step === 1 ? "none" : "";
+    document.querySelectorAll("#progressDots .progress-dots__dot").forEach(function (d, i) {
+      d.classList.toggle("active", i === onboarding.step - 2);
+      d.classList.toggle("done", i < onboarding.step - 2);
+    });
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (_) {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  /** Shows/hides all onboarding chrome (nav, dots, step panels) as one unit. */
+  function setOnboardingVisible(on) {
+    const nav = document.getElementById("onboardNav");
+    const dots = document.getElementById("progressDots");
+    if (nav) nav.style.display = on ? "" : "none";
+    if (dots) {
+      // Dots belong to onboarding only: hide on the home step and whenever
+      // onboarding chrome is off (e.g. chat mode — they'd push the composer offscreen).
+      dots.style.display = !on || onboarding.step === 1 ? "none" : "";
+    }
+    ONBOARD_STEPS.forEach(function (id, i) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle("active", on && i === onboarding.step - 1);
+    });
+  }
+
+  function hideBanner(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("show");
+  }
+
+  function renderIntroChart() {
+    const el = document.getElementById("introChart");
+    if (!el || el.childElementCount) return;
+    const max = Math.max.apply(null, INTRO_DISTRIBUTION.map(function (b) { return b.pct; }));
+    el.innerHTML = INTRO_DISTRIBUTION.map(function (b) {
+      return (
+        '<div class="bar-chart__col">' +
+        '<div class="bar-chart__bar' + (b.pct === max ? " highlight" : "") + '" style="height:' +
+        ((b.pct / max) * 100).toFixed(0) + '%"></div>' +
+        '<div class="bar-chart__label">' + escapeHtml(b.label) + "</div>" +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  function renderChoiceGrid(gridId, options, errId, onPick) {
+    const grid = document.getElementById(gridId);
+    if (!grid || grid.childElementCount) return;
+    options.forEach(function (opt) {
+      const optEnabled = opt.enabled !== false;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "choice-card" + (optEnabled ? "" : " disabled");
+      b.innerHTML =
+        '<span class="choice-card__check" aria-hidden="true"></span>' +
+        "<span><span class='choice-card__text'>" + escapeHtml(opt.label) + "</span>" +
+        "<span class='choice-card__sub'>" + escapeHtml(opt.sub) + "</span></span>";
+      if (!optEnabled) {
+        b.disabled = true;
+        b.title = "Coming soon";
+        grid.appendChild(b);
+        return;
+      }
+      b.onclick = function () {
+        grid.querySelectorAll(".choice-card").forEach(function (c) { c.classList.remove("selected"); });
+        b.classList.add("selected");
+        hideBanner(errId);
+        onPick(opt.value);
+      };
+      grid.appendChild(b);
+    });
+  }
+
+  // Role-step accordion: fold a group to its one-line summary once picked, so the
+  // step never needs scrolling. Clicking a folded header re-opens it.
+  function accOpen(id, open) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("open", !!open);
+  }
+  function accSetValue(id, text) {
+    const el = document.getElementById(id + "Value");
+    const sec = document.getElementById(id);
+    if (el) {
+      el.textContent = text || "Choose…";
+      el.classList.toggle("placeholder", !text);
+    }
+    if (sec) sec.classList.toggle("done", !!text);
+  }
+
+  function renderDeptGrid() {
+    const grid = document.getElementById("deptGrid");
+    if (!grid || grid.childElementCount) return;
+    const childWrap = document.getElementById("deptChildWrap");
+    const childGrid = document.getElementById("deptChildGrid");
+    const parentNameEl = document.getElementById("deptChildParentName");
+    const hint = document.getElementById("familyHint");
+
+    function setFamily(family, scenario, summary) {
+      onboarding.family = family;
+      onboarding.jobFunction = scenario || null;
+      hideBanner("roleErr");
+      if (hint) {
+        hint.textContent = "We'll treat this as: " + (FAMILY_LABELS[family] || family);
+        hint.hidden = false;
+      }
+      // Fold the department section down to its summary line.
+      accSetValue("accDept", summary || "");
+      accOpen("accDept", false);
+    }
+
+    TAMARA_DEPARTMENTS.forEach(function (dept) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "choice-card" + (dept.enabled ? "" : " disabled");
+      b.innerHTML =
+        '<span class="choice-card__check" aria-hidden="true"></span>' +
+        "<span><span class='choice-card__text'>" + escapeHtml(dept.name) + "</span></span>";
+      if (!dept.enabled) {
+        b.disabled = true;
+        b.title = "Coming soon";
+        grid.appendChild(b);
+        return;
+      }
+      b.onclick = function () {
+        grid.querySelectorAll(".choice-card").forEach(function (c) { c.classList.remove("selected"); });
+        b.classList.add("selected");
+        onboarding.family = null;
+        onboarding.jobFunction = null;
+        if (hint) hint.hidden = true;
+        accSetValue("accDept", "");
+        if (dept.children && dept.children.length) {
+          if (parentNameEl) parentNameEl.textContent = dept.name;
+          // Swap the long department list out for this dept's functions so the
+          // step stays inside one viewport; "Change department" swaps back.
+          grid.hidden = true;
+          childGrid.innerHTML = "";
+          dept.children.forEach(function (child) {
+            const childEnabled = child.enabled !== false;
+            const cb = document.createElement("button");
+            cb.type = "button";
+            cb.className = "choice-card" + (childEnabled ? "" : " disabled");
+            cb.innerHTML =
+              '<span class="choice-card__check" aria-hidden="true"></span>' +
+              "<span><span class='choice-card__text'>" + escapeHtml(child.name) + "</span></span>";
+            if (!childEnabled) {
+              cb.disabled = true;
+              cb.title = "Coming soon";
+              childGrid.appendChild(cb);
+              return;
+            }
+            cb.onclick = function () {
+              childGrid.querySelectorAll(".choice-card").forEach(function (c) { c.classList.remove("selected"); });
+              cb.classList.add("selected");
+              setFamily(child.family, child.scenario, dept.name + " — " + child.name);
+            };
+            childGrid.appendChild(cb);
+          });
+          childWrap.hidden = false;
+        } else {
+          childWrap.hidden = true;
+          setFamily(dept.family, dept.scenario, dept.name);
+        }
+      };
+      grid.appendChild(b);
+    });
+
+    const backBtn = document.getElementById("deptBackBtn");
+    if (backBtn) {
+      backBtn.onclick = function () {
+        childWrap.hidden = true;
+        grid.hidden = false;
+        grid.querySelectorAll(".choice-card").forEach(function (c) { c.classList.remove("selected"); });
+        onboarding.family = null;
+        onboarding.jobFunction = null;
+        accSetValue("accDept", "");
+        if (hint) hint.hidden = true;
+      };
+    }
+  }
+
+  function renderBetHistogram() {
+    const el = document.getElementById("betHistogram");
+    if (!el || el.childElementCount) return;
+    const max = Math.max.apply(null, BET_BINS);
+    el.innerHTML = BET_BINS.map(function (v, i) {
+      const label = i === 0 ? "0" : i === 5 ? "50" : i === BET_BINS.length - 1 ? "100" : "";
+      return (
+        '<div class="histogram__bar" style="height:' + ((v / max) * 100).toFixed(0) + '%">' +
+        (label ? '<span class="histogram__label">' + label + "</span>" : "") +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  function updateBetUI() {
+    const slider = document.getElementById("betSlider");
+    const marker = document.getElementById("sliderMarker");
+    if (!slider) return;
+    const v = Math.max(0, Math.min(100, Number(slider.value) || 0));
+    if (marker) {
+      marker.textContent = String(v);
+      // Track the range thumb: at 0% the thumb centre sits half a thumb-width in, at 100% half out.
+      marker.style.left = "calc(" + v + "% + " + (8 - 0.16 * v).toFixed(1) + "px)";
+    }
+    const bars = document.querySelectorAll("#betHistogram .histogram__bar");
+    const activeIdx = Math.min(BET_BINS.length - 1, Math.floor(v / 10));
+    bars.forEach(function (b, i) {
+      b.classList.toggle("active", i === activeIdx);
+    });
+  }
 
   function setShellChatMode(on) {
     const shell = document.querySelector(".shell");
@@ -109,8 +462,7 @@
       const m = st.messages[i];
       addBubble(m.content, (m.role || "") === "user", false);
     }
-    stepWelcome.style.display = "none";
-    if (stepAbout) stepAbout.style.display = "none";
+    setOnboardingVisible(false);
     stepChat.style.display = "flex";
     setShellChatMode(true);
     if (stepResults) stepResults.style.display = "none";
@@ -170,17 +522,10 @@
       .join("");
   }
   function addPhaseBanner(shift) {
-    if (!shift || !shift.phase) return;
-    const w = document.createElement("div");
-    w.className = "aiq-dim-shift aiq-phase-shift";
-    w.setAttribute("role", "status");
-    w.setAttribute("aria-label", "Scenario phase");
-    w.innerHTML =
-      '<span class="dim-next">Next part</span>' +
-      '<span class="dim-lbl">' +
-      escapeHtml(shift.label || shift.phase || "") +
-      "</span>";
-    msgBox.appendChild(w);
+    // Intentionally renders nothing: in-chat stage chips ("Main scenario", "When it goes
+    // wrong") made the interview feel scripted. The header progress bar still tracks the
+    // phase; the conversation itself should flow without visible seams.
+    void shift;
   }
 
   function addDimBanner(shift) {
@@ -403,9 +748,44 @@
       ex.setAttribute("hidden", "");
       ex.textContent = "";
     }
+    if (endModal._lastFocused) {
+      try { endModal._lastFocused.focus(); } catch (_) {}
+      endModal._lastFocused = null;
+    }
+    document.removeEventListener("keydown", _endModalKeydown);
   }
   function openEndModal() {
-    if (endModal) endModal.removeAttribute("hidden");
+    if (endModal) {
+      endModal.removeAttribute("hidden");
+      endModal._lastFocused = document.activeElement;
+      const firstBtn = endModal.querySelector("button");
+      if (firstBtn) setTimeout(function () { firstBtn.focus(); }, 0);
+    }
+    document.addEventListener("keydown", _endModalKeydown);
+  }
+  function _endModalKeydown(e) {
+    if (e.key === "Escape") {
+      // Match the backdrop-click guard: while scoring is running, the modal must stay open.
+      if (endModal && endModal.getAttribute("data-loading") === "1") return;
+      closeEndModal();
+      return;
+    }
+    if (e.key !== "Tab" || !endModal || endModal.hasAttribute("hidden")) return;
+    const focusable = endModal.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   }
 
   function numScore(s) {
@@ -503,12 +883,25 @@
       const whyHtml = why
         ? '<p class="dim-card__why">' + escapeHtml(why.length > 220 ? why.slice(0, 217) + "…" : why) + "</p>"
         : "";
+      // Verbatim excerpts from the participant's own replies that back this score — the same
+      // grounded quotes the scoring pass returns; shown so the number is traceable, not a black box.
+      const quotes = Array.isArray(o.evidence_quotes)
+        ? o.evidence_quotes.filter((q) => q && String(q).trim()).slice(0, 2)
+        : [];
+      const quotesHtml = quotes.length
+        ? '<div class="dim-card__quotes">' +
+          quotes
+            .map((q) => '<p class="dim-card__quote">“' + escapeHtml(String(q).trim()) + "”</p>")
+            .join("") +
+          "</div>"
+        : "";
       return (
         '<div class="dim-card">' +
         "<span class='dim-card__t'>" + escapeHtml(d) + " · " + escapeHtml(DIM_META[d] || "") + "</span>" +
         "<span class='dim-card__s'>" + (o.score != null ? o.score : "—") + "<span class='dim-card__s-out'>/10</span></span>" +
         '<div class="dim-bar dim-card__bar" role="presentation"><div class="dim-bar__fill" style="width:' + pw + '%"></div></div>' +
         whyHtml +
+        quotesHtml +
         "</div>"
       );
     }).join("");
@@ -551,7 +944,7 @@
       // 4. Per-dimension scores
       '<section class="report-section">' +
       '<h3 class="report-section__h">Score per dimension</h3>' +
-      '<p class="report-section__sub">Each score is 0–10 with a short note from your answers in this chat.</p>' +
+      '<p class="report-section__sub">Each score is 0–10 with a short note — and, where shown, your own words from this chat that shaped it.</p>' +
       "<div class='dim-card-grid'>" + dimCards + "</div>" +
       "</section>" +
       "</article>"
@@ -562,8 +955,7 @@
     const ap = ass || sessionState.assessment || null;
     const appEl = document.getElementById("app");
     if (appEl) appEl.classList.add("results-only");
-    if (stepWelcome) stepWelcome.style.display = "none";
-    if (stepAbout) stepAbout.style.display = "none";
+    setOnboardingVisible(false);
     if (stepChat) stepChat.style.display = "none";
     setShellChatMode(false);
     if (stepScoring) stepScoring.style.display = "none";
@@ -601,6 +993,13 @@
           "</pre></div>";
       }
     }
+    const homeBtn = document.createElement("button");
+    homeBtn.className = "btn prim";
+    homeBtn.type = "button";
+    homeBtn.textContent = "Start new assessment";
+    homeBtn.style.marginTop = "1.5rem";
+    homeBtn.onclick = goHome;
+    mount.appendChild(homeBtn);
     sr.style.display = "block";
     try {
       mount.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -721,21 +1120,99 @@
     };
   }
 
-  async function startSessionFromAbout() {
-    const berr = $("#startErr");
-    berr.classList.remove("show");
-    const btn = $("#btnBegin");
+  function goHome() {
+    if (sessionState.interval) {
+      clearInterval(sessionState.interval);
+      sessionState.interval = null;
+    }
+    if (wrapCtaCountdown) {
+      clearInterval(wrapCtaCountdown);
+      wrapCtaCountdown = null;
+    }
+
+    clearActiveSession();
+
+    if (sessionState.id) {
+      api("/api/session/" + sessionState.id + "/event", { type: "abandoned" }).catch(() => {});
+    }
+
+    sessionState.id = null;
+    sessionState.lastDimCode = null;
+    sessionState.lastPhase = null;
+    sessionState.progressMode = "dimension";
+    sessionState.assessment = null;
+    sessionState.wrapCtaActive = false;
+    sessionState.targetSec = 900;
+    sessionState.progressTouched = [];
+
+    if (stepChat) stepChat.style.display = "none";
+    if (stepScoring) stepScoring.style.display = "none";
+    if (stepResults) stepResults.style.display = "none";
+    setShellChatMode(false);
+    if ($("#app")) $("#app").classList.remove("results-only");
+
+    // "New assessment" means a fresh run: clear previous wizard answers so a second
+    // participant (or second attempt) doesn't inherit stale pre-selected cards.
+    onboarding.intent = null;
+    onboarding.level = null;
+    onboarding.family = null;
+    onboarding.skill = null;
+    document.querySelectorAll(".choice-card.selected").forEach(function (c) {
+      c.classList.remove("selected");
+    });
+    const betSlider = document.getElementById("betSlider");
+    if (betSlider) {
+      betSlider.value = 50;
+      updateBetUI();
+    }
+    ["startErr", "intentErr", "roleErr", "skillErr", "beginErr"].forEach(hideBanner);
+
+    showOnboardStep(1);
+    setOnboardingVisible(true);
+
+    msgBox.innerHTML = "";
+    const chatErr = $("#chatErr");
+    if (chatErr) {
+      chatErr.textContent = "";
+      chatErr.classList.remove("show");
+    }
+
+    const wrapCta = document.getElementById("wrapCta");
+    if (wrapCta) wrapCta.setAttribute("hidden", "");
+    const wrapCtaTimer = document.getElementById("wrapCtaTimer");
+    if (wrapCtaTimer) {
+      wrapCtaTimer.setAttribute("hidden", "");
+      wrapCtaTimer.textContent = "";
+    }
+
+    closeEndModal();
+
+    const timerEl = $("#timer");
+    if (timerEl) timerEl.textContent = "0:00";
+
+    const btnBeginChat = document.getElementById("btnBeginChat");
+    if (btnBeginChat) btnBeginChat.disabled = false;
+  }
+
+  async function startSessionFromOnboarding() {
+    const berr = $("#beginErr");
+    if (berr) berr.classList.remove("show");
+    const btn = $("#btnBeginChat");
     if (btn) btn.disabled = true;
     try {
       const s = String(Math.random()).slice(2) + String(Date.now());
-      const levelEl = document.getElementById("selLevel");
-      const famEl = document.getElementById("selJobFamily");
-      const intentEl = document.getElementById("selIntent");
+      const slider = document.getElementById("betSlider");
       const o = await api("/api/session/start", {
         seed: s,
-        client_meta: { ui: "web", intent: intentEl ? intentEl.value : undefined },
-        level: levelEl ? levelEl.value : undefined,
-        job_family: famEl ? famEl.value : undefined,
+        level: onboarding.level || undefined,
+        job_family: onboarding.family || undefined,
+        job_function: onboarding.jobFunction || undefined,
+        client_meta: {
+          ui: "web",
+          intent: onboarding.intent || undefined,
+          skill_level: onboarding.skill || undefined,
+          expected_score: slider ? Math.max(0, Math.min(100, Number(slider.value) || 0)) : undefined,
+        },
       });
       sessionState.id = o.session_id;
       sessionState.lastDimCode = null;
@@ -757,7 +1234,7 @@
         wtime0.setAttribute("hidden", "");
         wtime0.textContent = "";
       }
-      if (stepAbout) stepAbout.style.display = "none";
+      setOnboardingVisible(false);
       stepChat.style.display = "flex";
       setShellChatMode(true);
       if (stepResults) stepResults.style.display = "none";
@@ -768,20 +1245,82 @@
       renderProgress(o.progress);
       if (window.__plausible) window.__plausible("track", "session_start");
     } catch (e) {
-      showErr(berr, e.message || "Could not start. Check API key / server logs.");
+      showErr(berr, (e && e.message) || "Could not start. Check API key / server logs.");
       if (btn) btn.disabled = false;
     }
   }
 
-  if ($("#btnContinue")) {
-    $("#btnContinue").onclick = function () {
-      if (stepWelcome) stepWelcome.style.display = "none";
-      const about = $("#step-about");
-      if (about) about.style.display = "block";
+  /* ——— Onboarding wiring ——— */
+  showOnboardStep(1); // sync dots/panels with the initial home step
+  renderIntroChart();
+  renderChoiceGrid("intentGrid", INTENT_OPTIONS, "intentErr", function (v) { onboarding.intent = v; });
+  renderChoiceGrid("levelGrid", LEVEL_OPTIONS, "roleErr", function (v) {
+    onboarding.level = v;
+    const opt = LEVEL_OPTIONS.filter(function (o) { return o.value === v; })[0];
+    accSetValue("accLevel", (opt && opt.label) || v);
+    accOpen("accLevel", false);
+    // Move the user along: open the next unanswered group.
+    if (!onboarding.family) accOpen("accDept", true);
+  });
+  renderDeptGrid();
+  ["accLevel", "accDept"].forEach(function (id) {
+    const head = document.getElementById(id + "Head");
+    if (head) {
+      head.onclick = function () {
+        const sec = document.getElementById(id);
+        if (sec) sec.classList.toggle("open");
+      };
+    }
+  });
+  renderChoiceGrid("skillGrid", SKILL_OPTIONS, "skillErr", function (v) { onboarding.skill = v; });
+  renderBetHistogram();
+  updateBetUI();
+  const betSliderEl = document.getElementById("betSlider");
+  if (betSliderEl) betSliderEl.addEventListener("input", updateBetUI);
+
+  function requireSelection(errId, ok) {
+    if (ok) {
+      hideBanner(errId);
+      return true;
+    }
+    const e = document.getElementById(errId);
+    if (e) e.classList.add("show");
+    return false;
+  }
+
+  if ($("#btnStartHome")) $("#btnStartHome").onclick = function () { gotoStep("step-intro"); };
+  if ($("#btnIntroBack")) $("#btnIntroBack").onclick = function () { gotoStep("step-home"); };
+  if ($("#btnIntroNext")) $("#btnIntroNext").onclick = function () { gotoStep("step-intent"); };
+  if ($("#btnIntentBack")) $("#btnIntentBack").onclick = function () { gotoStep("step-intro"); };
+  if ($("#btnIntentNext")) {
+    $("#btnIntentNext").onclick = function () {
+      if (requireSelection("intentErr", !!onboarding.intent)) gotoStep("step-role");
     };
   }
-  if ($("#btnBegin")) {
-    $("#btnBegin").onclick = startSessionFromAbout;
+  if ($("#btnRoleBack")) $("#btnRoleBack").onclick = function () { gotoStep("step-intent"); };
+  if ($("#btnRoleNext")) {
+    $("#btnRoleNext").onclick = function () {
+      if (requireSelection("roleErr", !!(onboarding.level && onboarding.family))) gotoStep("step-skill");
+    };
+  }
+  if ($("#btnSkillBack")) $("#btnSkillBack").onclick = function () { gotoStep("step-role"); };
+  if ($("#btnSkillNext")) {
+    $("#btnSkillNext").onclick = function () {
+      if (requireSelection("skillErr", !!onboarding.skill)) gotoStep("step-bet");
+    };
+  }
+  if ($("#btnBetBack")) $("#btnBetBack").onclick = function () { gotoStep("step-skill"); };
+  if ($("#btnBetNext")) $("#btnBetNext").onclick = function () { gotoStep("step-rules"); };
+  if ($("#btnRulesBack")) $("#btnRulesBack").onclick = function () { gotoStep("step-bet"); };
+  if ($("#btnBeginChat")) $("#btnBeginChat").onclick = startSessionFromOnboarding;
+
+  // Single plain action instead of the old "Guest" dropdown: one item that duplicated this
+  // button was all the menu held, and "Guest" implied an account system that doesn't exist.
+  if ($("#navNewBtn")) {
+    $("#navNewBtn").onclick = function () {
+      if (sessionState.id) openHomeModal();
+      else goHome();
+    };
   }
 
   $("#fChat").onsubmit = async function (e) {
@@ -840,6 +1379,10 @@
       );
     }
     $("#sendBtn").disabled = false;
+    // Keep the composer ready so the participant can type the next reply without clicking back in.
+    if (t && stepChat && stepChat.style.display !== "none") {
+      try { t.focus(); } catch (_) {}
+    }
   };
 
   function renderEndModalReadiness(r) {
@@ -852,6 +1395,7 @@
     const isScenario = r.mode === "scenario";
     const maxTurns = Number(r.max_turns || 6);
     const stageLabel = r.current_phase_label || "";
+    const canComplete = r.can_complete !== false;
     const statsHtml =
       "<div class='end-modal__stats'>" +
       "<div class='end-modal__stat'><span class='end-modal__n'>" +
@@ -864,7 +1408,7 @@
           (r.dimensions_touched || 0) + "/" + (r.dimensions_total || 6) +
           "</span><span class='end-modal__l'>Topics covered</span></div>") +
       "</div>";
-    if (endModal) endModal.classList.toggle("end-modal--warn-strong", turns === 0 || strong);
+    if (endModal) endModal.classList.toggle("end-modal--warn-strong", turns === 0 || strong || !canComplete);
     if (turns === 0) {
       if (tEl) tEl.textContent = "Nothing to summarize yet";
       bEl.innerHTML =
@@ -873,6 +1417,15 @@
       if (confirmBtn) {
         confirmBtn.disabled = true;
         confirmBtn.title = "Send a reply first";
+      }
+    } else if (!canComplete) {
+      if (tEl) tEl.textContent = "A bit more will help";
+      bEl.innerHTML =
+        statsHtml +
+        "<p class='end-modal__lede end-modal__lede--warn'>Keep going — we need a bit more to build an accurate summary. A few more replies will give us much more to work with.</p>";
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.title = "Keep chatting first";
       }
     } else if (strong) {
       if (tEl) tEl.textContent = "End with limited coverage?";
@@ -893,6 +1446,88 @@
         confirmBtn.title = "";
       }
     }
+  }
+
+  if ($("#linkHome")) {
+    $("#linkHome").onclick = function () {
+      openHomeModal();
+    };
+  }
+
+  function closeHomeModal() {
+    const m = document.getElementById("homeModal");
+    if (m) m.setAttribute("hidden", "");
+    const ex = document.getElementById("homeModalError");
+    if (ex) {
+      ex.setAttribute("hidden", "");
+      ex.textContent = "";
+    }
+    const loading = document.getElementById("homeModalLoading");
+    if (loading) loading.setAttribute("hidden", "");
+    const confirmBtn = document.getElementById("homeModalConfirm");
+    if (confirmBtn) confirmBtn.disabled = false;
+    if (m._lastFocused) {
+      try { m._lastFocused.focus(); } catch (_) {}
+      m._lastFocused = null;
+    }
+    document.removeEventListener("keydown", _homeModalKeydown);
+  }
+  function openHomeModal() {
+    const m = document.getElementById("homeModal");
+    if (m) {
+      m.removeAttribute("hidden");
+      m._lastFocused = document.activeElement;
+      const firstBtn = m.querySelector("button");
+      if (firstBtn) setTimeout(function () { firstBtn.focus(); }, 0);
+    }
+    const errEl = document.getElementById("homeModalError");
+    if (errEl) {
+      errEl.setAttribute("hidden", "");
+      errEl.textContent = "";
+    }
+    const loading = document.getElementById("homeModalLoading");
+    if (loading) loading.setAttribute("hidden", "");
+    const confirmBtn = document.getElementById("homeModalConfirm");
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+    }
+    document.addEventListener("keydown", _homeModalKeydown);
+  }
+  function _homeModalKeydown(e) {
+    const m = document.getElementById("homeModal");
+    if (e.key === "Escape") {
+      closeHomeModal();
+      return;
+    }
+    if (e.key !== "Tab" || !m || m.hasAttribute("hidden")) return;
+    const focusable = m.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  if ($("#homeModalCancel")) {
+    $("#homeModalCancel").onclick = closeHomeModal;
+  }
+  if ($("#homeModalBackdrop")) {
+    $("#homeModalBackdrop").onclick = closeHomeModal;
+  }
+  if ($("#homeModalConfirm")) {
+    $("#homeModalConfirm").onclick = function () {
+      closeHomeModal();
+      goHome();
+    };
   }
 
   $("#linkDone").onclick = async function (e) {
@@ -925,40 +1560,12 @@
   };
 
   (function resumeBoot() {
-    const bb = $("#btnContinue") || $("#btnBegin");
+    // Block starting a fresh session until we know whether an existing one resumes.
+    const bb = $("#btnBeginChat");
     if (bb) bb.disabled = true;
     tryResumeOnLoad().finally(function () {
       if (bb && !sessionState.id) bb.disabled = false;
     });
   })();
 
-  (async function initAssessmentSelects() {
-    const sl = document.getElementById("selLevel");
-    const sf = document.getElementById("selJobFamily");
-    if (!sl || !sf) return;
-    try {
-      const o = await apiGet("/api/assessment/options");
-      const opt = (items) =>
-        items
-          .map(
-            (x) =>
-              "<option value='" +
-              String(x.slug).replace(/'/g, "&#39;") +
-              "'>" +
-              escapeHtml(x.label) +
-              "</option>"
-          )
-          .join("");
-      sl.innerHTML = opt(o.levels || []);
-      sf.innerHTML = opt(o.job_families || []);
-      if (o.defaults) {
-        if (o.defaults.level) sl.value = o.defaults.level;
-        if (o.defaults.job_family) sf.value = o.defaults.job_family;
-      }
-    } catch (_) {
-      sl.innerHTML =
-        "<option value='ic'>Individual contributor</option><option value='people_manager'>People manager</option><option value='head_of' selected>Head of / director</option><option value='executive'>Executive</option>";
-      sf.innerHTML = "<option value='general_management' selected>General management / P&L</option><option value='other'>Other</option>";
-    }
-  })();
 })();

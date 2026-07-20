@@ -68,6 +68,12 @@ _FAMILY_DELTAS: Dict[str, Tuple[float, float, float, float, float, float]] = {
 DEFAULT_LEVEL = "head_of"
 DEFAULT_FAMILY = "general_management"
 
+# Participant-facing labels for specific job functions (scenario keys). The coarse
+# job_family still drives weights; this label is what the person actually picked.
+JOB_FUNCTION_LABELS: Dict[str, str] = {
+    "care_strategy_ops": "Strategy & Ops (Care)",
+}
+
 
 def _coerce_level(raw: Optional[str]) -> str:
     s = (raw or DEFAULT_LEVEL).strip().lower().replace(" ", "_").replace("-", "_")
@@ -354,9 +360,13 @@ def _top_two_dimensions_by_weight(weights: Dict[str, float]) -> Tuple[str, str]:
 def build_assessment_block(
     level_raw: Optional[str],
     family_raw: Optional[str],
+    function_raw: Optional[str] = None,
 ) -> Dict[str, Any]:
     level = _coerce_level(level_raw)
     fam = _coerce_family(family_raw)
+    # Specific job function (e.g. "care_strategy_ops") selects a tailored scenario;
+    # it does not affect dimension weights, which stay keyed to level × family.
+    func = (function_raw or "").strip() or None
     w = _weights_from_deltas(level, fam)
     pid = profile_id(level, fam)
     a, b = _top_two_dimensions_by_weight(w)
@@ -366,6 +376,8 @@ def build_assessment_block(
         "level_label": label_for_level(level),
         "job_family": fam,
         "job_family_label": label_for_family(fam),
+        "job_function": func,
+        "job_function_label": JOB_FUNCTION_LABELS.get(func or "", "") or None,
         "profile_id": pid,
         "weights": w,
         "depth_focus": [a, b],
