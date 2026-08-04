@@ -14,7 +14,7 @@ import random
 import re
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from config import (
     AIQ_LLM_CLASSIFY,
@@ -24,6 +24,7 @@ from config import (
     OLLAMA_MODEL,
     OPENAI_API_KEY,
     OPENAI_MODEL,
+    OPENAI_SCORING_MODEL,
 )
 from openai_client import openai_chat, openai_generate_text
 from ollama_client import ollama_available, ollama_chat, ollama_generate_text, resolve_backend
@@ -92,9 +93,18 @@ def _read_rag() -> str:
 
 
 def build_variation_for_session(
-    client_seed: str, assessment: Optional[dict] = None
+    client_seed: str,
+    assessment: Optional[dict] = None,
+    *,
+    attempt_no: int = 1,
+    served: Optional[Sequence[str]] = None,
+    selection_seed: Optional[str] = None,
 ) -> dict:
-    """Scenario-stack plan per session (v2); legacy _theme keys kept for old scoring context."""
+    """Scenario-stack plan per session (v2); legacy _theme keys kept for old scoring context.
+
+    ``attempt_no`` / ``served`` / ``selection_seed`` drive retake rotation — see
+    scenario_engine.select_variant.
+    """
     from scenario_engine import build_scenario_plan
 
     raw = (BASE_DIR / "knowledge" / "scenario_variants.json").read_text(encoding="utf-8")
@@ -102,7 +112,13 @@ def build_variation_for_session(
     rng = random.Random(client_seed)
     out: Dict[str, Any] = {
         "version": 2,
-        "scenario_plan": build_scenario_plan(assessment or {}, client_seed),
+        "scenario_plan": build_scenario_plan(
+            assessment or {},
+            client_seed,
+            attempt_no=attempt_no,
+            served=served or (),
+            selection_seed=selection_seed,
+        ),
     }
     for k, v in data.items():
         out[f"{k}_theme"] = rng.choice(v)
@@ -772,7 +788,7 @@ def _score_with_openai_from_prompt_body(prompt: str) -> dict:
     )
     r1 = openai_generate_text(
         prompt,
-        model=OPENAI_MODEL,
+        model=OPENAI_SCORING_MODEL,
         temperature=0.2,
         max_output_tokens=3200,
         system_instruction=sys,
@@ -784,7 +800,7 @@ def _score_with_openai_from_prompt_body(prompt: str) -> dict:
         pass
     r2 = openai_generate_text(
         "Return raw JSON only (no backticks, no text outside JSON).\n\n" + prompt,
-        model=OPENAI_MODEL,
+        model=OPENAI_SCORING_MODEL,
         temperature=0.1,
         max_output_tokens=3600,
         system_instruction=sys,
@@ -798,7 +814,7 @@ def _score_with_openai_from_prompt_body(prompt: str) -> dict:
         "Previous output was invalid JSON. Return ONLY one valid JSON object with keys: "
         "D1..D6 (each with score, rationale_1line, evidence_quotes), AiQ_0_100, maturity_band, strength_1line, risk_1line. Invalid output:\n\n"
         + (r1 or "")[:8000],
-        model=OPENAI_MODEL,
+        model=OPENAI_SCORING_MODEL,
         temperature=0.1,
         max_output_tokens=3200,
         system_instruction=sys,
@@ -1037,12 +1053,18 @@ def _finalize_scoring_for_session(
 
 
 def _band_for_composite(aiq: float) -> str:
-    """SRS band boundaries: AiQ1 0-25, AiQ2 26-55, AiQ3 56-80, AiQ4 81-100."""
-    if aiq <= 25.0:
+    """SRS band boundaries: AiQ1 0-25, AiQ2 26-55, AiQ3 56-80, AiQ4 81-100.
+
+    Composites are continuous (1 decimal), so cut on the *midpoint* between the
+    documented integer bands — i.e. a fractional composite bands to the label it
+    rounds to (55.4 -> AiQ2, 55.6 -> AiQ3), rather than a raw `> 55.0` step that
+    would push 55.01-55.49 up a band.
+    """
+    if aiq < 25.5:
         return "AiQ1"
-    if aiq <= 55.0:
+    if aiq < 55.5:
         return "AiQ2"
-    if aiq <= 80.0:
+    if aiq < 80.5:
         return "AiQ3"
     return "AiQ4"
 
@@ -1077,7 +1099,7 @@ _SCORING_ANCHORS = """**Behavioral anchor bands (score against these; 0-3 low, 4
 - **D3 Critical judgment** — LOW: takes AI output at face value, no example of catching an error. Noticing a discrepancy but deferring to the AI's version anyway is still LOW — a check only counts if it changes what ships. MID: describes at least one concrete instance of catching a wrong or misleading output before it was used. HIGH: has a standing habit or checklist for verification and distinguishes where AI is reliable vs not in their domain.
 - **D4 Workflows & org design** — LOW: AI use is ad hoc and individual, cannot describe how it fits with teammates. MID: AI is embedded in at least one defined workflow with a clear owner or handoff. HIGH: has redesigned a process around AI (not bolted it on) with explicit accountability and handoffs.
 - **D5 Clarity, craft & output fit** — LOW: ships AI output largely unedited, no sense of the audience bar. MID: edits AI drafts for tone and accuracy before others see them and has a rough quality bar. HIGH: has an explicit, articulable standard AI-assisted output must meet before it reaches its audience, and can say how it is enforced.
-- **D6 Risk & responsible use** — LOW: no mention of data boundaries, escalation, or what they would avoid feeding a model. Generic caution with no named boundary ("be careful", "use common sense", "if you wouldn't put it on a billboard") is still LOW. MID: names at least one concrete boundary (a data type or decision type) they would not hand to AI and knows who to escalate to. HIGH: has a proactive, consistent data-handling and escalation practice they apply by default, not only when asked."""
+- **D6 Risk & responsible use** — score the participant's *demonstrated* responsible-use habit at their own altitude, as a monotonic ladder. LOW (0-3): no data boundary, no escalation, no sense of what they would avoid feeding a model — OR they blindly paste sensitive/customer data (names, payment, PII, raw customer records) into a tool. Generic caution with no named boundary ("be careful", "common sense") is LOW; blind pasting of sensitive data is LOW even if they sound careful elsewhere. MID (4-7): a concrete, role-appropriate boundary they apply *by default* — e.g. they redact or keep PII / payment / regulated data out of the tool, or only feed de-identified or aggregated data. A clear default boundary with no escalation story lands **6-7**. HIGH (8-10): the default boundary PLUS an escalation / human-in-the-loop practice on higher-risk work (who signs off, what always goes to a reviewer / Legal / Compliance) = **8**; add governance depth scaled to the role (accuracy or eval bars before a model is trusted, vendor diligence, an incident path) = **9-10**. Judge at altitude: an IC whose default is "PII never goes in, and sensitive comms go to Legal" is HIGH (8) for their role and does not need vendor- or board-level governance to get there."""
 
 
 def score_transcript(

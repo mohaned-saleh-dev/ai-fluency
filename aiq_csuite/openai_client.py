@@ -11,11 +11,51 @@ from typing import Any, Dict, List, Optional
 from config import OPENAI_API_KEY, OPENAI_BASE, OPENAI_MODEL
 
 
+# Models learned at runtime to reject a custom temperature (the gpt-5 family accepts only
+# the default). Kept as a learned set rather than a name prefix so a new model generation
+# does not silently break the app the day it ships.
+_NO_CUSTOM_TEMPERATURE: set = set()
+# Gateways/proxies that still want the legacy token parameter.
+_WANTS_LEGACY_MAX_TOKENS: set = set()
+
+
+def _adapt_body_to_error(body: Dict[str, Any], detail: str) -> bool:
+    """Drop or swap a parameter this model rejects. True if the call is worth retrying.
+
+    OpenAI keeps narrowing which sampling parameters a model accepts, and the errors are
+    specific and machine-readable, so adapt to what the endpoint actually says instead of
+    hardcoding which families take what.
+    """
+    model = str(body.get("model") or "")
+    low = detail.lower()
+    if "temperature" in low and ("does not support" in low or "unsupported value" in low):
+        if "temperature" in body:
+            body.pop("temperature", None)
+            _NO_CUSTOM_TEMPERATURE.add(model)
+            return True
+    if "max_tokens" in low and "not supported" in low and "max_tokens" in body:
+        body["max_completion_tokens"] = body.pop("max_tokens")
+        return True
+    if "max_completion_tokens" in low and "not supported" in low and "max_completion_tokens" in body:
+        body["max_tokens"] = body.pop("max_completion_tokens")
+        _WANTS_LEGACY_MAX_TOKENS.add(model)
+        return True
+    return False
+
+
+def _token_limit_key(model: str) -> str:
+    return "max_tokens" if model in _WANTS_LEGACY_MAX_TOKENS else "max_completion_tokens"
+
+
 def _post_json(path: str, body: Dict[str, Any], timeout: int = 120, max_tries: int = 3) -> Dict[str, Any]:
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set")
     last_err: Optional[Exception] = None
-    for attempt in range(max_tries):
+    # A model can reject more than one parameter (e.g. max_tokens *and* temperature), so
+    # allow a few adaptations; bounded so a persistent 400 can never spin.
+    adaptations_left = 3
+    attempt = 0
+    while attempt < max_tries:
         req = urllib.request.Request(
             f"{OPENAI_BASE}{path}",
             data=json.dumps(body).encode("utf-8"),
@@ -35,15 +75,21 @@ def _post_json(path: str, body: Dict[str, Any], timeout: int = 120, max_tries: i
             except Exception:
                 detail = str(e)
             last_err = RuntimeError(f"OpenAI HTTP {e.code}: {detail[:900]}")
+            # A rejected parameter is a fixable mismatch, not a failure: adapt and retry
+            # immediately without consuming a retry budget meant for rate limits.
+            if e.code == 400 and adaptations_left > 0 and _adapt_body_to_error(body, detail):
+                adaptations_left -= 1
+                continue
             if e.code in (429, 500, 502, 503, 504) and attempt < max_tries - 1:
-                wait = 2.0 * (attempt + 1)
-                time.sleep(wait)
+                attempt += 1
+                time.sleep(2.0 * attempt)
                 continue
             raise last_err
         except (urllib.error.URLError, OSError) as e:
             last_err = e
             if attempt < max_tries - 1:
-                time.sleep(2.0 * (attempt + 1))
+                attempt += 1
+                time.sleep(2.0 * attempt)
                 continue
             raise
     if last_err:
@@ -86,15 +132,14 @@ def openai_chat(
         else:
             messages.append({"role": "user", "content": content})
     messages.append({"role": "user", "content": last_user})
-    resp = _post_json(
-        "/chat/completions",
-        {
-            "model": mdl,
-            "messages": messages,
-            "temperature": float(temperature),
-            "max_tokens": int(max_output_tokens),
-        },
-    )
+    body: Dict[str, Any] = {
+        "model": mdl,
+        "messages": messages,
+        _token_limit_key(mdl): int(max_output_tokens),
+    }
+    if mdl not in _NO_CUSTOM_TEMPERATURE:
+        body["temperature"] = float(temperature)
+    resp = _post_json("/chat/completions", body)
     return _extract_text(resp)
 
 
@@ -116,9 +161,10 @@ def openai_generate_text(
     body: Dict[str, Any] = {
         "model": mdl,
         "messages": messages,
-        "temperature": float(temperature),
-        "max_tokens": int(max_output_tokens),
+        _token_limit_key(mdl): int(max_output_tokens),
     }
+    if mdl not in _NO_CUSTOM_TEMPERATURE:
+        body["temperature"] = float(temperature)
     if response_json:
         body["response_format"] = {"type": "json_object"}
     resp = _post_json("/chat/completions", body, timeout=timeout, max_tries=max_tries)

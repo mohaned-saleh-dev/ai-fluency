@@ -1,11 +1,11 @@
 {
   "coo_office": {
     "primary_title": "COO memo by tomorrow",
-    "primary_setup": "Your COO needs a one-page memo by tomorrow on how your team will use AI in quarterly planning. You are about to ask ChatGPT to write the first draft from last quarter's slides and a Slack export.",
+    "primary_setup": "Your COO needs a one-page memo by tomorrow on how your team will use AI in quarterly planning. You are about to ask the AI tool to write the first draft from last quarter's slides and a Slack export.",
     "primary_stakes": "The whole leadership team will read it. Wrong names, made-up numbers, or skipping Legal and Finance will be embarrassing and hard to walk back.",
-    "complication_inject": "While polishing the draft, someone on your team pasted real customer names and next year's targets into a shared ChatGPT thread.",
-    "standards_prompt": "If everyone in your function starts using ChatGPT on memos and plans that others act on, what would you want them to check before they hit send?",
-    "standards_question": "What's one rule you'd want everyone to follow before they use ChatGPT on a memo or plan that others will act on?",
+    "complication_inject": "While polishing the draft, someone on your team pasted real customer names and next year's targets into a shared the AI tool thread.",
+    "standards_prompt": "If everyone in your function starts using the AI tool on memos and plans that others act on, what would you want them to check before they hit send?",
+    "standards_question": "What's one rule you'd want everyone to follow before they use an AI tool on a memo or plan that others will act on?",
     "probe_bank": [
       "What would you do first to get this memo draft started?",
       "The draft looks polished — what would you check before the leadership team sees it?",
@@ -14,11 +14,11 @@
   },
   "product": {
     "primary_title": "Spec due Friday",
-    "primary_setup": "Your product manager wants ChatGPT to write the spec for a new checkout change by Friday. The feature handles card payments and needs Compliance sign-off.",
+    "primary_setup": "Your product manager wants the AI tool to write the spec for a new checkout change by Friday. The feature handles card payments and needs Compliance sign-off.",
     "primary_stakes": "If the requirements are wrong, or the draft invents a rule that does not exist, you slip the launch or ship something Compliance has not approved.",
-    "complication_inject": "Someone pasted real customer account numbers into a shared ChatGPT chat while working on the spec.",
-    "standards_prompt": "When your team uses ChatGPT on specs that engineers will build, what quality bar would you set before anyone commits to the work?",
-    "standards_question": "What's one rule your team must follow before a ChatGPT-drafted spec goes to engineering?",
+    "complication_inject": "Someone pasted real customer account numbers into a shared the AI tool chat while working on the spec.",
+    "standards_prompt": "When your team uses the AI tool on specs that engineers will build, what quality bar would you set before anyone commits to the work?",
+    "standards_question": "What's one rule your team must follow before a the AI tool-drafted spec goes to engineering?",
     "probe_bank": [
       "What would you do first to get this spec draft going?",
       "The spec reads cleanly — what would you verify before engineers start building?",
@@ -27,11 +27,11 @@
   },
   "ops": {
     "primary_title": "Angry VIP customer",
-    "primary_setup": "ChatGPT drafted a refund apology for an upset VIP customer. Your frontline agent wants to send it in one click from the helpdesk.",
+    "primary_setup": "the AI tool drafted a refund apology for an upset VIP customer. Your frontline agent wants to send it in one click from the helpdesk.",
     "primary_stakes": "The tone, the facts, and what you are offering have to match policy. A wrong reply goes straight to the customer and is hard to undo.",
     "complication_inject": "The draft sounds warm, but it offers a bigger refund than policy allows and promises an exception your team cannot honor.",
     "standards_prompt": "What can frontline agents send on their own, and what should they escalate before a customer sees it?",
-    "standards_question": "What's one rule agents must follow before they send any ChatGPT-drafted reply to a customer?",
+    "standards_question": "What's one rule agents must follow before they send any the AI tool-drafted reply to a customer?",
     "probe_bank": [
       "What would you do first when you see this draft in the queue?",
       "The reply sounds right — what would you check before the customer gets it?",
@@ -40,10 +40,10 @@
   },
   "gtm": {
     "primary_title": "Launch copy due tomorrow",
-    "primary_setup": "Marketing wants ChatGPT to write tomorrow's launch email and landing page for a new savings product.",
+    "primary_setup": "Marketing wants the AI tool to write tomorrow's launch email and landing page for a new savings product.",
     "primary_stakes": "Every claim has to be true and on-brand. Generic or overstated copy hurts trust and can create compliance issues.",
     "complication_inject": "The draft includes a performance number that is roughly true internally but has never been approved for public use.",
-    "standards_prompt": "How would brand, legal, and sales agree on what ChatGPT can draft versus what stays fully human-written?",
+    "standards_prompt": "How would brand, legal, and sales agree on what the AI tool can draft versus what stays fully human-written?",
     "standards_question": "What's one rule your team must follow before launch copy leaves marketing?",
     "probe_bank": [
       "What would you do first to get this launch copy drafted?",
@@ -53,11 +53,11 @@
   },
   "gtm_sales": {
     "primary_title": "Sales outreach due this afternoon",
-    "primary_setup": "Your sales team used ChatGPT to personalize outreach emails and a one-pager for a big enterprise prospect. They want to send the batch this afternoon.",
+    "primary_setup": "Your sales team used the AI tool to personalize outreach emails and a one-pager for a big enterprise prospect. They want to send the batch this afternoon.",
     "primary_stakes": "Wrong company facts, made-up references, or promises your product cannot back up can kill the deal and create legal risk.",
     "complication_inject": "One email names a product integration you do not actually offer, but it reads confident and specific.",
-    "standards_prompt": "Before sales sends AI-drafted outreach, who reviews it, and what must never go into ChatGPT?",
-    "standards_question": "What's one rule sellers must follow before they send ChatGPT-drafted outreach?",
+    "standards_prompt": "Before sales sends AI-drafted outreach, who reviews it, and what must never go into an AI tool?",
+    "standards_question": "What's one rule sellers must follow before they send the AI tool-drafted outreach?",
     "probe_bank": [
       "What would you do first before this batch goes out?",
       "The emails look tailored — what would you check on each one?",
@@ -66,10 +66,10 @@
   },
   "gtm_brand": {
     "primary_title": "Brand campaign review",
-    "primary_setup": "Your brand team used ChatGPT to draft social posts and a press-release quote for a campaign launching Friday.",
+    "primary_setup": "Your brand team used the AI tool to draft social posts and a press-release quote for a campaign launching Friday.",
     "primary_stakes": "Off-brand tone, unapproved claims, or a quote attributed to your CEO that they never said can blow up publicly.",
     "complication_inject": "The draft puts a specific performance claim in the CEO quote. Legal has not cleared that wording.",
-    "standards_prompt": "Before brand publishes AI-assisted copy, who must approve it, and what stays off-limits for ChatGPT?",
+    "standards_prompt": "Before brand publishes AI-assisted copy, who must approve it, and what stays off-limits for the AI tool?",
     "standards_question": "What's one rule your brand team must follow before AI-drafted copy goes public?",
     "probe_bank": [
       "What would you do first when you see these drafts?",
@@ -79,10 +79,10 @@
   },
   "people": {
     "primary_title": "Return-to-office email",
-    "primary_setup": "People Ops used ChatGPT to draft next week's return-to-office email and a short guide for managers.",
+    "primary_setup": "People Ops used the AI tool to draft next week's return-to-office email and a short guide for managers.",
     "primary_stakes": "The draft makes hybrid sound more flexible than your real rule. If that goes out as-is, people will expect the wrong thing.",
     "complication_inject": "The draft says staff can work from home two days a week. Your approved policy is one day.",
-    "standards_prompt": "Who must read people emails before they go to staff? What do you tell your team about putting employee details into ChatGPT?",
+    "standards_prompt": "Who must read people emails before they go to staff? What do you tell your team about putting employee details into an AI tool?",
     "standards_question": "What's one rule before a people-related email goes to staff?",
     "probe_bank": [
       "What do you do first when you see this draft?",
@@ -92,11 +92,11 @@
   },
   "people_ta": {
     "primary_title": "Candidate emails due today",
-    "primary_setup": "A recruiter used ChatGPT to draft rejection emails and an offer letter for a senior hire. They want to send everything today.",
+    "primary_setup": "A recruiter used the AI tool to draft rejection emails and an offer letter for a senior hire. They want to send everything today.",
     "primary_stakes": "Wrong benefits or tone can lose the candidate or create legal trouble.",
     "complication_inject": "The offer includes a signing bonus that is not in your approved pay band. It still reads polished.",
-    "standards_prompt": "Who reviews candidate emails and offers before they go out? What do recruiters never paste into ChatGPT?",
-    "standards_question": "What's one rule before a recruiter sends a ChatGPT-drafted email or offer?",
+    "standards_prompt": "Who reviews candidate emails and offers before they go out? What do recruiters never paste into an AI tool?",
+    "standards_question": "What's one rule before a recruiter sends a the AI tool-drafted email or offer?",
     "probe_bank": [
       "What do you do first when you see these drafts?",
       "The offer looks fine — what do you check before the candidate gets it?",
@@ -105,11 +105,11 @@
   },
   "people_hrbp": {
     "primary_title": "Tough manager conversation",
-    "primary_setup": "A line manager used ChatGPT to draft talking points for a difficult performance conversation with a direct report. The meeting is tomorrow morning.",
+    "primary_setup": "A line manager used the AI tool to draft talking points for a difficult performance conversation with a direct report. The meeting is tomorrow morning.",
     "primary_stakes": "The wrong framing, vague commitments, or language that sounds like a formal warning when it is not can escalate the situation and create ER risk.",
     "complication_inject": "The talking points imply the employee may be let go, but leadership has not approved any separation plan.",
-    "standards_prompt": "Before managers use ChatGPT on performance or coaching conversations, who reviews it, and what employee details stay out of the tool?",
-    "standards_question": "What's one rule managers must follow before they use ChatGPT on performance or coaching notes?",
+    "standards_prompt": "Before managers use an AI tool on performance or coaching conversations, who reviews it, and what employee details stay out of the tool?",
+    "standards_question": "What's one rule managers must follow before they use an AI tool on performance or coaching notes?",
     "probe_bank": [
       "What would you do first when the manager shares these talking points?",
       "The script sounds reasonable — what would you check before the meeting?",
@@ -118,10 +118,10 @@
   },
   "people_ld": {
     "primary_title": "Manager training deck",
-    "primary_setup": "Your L&D team used ChatGPT to draft a 90-minute manager training deck on giving feedback. Facilitators want to run it with a live cohort next week.",
+    "primary_setup": "Your L&D team used the AI tool to draft a 90-minute manager training deck on giving feedback. Facilitators want to run it with a live cohort next week.",
     "primary_stakes": "Outdated examples, wrong company policies quoted as fact, or generic advice that contradicts how your managers actually work will undermine trust in L&D.",
     "complication_inject": "One slide cites a PTO policy that was replaced six months ago, but the deck reads current and authoritative.",
-    "standards_prompt": "Before L&D publishes AI-assisted training materials, who fact-checks them, and what internal data stays out of ChatGPT?",
+    "standards_prompt": "Before L&D publishes AI-assisted training materials, who fact-checks them, and what internal data stays out of the AI tool?",
     "standards_question": "What's one rule your L&D team must follow before AI-drafted training goes to a live cohort?",
     "probe_bank": [
       "What would you do first when reviewing this deck?",
@@ -131,10 +131,10 @@
   },
   "people_comp": {
     "primary_title": "Pay review communications",
-    "primary_setup": "Your comp team used ChatGPT to draft the annual pay-review email to staff and a manager guide explaining the new salary bands. The send is scheduled for Friday.",
+    "primary_setup": "Your comp team used the AI tool to draft the annual pay-review email to staff and a manager guide explaining the new salary bands. The send is scheduled for Friday.",
     "primary_stakes": "Wrong band descriptions, implied promises, or numbers that do not match the approved matrices can cause pay confusion and serious morale fallout.",
     "complication_inject": "The manager guide says most people will get a 5–8% increase. Leadership approved a tighter range that only some roles qualify for.",
-    "standards_prompt": "Before comp communications go out, who reviews them, and what salary or employee data never goes into ChatGPT?",
+    "standards_prompt": "Before comp communications go out, who reviews them, and what salary or employee data never goes into an AI tool?",
     "standards_question": "What's one rule your comp team must follow before pay communications go to staff or managers?",
     "probe_bank": [
       "What would you do first when you see these drafts?",
@@ -144,10 +144,10 @@
   },
   "people_er": {
     "primary_title": "Workplace complaint summary",
-    "primary_setup": "An ER partner used ChatGPT to summarize witness statements and draft a preliminary outcome letter after a workplace complaint. Legal wants it Monday.",
+    "primary_setup": "An ER partner used the AI tool to summarize witness statements and draft a preliminary outcome letter after a workplace complaint. Legal wants it Monday.",
     "primary_stakes": "Missing context, softened findings, or language that prejudges the outcome can harm the investigation and create legal exposure.",
     "complication_inject": "The draft outcome letter sounds like a final decision, but interviews are still open and Legal has not signed off.",
-    "standards_prompt": "Before ER uses ChatGPT on investigations, who reviews outputs, and what case details must never be pasted in?",
+    "standards_prompt": "Before ER uses the AI tool on investigations, who reviews outputs, and what case details must never be pasted in?",
     "standards_question": "What's one rule ER must follow before any AI-drafted investigation summary or letter goes further?",
     "probe_bank": [
       "What would you do first when you see this draft?",
@@ -157,7 +157,7 @@
   },
   "risk": {
     "primary_title": "Vendor security questionnaire",
-    "primary_setup": "A partner bank sends a vendor security form. Your colleague used ChatGPT to fill in the section on how you store customer data and how long you keep it.",
+    "primary_setup": "A partner bank sends a vendor security form. Your colleague used the AI tool to fill in the section on how you store customer data and how long you keep it.",
     "primary_stakes": "If you overstate what you do, or miss how long data is retained, you create audit and legal exposure.",
     "complication_inject": "The draft says you delete all prompts within 24 hours. That is not true for the tool your team actually uses.",
     "standards_prompt": "How would you turn your data-retention policy into simple day-to-day rules people can follow when they answer forms like this?",
@@ -170,10 +170,10 @@
   },
   "fin": {
     "primary_title": "Board deck numbers",
-    "primary_setup": "You owe a section of next week's board deck on revenue and growth. A colleague used ChatGPT to draft the charts and narrative from a spreadsheet.",
+    "primary_setup": "You owe a section of next week's board deck on revenue and growth. A colleague used the AI tool to draft the charts and narrative from a spreadsheet.",
     "primary_stakes": "A confident wrong number in a board pack is worse than a slide that lands a day late.",
     "complication_inject": "The chart swaps Q2 and Q3 growth, but the write-up still sounds sure of itself.",
-    "standards_prompt": "What checks would you want before any number or forecast leaves your desk, whether or not ChatGPT helped write it?",
+    "standards_prompt": "What checks would you want before any number or forecast leaves your desk, whether or not the AI tool helped write it?",
     "standards_question": "What's one rule your team must follow before numbers go into a board deck?",
     "probe_bank": [
       "What would you do first when you see these slides?",
@@ -183,7 +183,7 @@
   },
   "gm": {
     "primary_title": "Pick one AI bet",
-    "primary_setup": "Leadership asks you to choose one AI project for the next six months: automating support replies, or improving sales forecasting. Both teams sent business cases — partly drafted with ChatGPT.",
+    "primary_setup": "Leadership asks you to choose one AI project for the next six months: automating support replies, or improving sales forecasting. Both teams sent business cases — partly drafted with an AI tool.",
     "primary_stakes": "Budget, risk, and leadership attention are limited. Vendor demos often look better than real life.",
     "complication_inject": "One vendor's demo used success numbers that do not match how your actual data behaves.",
     "standards_prompt": "How would you pressure-test a vendor's claims and decide when to stop a pilot before you scale it?",
@@ -220,17 +220,228 @@
       "Who owns the decision to pause or roll back if something goes wrong mid-rollout?"
     ]
   },
-  "care_strategy_ops": {
+  "strategy_ops": {
     "primary_title": "The Monday readout",
-    "primary_setup": "The Head of Strategy & Ops asks you to explain why Care's escalation resolution times slipped last month — he needs a short readout before Monday's leadership review. You have a raw ticket export from the Care system, and you're planning to drop it into ChatGPT to find the pattern and draft the summary.",
-    "primary_stakes": "Leadership will decide staffing and SLA changes off your readout. A pattern that isn't really there — or a number that doesn't tie back to the source — sends the whole team fixing the wrong thing, and it's your name on the analysis.",
-    "complication_inject": "ChatGPT confidently pins the slip on one product queue and hands you a clean chart and narrative. But when you glance at the raw export, that queue's volume barely moved — the model latched onto a mislabeled column.",
-    "standards_prompt": "If analysts across Strategy & Ops start using AI to turn raw operational data into leadership readouts, what would you want them to check before it reaches a Head or exec — and what data should never go into the tool?",
-    "standards_question": "What's one rule you'd want every analyst to follow before an AI-assisted readout goes to leadership?",
+    "primary_setup": "It’s Thursday. The Head of Strategy & Ops pings you: a key operational metric slipped last month and they need a short readout before Monday’s leadership review. You pull the raw export from the operating system — it’s messy, more columns than you need, and some of it is nobody’s business outside the team. You open an AI tool to help you get through it.",
+    "primary_stakes": "Leadership will decide resourcing, process changes, and targets off this readout. Whatever you hand over on Monday becomes the version of events.",
+    "complication_inject": "The draft is convincing — it pins the slip on one cause and cites a real number for it. But that segment is about 4% of volume, nowhere near enough to move the overall metric.",
+    "standards_prompt": "If analysts across the function start using AI to turn raw operational data into leadership readouts, what would you want them to check before it reaches a lead or exec — and what data should never go into the tool?",
+    "standards_question": "What’s one rule you’d want every analyst to follow before an AI-assisted readout goes to leadership?",
+    "question_ladder": {
+      "inputs": "You’ve got the export open next to the AI tool. Talk me through what you’re actually putting in — and is there anything in that file you’d keep out of it?",
+      "output": "Say it comes back with something. What did you ask it for — what does the thing on your screen look like before you start editing?",
+      "validation": "It’s Sunday night, the readout’s drafted, and it goes to leadership in the morning. What are you doing between now and then?"
+    },
+    "gauging": "whether they scope inputs deliberately (D1/D6), brief for a decision-ready output rather than a summary (D2/D4), and verify against the source before it ships (D3)."
+  },
+  "strategy_ops_v2": {
+    "primary_title": "The staffing model",
+    "primary_setup": "Ops leadership wants a resourcing ask for next quarter, and they want it backed by data. You have six months of volume by workstream, and you’re planning to feed it into an AI tool to build the forecast and the business case.",
+    "primary_stakes": "This number becomes the operating plan. Ask for too much capacity and Finance pushes back on the whole team; ask for too little and the workstream gets overwhelmed mid-quarter — either way, it’s your model people point to.",
+    "complication_inject": "The forecast looks tight and well-reasoned. But it treats last month’s one-off launch spike as the new steady-state volume, so the whole quarter is modeled off an outlier.",
+    "standards_prompt": "If analysts across Strategy & Ops start using AI to build resourcing cases, what should they check before a number like this goes to Finance — and what should they flag as an assumption rather than a fact?",
+    "standards_question": "What’s one thing you’d check in an AI-built forecast before it becomes a resourcing ask?",
+    "question_ladder": {
+      "inputs": "You’ve got six months of volume by workstream ready to feed in. Talk me through what you’re actually giving the tool — and is there anything in that history you’d treat carefully before it shapes a forecast?",
+      "output": "Say it comes back with a model. What did you ask it for — a number, a forecast, a full business case? What’s on your screen before you start editing?",
+      "validation": "The ask goes to Finance and ops leadership this week. What happens between the model coming back and the number leaving your hands?"
+    },
+    "gauging": "whether they interrogate the input data before trusting it (D1/D3), brief for a decision-ready business case rather than a raw number (D2/D4), and pressure-test the model against operational reality before it becomes the plan (D3/D6)."
+  },
+  "strategy_ops_v3": {
+    "primary_title": "The vendor benchmark",
+    "primary_setup": "A vendor sent a benchmark report claiming their clients perform better on a key operating metric than your team. Leadership wants a quick comparison slide for next week, and you’re planning to have an AI tool pull your numbers alongside theirs and write the comparison.",
+    "primary_stakes": "This slide will shape whether leadership trusts the vendor’s pitch — and whether your team looks like it’s underperforming by comparison, fairly or not.",
+    "complication_inject": "The comparison reads clean and the gap looks real. But the vendor defines the metric differently than your team does — the model treated the two numbers as directly comparable when they’re not.",
+    "standards_prompt": "When your team uses AI to compare your metrics against an external report, what should they check about how each number is actually defined before it goes on a slide?",
+    "standards_question": "What’s one thing you’d verify before putting an external benchmark next to your own numbers?",
+    "question_ladder": {
+      "inputs": "You’ve got the vendor’s report and your own performance numbers side by side. Talk me through what you’re actually giving the tool — and is there anything in your internal data you’d handle carefully before it sits next to a vendor’s pitch?",
+      "output": "Say it comes back with the comparison. What did you ask it for — a slide, a verdict, a like-for-like table? What’s on your screen before you start editing?",
+      "validation": "Leadership sees this next week, and the vendor will be pushing their version of the story. What happens between the draft and the meeting?"
+    },
+    "gauging": "whether they treat internal performance data as sensitive when placed next to an external party's numbers (D1/D6), brief for a decision-ready comparison rather than a pasted-together slide (D2/D4), and check that metric definitions actually match before benchmarking off them (D3)."
+  },
+  "care_training": {
+    "primary_title": "Go-live on Wednesday",
+    "primary_setup": "A new feature ships Friday and you’re delivering the training to a cohort of agents on Wednesday. The request landed with a tight deadline and Training Design is still updating the deck, so all you have is the launch comms and the KB article. You’re planning to use an AI tool to turn the release notes into a session outline, a few knowledge checks, and a role-play.",
+    "primary_stakes": "These agents go live on the feature right after your session. If they leave with anything that doesn’t match current operational reality, they give customers wrong information, escalations climb, and it traces back to the training.",
+    "complication_inject": "The outline comes back clean and the quiz looks fine. But two answers describe the old refund window — the model blended the pasted release notes with its own assumptions, and the KB article was updated last week with a different SLA.",
+    "standards_prompt": "If trainers across Care start turning release notes and SOPs into training material with AI, what should every trainer verify before it reaches a cohort — and what should never be pasted into the tool?",
+    "standards_question": "What’s one thing you’d want every trainer to check before AI-built material reaches a cohort?",
+    "question_ladder": {
+      "inputs": "All you have is the launch comms and the KB article. Talk me through what you’re giving the tool — and how do you handle the fact that the official deck is still being updated?",
+      "output": "What did you ask it to build — the session outline, the knowledge checks, the role-play, all at once? What’s on your screen before you start editing?",
+      "validation": "The session is Wednesday and agents go live on the feature Friday. What happens between the draft and the cohort seeing it?"
+    },
+    "gauging": "whether they check the currency of their sources before generating (D1/D3), brief the tool with the right material instead of letting it fill gaps (D2), and verify every factual detail against the live KB before a cohort learns it (D3/D5)."
+  },
+  "care_training_v2": {
+    "primary_title": "New hire certification quiz",
+    "primary_setup": "A new cohort certifies at the end of the week, and you need the certification exam ready — the questions and the answer key. You’re planning to build it with an AI tool from the SOP library, fast.",
+    "primary_stakes": "This exam is the gate: pass it and an agent is certified to talk to customers alone. A wrong answer key means you certify someone on something that isn’t actually policy.",
+    "complication_inject": "The exam looks thorough and the answers read authoritative. But one answer key entry states a policy that sounds completely plausible — and isn’t in any SOP you gave it. The model filled a gap with something that just sounds right.",
+    "standards_prompt": "If certification material starts being built with AI, what has to be true before an exam gates anyone — and who owns the answer key being right?",
+    "standards_question": "What’s one check you’d want on every AI-built answer key before it certifies someone?",
+    "question_ladder": {
+      "inputs": "You’re building from the SOP library. What exactly do you feed the tool — the whole library, a selection? How do you decide?",
+      "output": "What did you ask it for — the questions, the answer key, both in one pass? What comes back?",
+      "validation": "Pass this exam and an agent talks to customers alone. What do you do before it gates anyone?"
+    },
+    "gauging": "whether they scope source material deliberately (D1/D2), whether they know models invent plausible-sounding policy to fill gaps (D3), and whether every answer-key entry is traced back to a real SOP before the exam certifies anyone (D3/D5)."
+  },
+  "care_training_v3": {
+    "primary_title": "Cross-training for a new market",
+    "primary_setup": "Care is expanding into a new market next month, and you need to adapt your existing training for the local language and rules in time. You’re planning to have an AI tool translate and localize the material from what you already run.",
+    "primary_stakes": "Agents in the new market go live on this training. If a local regulatory nuance gets lost in translation, they tell customers something that’s fine in your home market but not compliant where they actually are.",
+    "complication_inject": "The localized deck reads fluent and the translation is clean. But one section drops a disclosure that’s optional in your home market and legally required in the new one — the model translated the sentence but not the reason it mattered.",
+    "standards_prompt": "If training gets localized for new markets with AI, what has to be checked before agents are taught from it — and what always goes through local Legal or Compliance no matter the deadline?",
+    "standards_question": "What’s one thing you’d verify in AI-localized training before a new market runs on it?",
+    "question_ladder": {
+      "inputs": "You’re feeding it the training you already run. What context do you give it about the new market beyond ‘translate this’?",
+      "output": "What did you ask it for — a straight translation, a localized rewrite? What does the first pass look like?",
+      "validation": "Agents in the new market go live on this next month. What happens between the localized draft and delivery?"
+    },
+    "gauging": "whether they brief for localization rather than translation (D2), recognize that fluent output can still be non-compliant (D3), and route regulatory content through local review before it goes live (D4/D6)."
+  },
+  "care_content": {
+    "primary_title": "One source of truth",
+    "primary_setup": "A policy just changed — the refund window moved. You need to update the Help Center article, the agent KB macro, and the chatbot flow before customers hit the old information. You’re planning to rewrite all three with an AI tool from the policy update, fast. Whatever you publish is the single source of truth: it reaches customers self-serving, agents citing it, and the bot serving it.",
+    "primary_stakes": "Because it’s the single source of truth across customer, agent, and bot, one wrong detail is wrong everywhere at once. Your name is on the content, and it’s bilingual, so a slip can be wrong in two languages.",
+    "complication_inject": "The rewrite comes back clean and on-brand. But the model blended the new policy with the old one — one sentence still describes the previous refund window — and the Arabic version states the threshold differently than the English.",
+    "standards_prompt": "If content specialists start using AI to update the Knowledge Base, Help Center, and chatbot flows, what has to be checked before it goes live — and what always goes through Legal or Compliance no matter the deadline?",
+    "standards_question": "What’s one thing you’d verify before an AI-updated KB or chatbot answer goes live to customers and agents?",
+    "question_ladder": {
+      "inputs": "You’ve got the policy update in hand and three surfaces to rewrite. What are you giving the tool for each one — and how do you handle the Arabic side?",
+      "output": "What did you ask it for — all three rewrites in one pass, one surface at a time? What’s on your screen before you start editing?",
+      "validation": "Whatever you publish becomes the single source of truth for customers, agents, and the bot at once. What happens before you hit publish?"
+    },
+    "gauging": "whether they brief each surface and language deliberately (D2), verify every policy detail against the source in both languages before publishing (D3), and hold customer-facing copy to an explicit publish-ready bar (D5/D6)."
+  },
+  "care_content_v2": {
+    "primary_title": "FAQ overhaul after a product change",
+    "primary_setup": "A feature just changed and roughly forty FAQ entries reference the old behavior. You’re planning to have an AI tool rewrite all of them in one pass from the product change notes, to get ahead of customer confusion.",
+    "primary_stakes": "These are self-serve — customers read them with no agent in between. If even one rewritten entry drops something true, a customer acts on the gap with nobody there to catch it.",
+    "complication_inject": "The batch comes back consistent and on-brand. But one of the forty entries — the one covering an edge case — quietly drops an exception clause the other thirty-nine didn’t have, because the model pattern-matched it to the rest instead of reading it on its own terms.",
+    "standards_prompt": "If self-serve content gets rewritten in bulk with AI, what has to happen before a batch goes live — and how do you stop a batch review from becoming a skim?",
+    "standards_question": "What’s one check you’d want on every entry in an AI-rewritten batch before customers read it?",
+    "question_ladder": {
+      "inputs": "Forty entries in one pass. What do you give the tool — the change notes, the existing entries, both? Anything in there you’d treat differently from the rest?",
+      "output": "What did you ask it for — a straight rewrite of all forty, or something that flags what it changed? What comes back?",
+      "validation": "These go live self-serve, with no agent in between. What does your check look like across a batch that size?"
+    },
+    "gauging": "whether they design the batch with a real review step rather than trusting consistency at scale (D2/D4), read edge cases on their own terms instead of skimming for pattern (D3), and keep every individual entry publish-ready (D5)."
+  },
+  "care_content_v3": {
+    "primary_title": "Macro library refresh",
+    "primary_setup": "Legal just updated a required disclosure, and it touches dozens of agent macros — the canned replies agents use every day. You’re planning to have an AI tool rewrite the affected macros in the house tone, fast, before agents start using stale ones.",
+    "primary_stakes": "Agents send these verbatim, at volume, all day. If the disclosure isn’t exactly right, it’s wrong on every ticket it touches until someone notices.",
+    "complication_inject": "The rewritten macros read natural and on-brand — noticeably better than the stiff original wording. But in smoothing the tone, the model paraphrased the disclosure sentence that Legal requires verbatim, so it now says something close but not exact.",
+    "standards_prompt": "If the macro library gets refreshed with AI, what has to be protected from a tone pass — and who signs off before agents start sending the new wording?",
+    "standards_question": "What’s one thing you’d check before AI-rewritten macros go into agents’ hands?",
+    "question_ladder": {
+      "inputs": "You’ve got the legal update and dozens of affected macros. What do you give the tool — and is there anything in that disclosure you’d flag before it starts rewriting?",
+      "output": "What did you ask it for — a tone pass, a full rewrite, both? What do the new macros look like?",
+      "validation": "Agents send these verbatim, at volume, the moment they land. What happens before the library updates?"
+    },
+    "gauging": "whether they identify verbatim-required language before generating (D3/D6), brief the tool to protect it explicitly (D2), and diff the legal sentence word-for-word rather than judging by how natural it reads (D3/D5)."
+  },
+  "care_content_incident": {
+    "primary_title": "Incident comms tonight",
+    "primary_setup": "A payment issue is hitting a segment of customers. You need a customer notification (push and in-app), a macro for agents working the queue, and an updated Help Center article — before the queue floods. You're planning to draft all three with an AI tool from the incident summary in the Jira ticket.",
+    "primary_stakes": "This reaches customers at scale and every agent on the queue at once. A detail that shouldn't be public, a claim that isn't compliant, or a macro that contradicts the Help Center article becomes a bigger problem than the incident itself.",
+    "complication_inject": "The draft is on-brand and reads well. But the customer push names a specific technical cause and a fix time Engineering hasn't confirmed — and the Arabic version promises something subtly different about compensation than the English one.",
+    "standards_prompt": "If content specialists across Care draft customer-facing comms with AI, what has to be checked before publish — and what still goes through Compliance and Legal no matter how tight the deadline is?",
+    "standards_question": "What's one thing that always goes through Compliance or Legal before publish, no matter how tight the deadline?",
     "probe_bank": [
-      "What would you actually put into the tool first — and what would you tell it about the question you're answering?",
-      "The summary reads clean and confident — what would you check before you put your name on it?",
-      "Who owns the numbers once this goes up — you, the data team, or the Care lead?"
-    ]
+      "What would you give the tool first — the ticket, the tone-of-voice rules, the approved terminology?",
+      "It's on-brand and reads clean. What would you check before it's scheduled?",
+      "Who signs this off when the deadline is tonight, and what do you do if they're not available?"
+    ],
+    "pool_status": "reserve - validated with Care Content, not in the live 3-variant rotation"
+  },
+  "care_quality": {
+    "primary_title": "Scores before calibration",
+    "primary_setup": "You’ve got a stack of customer interactions to evaluate against the scorecard before tomorrow’s calibration session, and today’s queue is bigger than usual. You’re planning to use an AI tool to speed it up — paste in the chat transcripts, have it score them against the rubric and draft the feedback for each agent.",
+    "primary_stakes": "These scores go to front-line agents as feedback and set the baseline the calibration session aligns on. A score that’s wrong — or feedback that misreads what the agent actually did — lands on someone’s performance record, and QA loses the room the moment an agent pushes back and turns out to be right.",
+    "complication_inject": "The scores come back fast and the feedback reads professional. But on one interaction it marks the agent down for ‘not verifying the customer’s identity’ — when the transcript clearly shows they did; the model blended it with a different case. On another it praises empathy the agent never actually showed.",
+    "standards_prompt": "If quality analysts across Care start using AI to help score interactions and draft feedback, what has to be checked before a score reaches an agent — and what customer data should never be pasted into the tool?",
+    "standards_question": "What’s one check every analyst should do before an AI-assisted score reaches an agent?",
+    "question_ladder": {
+      "inputs": "You’re about to paste a stack of customer chat transcripts into the tool. Talk me through what actually goes in — and is there anything in those transcripts you’d strip out first?",
+      "output": "Say the scores come back. What did you ask it for — just the scores, the rationale behind each one, the drafted feedback? What’s on your screen before you start editing?",
+      "validation": "Calibration is tomorrow morning and this feedback lands on agents’ records. What happens between the scores coming back and the session?"
+    },
+    "gauging": "whether customer transcripts trigger a hard data boundary (D6), whether they brief for scores with cited transcript evidence rather than bare verdicts (D2), and whether they re-check every AI-assisted score against the source transcript before it reaches an agent's record (D3/D4)."
+  },
+  "care_quality_v2": {
+    "primary_title": "The escalation review",
+    "primary_setup": "Leadership wants a quality readout on last week’s escalated tickets before Thursday’s review — what went wrong and where. You have the escalation queue export, and you’re planning to have an AI tool read through it and draft the findings by agent.",
+    "primary_stakes": "This readout names names. If it attributes a mistake to the wrong agent, or blends two different tickets into one story, someone gets blamed for something they didn’t do — in a review leadership actually reads.",
+    "complication_inject": "The write-up reads sharp and specific. But on one finding, it merges the handling from two different tickets into a single narrative — the mistake it describes was actually made by a different agent than the one it names.",
+    "standards_prompt": "If quality readouts across Care start being drafted with AI, what has to be true before a finding names an individual — and what belongs in the export you feed the tool?",
+    "standards_question": "What’s one thing you’d verify before an AI-drafted finding names an agent in front of leadership?",
+    "question_ladder": {
+      "inputs": "The escalation export carries full ticket histories — customer details, agent names, the lot. What goes into the tool, and what doesn’t?",
+      "output": "What did you ask it to produce — a theme summary, findings by agent, a narrative of what went wrong? What comes back?",
+      "validation": "This readout names names in front of leadership on Thursday. What do you do before it goes out?"
+    },
+    "gauging": "whether they handle customer and agent data deliberately (D6), brief for findings tied to specific ticket evidence rather than a free-form narrative (D2/D4), and trace every agent-named finding back to its source ticket before leadership reads it (D3)."
+  },
+  "care_quality_v3": {
+    "primary_title": "Coaching plan for a struggling agent",
+    "primary_setup": "An agent’s scores have been slipping and you need a coaching plan ready before Friday’s 1:1. You’re planning to hand an AI tool their last several call scores and have it draft the plan and the talking points.",
+    "primary_stakes": "This plan sets the tone for a conversation that could go toward a formal process. Overstate the pattern, or get the trend wrong, and you either scare someone unnecessarily or miss what’s actually going on.",
+    "complication_inject": "The plan reads structured and fair. But it states the agent has been ‘consistently below target for three months’ — the data you actually gave it only covers five weeks, and two of those were fine.",
+    "standards_prompt": "If team leads start drafting coaching plans with AI, what has to be checked before one is used in a 1:1 — and what performance data should never be pasted in?",
+    "standards_question": "What’s one thing you’d verify in an AI-drafted coaching plan before you sit down with the person?",
+    "question_ladder": {
+      "inputs": "You’re handing it a named colleague’s performance data. What exactly do you give it — and does anything about that change how you use the tool?",
+      "output": "What are you asking it for — a diagnosis of the trend, the plan, the talking points for the conversation? What does the draft look like?",
+      "validation": "The 1:1 is Friday, and this conversation could move toward a formal process. What do you check before you sit down?"
+    },
+    "gauging": "whether an individual's performance data is treated as sensitive input (D6), whether they brief for a plan grounded in the actual data window rather than a generic template (D2), and whether every stated pattern is verified against the underlying scores before it shapes a career conversation (D3/D4)."
+  },
+  "strategy_ops_v4": {
+    "primary_title": "The campaign renewal",
+    "primary_setup": "The Commercial team ran a co-funded checkout promotion with a major merchant last month, and leadership wants to know whether it paid for itself before committing to a renewal. You have the campaign export — daily GMV, orders, and incentive cost by merchant — and you’re planning to have an AI tool size the uplift and draft the recommendation.",
+    "primary_stakes": "Renew and the spend doubles next quarter; kill it and Commercial loses a flagship merchant story. Either way, your uplift number becomes the benchmark every future campaign ask is judged against.",
+    "question_ladder": {
+      "inputs": "You’ve got the campaign export with merchant-level economics in it. Talk me through what you’re giving the tool — and is there anything in there commercially sensitive enough to handle differently?",
+      "output": "Say it comes back. What did you actually ask for — an uplift number, a verdict, a renewal recommendation? What’s on your screen before you start editing?",
+      "validation": "Commercial leadership sees this Thursday. What happens between the draft and the meeting?"
+    },
+    "complication_inject": "The draft credits the campaign with a clean double-digit GMV lift. But the promo window sat on top of a seasonal peak that lifts volume every year — the model never separated baseline seasonality from campaign effect.",
+    "gauging": "whether they treat commercial terms as sensitive input (D1/D6), brief for a decision — renew or not — rather than a summary of the data (D2/D4), and test the uplift against a baseline before it becomes the benchmark (D3).",
+    "standards_prompt": "If the Commercial team starts using AI to size campaign performance, what should everyone check before an uplift number becomes the case for renewal — and what merchant terms should never go into the tool?",
+    "standards_question": "What’s one thing you’d verify in an AI-built uplift number before it justifies more spend?"
+  },
+  "strategy_ops_v5": {
+    "primary_title": "The dormant cohort",
+    "primary_setup": "Personal Banking leadership wants to know why a recent customer cohort went quiet — accounts opened, cards issued, then usage dropped off. You pull the account-level export — real customer records, balances, and activity — and you’re planning to work through it with an AI tool to find the story.",
+    "primary_stakes": "The answer decides whether the fix is onboarding, product, or a re-engagement campaign — three different owners and three different budgets. Point at the wrong one and a quarter of retention spend chases the wrong problem.",
+    "question_ladder": {
+      "inputs": "That export is full customer records — names, IDs, balances, transactions. Talk me through what actually goes into the tool, and what doesn’t.",
+      "output": "What are you asking it to find — a narrative, a segmentation, a ranked list of causes? What does the first pass look like?",
+      "validation": "Before you tell leadership why customers went quiet, what do you check?"
+    },
+    "complication_inject": "The draft pins the drop on a specific onboarding change, and it reads convincing. But the cohort definition shifted mid-period — later accounts skew to a different acquisition channel — so part of the ‘drop’ is a mix shift, not a behavior change.",
+    "gauging": "whether customer PII triggers a hard data boundary (D6), whether they brief toward an actionable diagnosis rather than a description (D2/D4), and whether they check the cohort is comparable before trusting the trend (D1/D3).",
+    "standards_prompt": "If analysts start working through account-level customer data with AI, what has to be true before anything is pasted in — and what has to be checked before a cohort story reaches leadership?",
+    "standards_question": "What’s one rule you’d want every analyst to follow before customer records go anywhere near an AI tool?"
+  },
+  "strategy_ops_v6": {
+    "primary_title": "The approvals slowdown",
+    "primary_setup": "Business Banking flags that SME financing approvals are slowing, and leadership wants to know whether it’s credit policy or operational capacity before they change either. You have the pipeline export by application stage, and you’re planning to have an AI tool build the funnel analysis and the recommendation.",
+    "primary_stakes": "Call it policy and Risk retunes the credit box; call it capacity and Ops hires. The wrong diagnosis fixes the wrong thing for a quarter — and SMEs keep waiting either way.",
+    "question_ladder": {
+      "inputs": "The pipeline export carries business financials and owner details. What are you giving the tool — and does anything in there change how you use it?",
+      "output": "What did you ask it to build — a funnel, a diagnosis, a recommendation between the two causes? What comes back?",
+      "validation": "Risk and Ops will both read this looking for their own numbers. What do you do before it goes out?"
+    },
+    "complication_inject": "The analysis says approval rates fell five points, and it’s confident about it. But mid-period the application form changed, so the funnel now counts started applications that never used to exist — the denominator moved, not the approvals.",
+    "gauging": "whether they handle SME financial data deliberately (D6), frame the ask as a decision between two causes rather than a data dump (D2/D4), and interrogate a metric's definition before diagnosing off it (D1/D3).",
+    "standards_prompt": "If Business Banking starts diagnosing funnel problems with AI, what should be checked before a diagnosis sends Risk or Ops into action — and what customer or business data stays out of the tool?",
+    "standards_question": "What’s one thing you’d check before an AI-built funnel analysis tells Risk to change policy?"
   }
 }

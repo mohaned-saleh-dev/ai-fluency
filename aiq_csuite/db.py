@@ -219,6 +219,19 @@ def init_db():
         # Idempotent migrations for pre-existing DBs (older rows lack newer columns).
         _ensure_session_column(c, "participant_name", "TEXT")
         _ensure_session_column(c, "session_enrichment_json", "TEXT")
+        # Retake tracking: which participant, which attempt, and which scenario variant
+        # they were served — so a retake can rotate to one they have not seen.
+        _ensure_session_column(c, "participant_key", "TEXT")
+        _ensure_session_column(c, "attempt_no", "INTEGER")
+        _ensure_session_column(c, "role_key", "TEXT")
+        _ensure_session_column(c, "scenario_key", "TEXT")
+        try:
+            c.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sess_participant "
+                "ON sessions(participant_key, role_key)"
+            )
+        except Exception:
+            pass
         if DB_BACKEND == "postgres":
             _ensure_postgres_app_grants(c)
 
@@ -317,14 +330,20 @@ def new_session(
     client_meta: Optional[dict],
     variation: dict,
     target_role: Optional[str] = None,
+    participant_key: Optional[str] = None,
+    attempt_no: int = 1,
+    role_key: Optional[str] = None,
+    scenario_key: Optional[str] = None,
 ) -> str:
     sid = str(uuid.uuid4())
     now = time.time()
     tr = target_role if (target_role and str(target_role).strip()) else "all_levels"
     with get_conn() as c:
         c.execute(
-            """INSERT INTO sessions (id, created_at, started_at, user_agent, client_meta_json, variation_json, target_role)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO sessions (id, created_at, started_at, user_agent, client_meta_json,
+                                     variation_json, target_role, participant_key, attempt_no,
+                                     role_key, scenario_key)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 sid,
                 now,
@@ -333,9 +352,40 @@ def new_session(
                 json.dumps(client_meta or {}),
                 json.dumps(variation),
                 tr,
+                (participant_key or "").strip()[:120] or None,
+                max(1, int(attempt_no or 1)),
+                (role_key or "").strip()[:80] or None,
+                (scenario_key or "").strip()[:80] or None,
             ),
         )
     return sid
+
+
+def participant_history(participant_key: str, role_key: str) -> Dict[str, Any]:
+    """Completed, scored attempts this participant has already made at this role.
+
+    An attempt only counts once it produced a report (``last_scores_json``). A session
+    that was abandoned or timed out does not burn a scenario variant — which is what
+    makes a restarted first attempt land on the same scenario rather than rotating.
+    """
+    key = (participant_key or "").strip()
+    role = (role_key or "").strip()
+    if not key or not role:
+        return {"attempts": 0, "served": []}
+    with get_conn() as c:
+        rows = c.execute(
+            """SELECT scenario_key FROM sessions
+               WHERE participant_key = ? AND role_key = ?
+                 AND completed = 1 AND last_scores_json IS NOT NULL
+               ORDER BY created_at""",
+            (key, role),
+        ).fetchall()
+    served: List[str] = []
+    for r in rows:
+        v = _row_get(r, "scenario_key")
+        if v and v not in served:
+            served.append(str(v))
+    return {"attempts": len(rows), "served": served}
 
 
 def insert_message(
@@ -540,6 +590,10 @@ def session_stats(session_id: str) -> Dict[str, Any]:
         "user_agent": s["user_agent"],
         "client_meta": json.loads(s["client_meta_json"]) if s["client_meta_json"] else {},
         "participant_name": _row_get(s, "participant_name") or "",
+        "participant_key": _row_get(s, "participant_key") or "",
+        "attempt_no": _row_get(s, "attempt_no") or 1,
+        "role_key": _row_get(s, "role_key") or "",
+        "scenario_key": _row_get(s, "scenario_key") or "",
     }
 
 

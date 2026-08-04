@@ -1,4 +1,6 @@
+import csv
 import hashlib
+import io
 import json
 import os
 import re
@@ -47,6 +49,7 @@ from db import (
     get_session_enrichment,
     init_db,
     new_session,
+    participant_history,
     insert_message,
     list_messages,
     insert_event,
@@ -64,6 +67,7 @@ import scenario_engine as se
 from assessment_profiles import (
     DEFAULT_FAMILY,
     DEFAULT_LEVEL,
+    DIMENSION_DECK_LABELS,
     JOB_FAMILIES,
     LEVELS,
     build_assessment_block,
@@ -596,11 +600,59 @@ def start_session():
     level = body.get("level")
     job_family = body.get("job_family")
     job_function = body.get("job_function")
+    participant_key = str(body.get("participant_key") or "").strip()[:120]
     ass = build_assessment_block(level, job_family, job_function)
-    var = llm.build_variation_for_session(client_seed, ass)
+
+    # Retake rotation. Without a participant key (older clients, or a browser that lost
+    # its storage) we cannot recognise a returning person, so the session is treated as a
+    # first attempt and nothing is capped — better a repeated scenario than a blocked one.
+    init_db()
+    role_key, pool = se.scenario_pool_for(ass)
+    history = participant_history(participant_key, role_key) if participant_key else {
+        "attempts": 0,
+        "served": [],
+    }
+    attempt_no = int(history["attempts"]) + 1
+    served = list(history["served"])
+    if pool and participant_key and len([s for s in served if s in pool]) >= len(pool):
+        # Every variant for this role has been served. Fresh attempts pause here rather
+        # than repeating a twist the person already knows, which would measure memory
+        # instead of the verification habit.
+        return jsonify(
+            {
+                "error": (
+                    f"You have already completed all {len(pool)} scenarios available for this "
+                    "role. Retakes pause here until new scenarios are added — repeating one you "
+                    "have seen would measure memory of the twist, not how you actually work."
+                ),
+                "code": "retake_pool_exhausted",
+                "attempts_used": history["attempts"],
+                "pool_size": len(pool),
+            }
+        ), 409
+
+    var = llm.build_variation_for_session(
+        client_seed,
+        ass,
+        attempt_no=attempt_no,
+        served=served,
+        selection_seed=participant_key or client_seed,
+    )
+    plan = var.get("scenario_plan") or {}
+    # Carry the attempt onto the assessment block: it travels with every report, admin
+    # view, and API response, so any comparison across people or over time can tell a
+    # first attempt from a retake.
+    ass["attempt"] = plan.get("attempt") or {"number": attempt_no, "pool_size": len(pool)}
     var["assessment"] = ass
     sid = new_session(
-        user_agent, client_meta, var, target_role=ass.get("profile_id", "all_levels")
+        user_agent,
+        client_meta,
+        var,
+        target_role=ass.get("profile_id", "all_levels"),
+        participant_key=participant_key,
+        attempt_no=attempt_no,
+        role_key=role_key,
+        scenario_key=str(plan.get("cluster") or ""),
     )
     if _uses_scenario_stack(var):
         insert_event(
@@ -616,6 +668,7 @@ def start_session():
             "opening": opening,
             "target_duration_sec": TARGET_DURATION_SEC,
             "assessment": ass,
+            "attempt": plan.get("attempt") or {"number": attempt_no, "pool_size": len(pool)},
             "variation_themes_sample": {k: v for k, v in var.items() if str(k).endswith("_theme")},
             "progress": _progress_payload_for_session(sid),
         }
@@ -645,6 +698,22 @@ def track_event(session_id: str):
     et = b.get("type", "beacon")
     insert_event(session_id, et, b)
     return jsonify({"ok": True})
+
+
+def _last_ladder_state(messages: List[dict]) -> Optional[dict]:
+    """Ladder state carried on the most recent interviewer turn.
+
+    Stored on the message rather than the session row so it survives alongside the
+    transcript it describes, and so a replayed or repaired session cannot inherit a
+    ladder position from a different conversation.
+    """
+    for m in reversed(messages or []):
+        if (m.get("role") or "") != "model":
+            continue
+        flags = m.get("flags")
+        if isinstance(flags, dict) and isinstance(flags.get("ladder"), dict):
+            return flags["ladder"]
+    return None
 
 
 @app.route("/api/session/<session_id>/message", methods=["POST"])
@@ -705,11 +774,14 @@ def send_message(session_id: str):
     dimension_shift = None
     phase_shift = None
     session_suggests_complete = False
+    reply_flags: Optional[dict] = None
     try:
         if _uses_scenario_stack(var):
             # v3 conversational engine: the LLM owns the whole turn — reacting to what the
             # participant said, weaving in the scenario material, answering meta questions,
-            # steering toward thin evidence areas. The server only enforces the turn cap.
+            # steering toward thin evidence areas. The server enforces the turn cap and,
+            # for scenarios with a question ladder, the order of the three questions and
+            # the fact that the twist stays holstered until they are all answered.
             user_turn_n = sum(1 for m in all_m if (m.get("role") or "") == "user")
             force_close = user_turn_n >= ce.MAX_USER_TURNS
             turn = ce.run_turn(
@@ -718,9 +790,12 @@ def send_message(session_id: str):
                 user_text,
                 force_close=force_close,
                 context_note=ctx,
+                ladder_state=_last_ladder_state(all_m),
             )
             reply = (turn.get("reply") or "").strip()
             session_suggests_complete = bool(turn.get("session_suggests_complete"))
+            if turn.get("ladder"):
+                reply_flags = {"ladder": turn["ladder"]}
         else:
             coverage_state = _coverage_state_for_session(session_id)
             reply = llm.run_interviewer_reply(
@@ -755,7 +830,7 @@ def send_message(session_id: str):
     if not (reply and reply.strip()):
         return jsonify({"error": "Empty model response"}), 502
 
-    insert_message(session_id, "model", reply)
+    insert_message(session_id, "model", reply, reply_flags)
     if phase_shift and phase_shift.get("phase"):
         insert_event(
             session_id,
@@ -2270,6 +2345,263 @@ def admin_set_participant_name(session_id: str):
     if not set_session_participant_name(session_id, name):
         return jsonify({"error": "not found"}), 404
     return jsonify({"ok": True, "participant_name": (name or "").strip()[:120]})
+
+
+# Flat, one-row-per-session view of a pilot. Deliberately the single source for both the
+# CSV and the cohort summary, so a number quoted in the UI and the same number in a
+# spreadsheet can never disagree.
+_EXPORT_COLUMNS = [
+    "session_id", "started_at", "ended_at", "completed", "participant_name",
+    "participant_key", "level", "job_family", "role", "role_key", "scenario_key",
+    "scenario_title", "attempt_no", "duration_sec", "user_messages", "tab_blur_count", "expected_score",
+    "D1", "D2", "D3", "D4", "D5", "D6", "AiQ", "band", "low_signal", "low_signal_reason",
+]
+
+
+def _export_rows() -> List[dict]:
+    with get_conn() as c:
+        rows = c.execute("SELECT * FROM sessions ORDER BY created_at DESC").fetchall()
+    out: List[dict] = []
+    for r in rows:
+        sid = r["id"]
+        var = json.loads(_row_get(r, "variation_json") or "{}") or {}
+        ass = var.get("assessment") or {}
+        plan = var.get("scenario_plan") or {}
+        scores = json.loads(_row_get(r, "last_scores_json") or "null") or {}
+        cmeta = json.loads(_row_get(r, "client_meta_json") or "{}") or {}
+        st = session_stats(sid)
+        has_scores = bool(scores)
+        readiness = _session_readiness_payload(sid) if has_scores else {}
+        low_cov = bool(has_scores and readiness.get("warning_level") == "strong")
+        low_eff = bool(has_scores and readiness.get("low_effort"))
+        reason = ""
+        if low_cov and low_eff:
+            reason = "coverage+effort"
+        elif low_eff:
+            reason = "effort"
+        elif low_cov:
+            reason = "coverage"
+        row = {
+            "session_id": sid,
+            "started_at": _iso(_row_get(r, "created_at")),
+            "ended_at": _iso(_row_get(r, "ended_at")),
+            "completed": 1 if _row_get(r, "completed") else 0,
+            "participant_name": _row_get(r, "participant_name") or "",
+            "participant_key": _row_get(r, "participant_key") or "",
+            "level": ass.get("level") or "",
+            "job_family": ass.get("job_family") or "",
+            "role": ass.get("job_function_label") or ass.get("job_family_label") or "",
+            "role_key": _row_get(r, "role_key") or "",
+            "scenario_key": _row_get(r, "scenario_key") or plan.get("cluster") or "",
+            "scenario_title": (plan.get("primary") or {}).get("title") or "",
+            "attempt_no": _row_get(r, "attempt_no") or "",
+            "duration_sec": st.get("duration_sec"),
+            "user_messages": st.get("user_messages"),
+            "tab_blur_count": st.get("tab_blur_count"),
+            # Self-predicted score from the pre-chat slider — the one independent reading
+            # captured today, and the basis of the self-vs-measured check.
+            "expected_score": cmeta.get("expected_score")
+            if isinstance(cmeta.get("expected_score"), (int, float))
+            else "",
+            "AiQ": scores.get("AiQ_0_100") if has_scores else "",
+            "band": scores.get("maturity_band") or "" if has_scores else "",
+            "low_signal": 1 if (low_cov or low_eff) else 0,
+            "low_signal_reason": reason,
+        }
+        for i in range(1, 7):
+            blk = scores.get(f"D{i}") if isinstance(scores.get(f"D{i}"), dict) else {}
+            row[f"D{i}"] = blk.get("score") if has_scores else ""
+        out.append(row)
+    return out
+
+
+def _median(vals: List[float]) -> Optional[float]:
+    s = sorted(v for v in vals if isinstance(v, (int, float)))
+    if not s:
+        return None
+    mid = len(s) // 2
+    return round(s[mid] if len(s) % 2 else (s[mid - 1] + s[mid]) / 2.0, 1)
+
+
+def _pct(vals: List[float], p: float) -> Optional[float]:
+    """Linear-interpolated percentile. Small-n friendly: no binning, no assumptions."""
+    s = sorted(v for v in vals if isinstance(v, (int, float)))
+    if not s:
+        return None
+    if len(s) == 1:
+        return round(s[0], 1)
+    k = (len(s) - 1) * p
+    lo, hi = int(k), min(int(k) + 1, len(s) - 1)
+    return round(s[lo] + (s[hi] - s[lo]) * (k - lo), 1)
+
+
+def _spread(vals: List[float]) -> Dict[str, Any]:
+    """Does the instrument separate people at all? A tight cluster means it does not,
+    whatever shape the histogram happens to make."""
+    s = sorted(v for v in vals if isinstance(v, (int, float)))
+    n = len(s)
+    if not n:
+        return {"n": 0}
+    mean = sum(s) / n
+    sd = (sum((x - mean) ** 2 for x in s) / n) ** 0.5 if n > 1 else 0.0
+    p25, p75 = _pct(s, 0.25), _pct(s, 0.75)
+    return {
+        "n": n,
+        "min": round(s[0], 1),
+        "max": round(s[-1], 1),
+        "median": _median(s),
+        "mean": round(mean, 1),
+        "sd": round(sd, 1),
+        "p25": p25,
+        "p75": p75,
+        "iqr": round((p75 - p25), 1) if (p25 is not None and p75 is not None) else None,
+    }
+
+
+def _distribution_block(rows: List[dict]) -> Dict[str, Any]:
+    """Score distributions for the admin charts.
+
+    Deliberately reports floor/ceiling pile-up and spread alongside the histogram. A
+    bell-shaped picture is not evidence the assessment works — a instrument measuring
+    verbosity would also produce one. What a distribution *can* show is failure: everyone
+    bunched together (not discriminating), or piled on a boundary (the scale is not
+    reaching them).
+    """
+    scored = [r for r in rows if isinstance(r.get("AiQ"), (int, float))]
+    comps = [r["AiQ"] for r in scored]
+
+    bins = []
+    for lo in range(0, 100, 10):
+        hi = lo + 10
+        n = sum(1 for v in comps if (v >= lo and (v < hi or (hi == 100 and v <= 100))))
+        bins.append({"lo": lo, "hi": hi, "n": n})
+
+    dims = []
+    for i in range(1, 7):
+        code = f"D{i}"
+        vals = [r[code] for r in scored if isinstance(r.get(code), (int, float))]
+        sp = _spread(vals)
+        n = sp.get("n") or 0
+        # Buckets follow the published behavioural anchors, so a "dead" dimension is
+        # visible as a single band holding nearly everyone.
+        low = sum(1 for v in vals if v <= 3.0)
+        high = sum(1 for v in vals if v >= 8.0)
+        mid = n - low - high
+        dims.append(
+            {
+                "code": code,
+                "label": DIMENSION_DECK_LABELS.get(code, code),
+                "anchor_bands": {"low": low, "mid": mid, "high": high},
+                "at_floor_pct": round(100.0 * low / n, 1) if n else None,
+                "at_ceiling_pct": round(100.0 * high / n, 1) if n else None,
+                **sp,
+            }
+        )
+
+    # Self-predicted vs measured. The participant sets a 0-100 expectation before the
+    # chat; it is the one independent reading available without extra instrumentation.
+    pairs = []
+    for r in scored:
+        exp = r.get("expected_score")
+        if isinstance(exp, (int, float)):
+            pairs.append({"expected": round(float(exp), 1), "actual": r["AiQ"]})
+
+    return {
+        "composite": {"bins": bins, **_spread(comps)},
+        "dimensions": dims,
+        "self_vs_actual": pairs,
+    }
+
+
+@app.route("/api/admin/export.csv", methods=["GET"])
+def admin_export_csv():
+    """One row per session, every number behind it. What a pilot actually gets analysed from."""
+    db_err = _init_db_or_response()
+    if db_err:
+        return db_err
+    if not _admin_ok():
+        return jsonify({"error": "unauthorized"}), 401
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=_EXPORT_COLUMNS, extrasaction="ignore")
+    w.writeheader()
+    for row in _export_rows():
+        w.writerow(row)
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="aiq_pilot_export.csv"'},
+    )
+
+
+@app.route("/api/admin/summary", methods=["GET"])
+def admin_summary():
+    """Cohort view of the pilot: how many ran, how many finished, and how scores sit by
+    role. Medians rather than means — a pilot is small enough that one outlier moves a
+    mean, and low-signal runs are counted separately rather than silently averaged in."""
+    db_err = _init_db_or_response()
+    if db_err:
+        return db_err
+    if not _admin_ok():
+        return jsonify({"error": "unauthorized"}), 401
+    rows = _export_rows()
+    scored = [r for r in rows if isinstance(r.get("AiQ"), (int, float))]
+    clean = [r for r in scored if not r["low_signal"]]
+
+    by_role: Dict[str, dict] = {}
+    for r in scored:
+        key = r["role"] or r["role_key"] or "unknown"
+        b = by_role.setdefault(
+            key, {"role": key, "sessions": 0, "low_signal": 0, "aiq": [], "dims": {f"D{i}": [] for i in range(1, 7)}}
+        )
+        b["sessions"] += 1
+        b["low_signal"] += r["low_signal"]
+        b["aiq"].append(r["AiQ"])
+        for i in range(1, 7):
+            if isinstance(r.get(f"D{i}"), (int, float)):
+                b["dims"][f"D{i}"].append(r[f"D{i}"])
+    roles = []
+    for b in by_role.values():
+        roles.append(
+            {
+                "role": b["role"],
+                "sessions": b["sessions"],
+                "low_signal": b["low_signal"],
+                "median_aiq": _median(b["aiq"]),
+                "median_dims": {k: _median(v) for k, v in b["dims"].items()},
+            }
+        )
+    roles.sort(key=lambda x: (-x["sessions"], x["role"]))
+
+    bands: Dict[str, int] = {}
+    for r in scored:
+        if r["band"]:
+            bands[r["band"]] = bands.get(r["band"], 0) + 1
+
+    scenarios: Dict[str, int] = {}
+    for r in rows:
+        if r["scenario_key"]:
+            scenarios[r["scenario_key"]] = scenarios.get(r["scenario_key"], 0) + 1
+
+    started = len(rows)
+    return jsonify(
+        {
+            "started": started,
+            "completed": sum(1 for r in rows if r["completed"]),
+            "scored": len(scored),
+            "retakes": sum(1 for r in rows if isinstance(r["attempt_no"], int) and r["attempt_no"] > 1),
+            "completion_rate": round(100.0 * sum(1 for r in rows if r["completed"]) / started, 1) if started else None,
+            "low_signal": sum(1 for r in scored if r["low_signal"]),
+            "median_aiq_all": _median([r["AiQ"] for r in scored]),
+            "median_aiq_clean": _median([r["AiQ"] for r in clean]),
+            "median_duration_sec": _median([r["duration_sec"] for r in rows if r["duration_sec"]]),
+            "median_user_messages": _median([r["user_messages"] for r in rows if r["user_messages"]]),
+            "bands": bands,
+            "by_role": roles,
+            "scenario_coverage": scenarios,
+            "distribution": _distribution_block(rows),
+            "dimension_labels": DIMENSION_DECK_LABELS,
+        }
+    )
 
 
 if __name__ == "__main__":

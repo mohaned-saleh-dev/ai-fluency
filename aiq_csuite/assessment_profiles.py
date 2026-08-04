@@ -65,13 +65,51 @@ _FAMILY_DELTAS: Dict[str, Tuple[float, float, float, float, float, float]] = {
     "other": (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 }
 
+# Fine-grained lean by *specific job function* (scenario key), applied on top of
+# level × family and then renormalized. Small by design: it nudges a role toward its
+# real centre of gravity, it does not override the level/family system. This is why
+# two people with identical demonstrated behaviour can land on different composites —
+# each role weights the six dimensions by what that job actually rides on.
+#                    D1     D2     D3     D4     D5     D6
+_FUNCTION_DELTAS: Dict[str, Tuple[float, float, float, float, float, float]] = {
+    # Strategy & Ops: turns raw data into leadership decisions — critical judgment on
+    # what the data really says (D3) and how it feeds decisions (D4) lead; little
+    # external "craft" (D5). Lands IC on .190/.140/.270/.240/.070/.090 (the published
+    # Strategy & Ops table); do not retune without updating that table too.
+    "strategy_ops":  (0.00, 0.00, 0.04, 0.04, -0.02, -0.06),
+    # Care-labelled Strategy & Ops is the same job with a different entry point in the
+    # picker — same lean, same scenario pool (see scenario_engine._FUNCTION_ALIASES).
+    "care_strategy_ops": (0.00, 0.00, 0.04, 0.04, -0.02, -0.06),
+    # Care Quality: evaluating interactions against a rubric *is* the job, so critical
+    # judgment (D3) dominates; scoring off customer transcripts adds a data floor (D6).
+    "care_quality":  (-0.02, -0.03, 0.08, -0.02, -0.04, 0.03),
+    # Care Training: builds material a cohort relies on — briefing the tool well (D2)
+    # and the craft/fit of the material (D5) lead; less customer-data risk than content.
+    "care_training": (-0.02, 0.05, 0.02, -0.01, 0.06, -0.05),
+    # Care Content: customer-facing copy at scale — compliance/risk (D6) and on-brand
+    # craft (D5) are the ballgame; less about internal workflow ownership (D4).
+    "care_content":  (-0.03, -0.02, 0.02, -0.04, 0.06, 0.01),
+}
+
 DEFAULT_LEVEL = "head_of"
 DEFAULT_FAMILY = "general_management"
 
 # Participant-facing labels for specific job functions (scenario keys). The coarse
 # job_family still drives weights; this label is what the person actually picked.
 JOB_FUNCTION_LABELS: Dict[str, str] = {
+    "strategy_ops": "Strategy & Ops",
     "care_strategy_ops": "Strategy & Ops (Care)",
+    "care_quality": "Quality (Care)",
+    "care_training": "Training (Care)",
+    "care_content": "Content (Care)",
+    # Care roles without a bespoke scenario yet — fall back to the generalized Care
+    # scenario (ops: "Angry VIP customer") / product scenario, but keep a proper label.
+    "care_customer_advisor": "Customer Care Advisor",
+    "care_partner_advisor": "Partner Care Advisor",
+    "care_escalations": "Escalations & Disputes (Care)",
+    "care_workforce": "Workforce / RTA (Care)",
+    "care_tech": "Care Tech",
+    "care_general": "Care (general)",
 }
 
 
@@ -243,17 +281,21 @@ def write_orchestrator_weights_file(payload: Dict[str, Any]) -> None:
     _ORCH_WEIGHTS_PATH.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def _weights_from_deltas(lev: str, fam: str) -> Dict[str, float]:
+def _weights_from_deltas(lev: str, fam: str, func: Optional[str] = None) -> Dict[str, float]:
     base, ld_map, fd_map = _effective_weight_tables()
     ld = ld_map.get(lev) or ld_map.get(DEFAULT_LEVEL) or _LEVEL_DELTAS[DEFAULT_LEVEL]
     fd = fd_map.get(fam) or fd_map.get("other") or _FAMILY_DELTAS["other"]
+    # Optional per-function lean (specific role within the family); absent → no-op.
+    fnd = _FUNCTION_DELTAS.get((func or "").strip()) if func else None
     if ld is None:  # pragma: no cover
         ld = (0.0,) * 6
     if fd is None:  # pragma: no cover
         fd = (0.0,) * 6
+    if fnd is None:
+        fnd = (0.0,) * 6
     combined: List[float] = []
     for i in range(6):
-        v = base[i] + ld[i] + fd[i]
+        v = base[i] + ld[i] + fd[i] + fnd[i]
         combined.append(v)
     n6 = _norm6(tuple(combined))  # type: ignore
     return {c: n6[i] for i, c in enumerate(_DIM_ORDER)}
@@ -364,10 +406,11 @@ def build_assessment_block(
 ) -> Dict[str, Any]:
     level = _coerce_level(level_raw)
     fam = _coerce_family(family_raw)
-    # Specific job function (e.g. "care_strategy_ops") selects a tailored scenario;
-    # it does not affect dimension weights, which stay keyed to level × family.
+    # Specific job function (e.g. "care_content") selects a tailored scenario *and*,
+    # when it has an entry in _FUNCTION_DELTAS, applies a small role-specific lean on
+    # top of the level × family weights (see _FUNCTION_DELTAS for the rationale).
     func = (function_raw or "").strip() or None
-    w = _weights_from_deltas(level, fam)
+    w = _weights_from_deltas(level, fam, func)
     pid = profile_id(level, fam)
     a, b = _top_two_dimensions_by_weight(w)
     return {

@@ -1,0 +1,895 @@
+<title>AiQ Care Rollout — Plan</title>
+
+<style>
+  :root {
+    /* Tamara Visual Identity 2025 — tokens mirrored from static/brand.css */
+    --lavender: #9600f1;
+    --zingy: #5300ba;
+    --lilac: #cea4ff;
+    --sky: #5b22ff;
+    --pink: #ff36b7;
+
+    --ground: #f2f2ff;
+    --surface: #ffffff;
+    --surface-2: #fbfaff;
+    --ink: #2a3051;
+    --ink-muted: #545b82;
+    --ink-soft: #7c83a8;
+    --border: #e0dcf0;
+    --border-soft: #ebe8f7;
+    --weekend: rgba(42, 48, 81, 0.045);
+    --rule: rgba(42, 48, 81, 0.1);
+
+    --t-scenario: #9600f1;
+    --t-build: #5b22ff;
+    --t-pilot: #ff36b7;
+    --t-infra: #6f76a0;
+
+    --font-body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+    --day: 22px;
+    --label-w: 268px;
+    --row-h: 40px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #12142a;
+      --surface: #1b1e3a;
+      --surface-2: #212446;
+      --ink: #e9e7f7;
+      --ink-muted: #a8adcf;
+      --ink-soft: #8087ad;
+      --border: #313568;
+      --border-soft: #282c56;
+      --weekend: rgba(255, 255, 255, 0.035);
+      --rule: rgba(255, 255, 255, 0.09);
+
+      --t-scenario: #c07aff;
+      --t-build: #9370ff;
+      --t-pilot: #ff6ecb;
+      --t-infra: #9aa2ce;
+      --lilac: #a97fe0;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #12142a;
+    --surface: #1b1e3a;
+    --surface-2: #212446;
+    --ink: #e9e7f7;
+    --ink-muted: #a8adcf;
+    --ink-soft: #8087ad;
+    --border: #313568;
+    --border-soft: #282c56;
+    --weekend: rgba(255, 255, 255, 0.035);
+    --rule: rgba(255, 255, 255, 0.09);
+    --t-scenario: #c07aff;
+    --t-build: #9370ff;
+    --t-pilot: #ff6ecb;
+    --t-infra: #9aa2ce;
+    --lilac: #a97fe0;
+  }
+
+  :root[data-theme="light"] {
+    --ground: #f2f2ff;
+    --surface: #ffffff;
+    --surface-2: #fbfaff;
+    --ink: #2a3051;
+    --ink-muted: #545b82;
+    --ink-soft: #7c83a8;
+    --border: #e0dcf0;
+    --border-soft: #ebe8f7;
+    --weekend: rgba(42, 48, 81, 0.045);
+    --rule: rgba(42, 48, 81, 0.1);
+    --t-scenario: #9600f1;
+    --t-build: #5b22ff;
+    --t-pilot: #ff36b7;
+    --t-infra: #6f76a0;
+    --lilac: #cea4ff;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  /* ---------- header ---------- */
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin: 0 0 0.75rem;
+  }
+
+  h1 {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    text-wrap: balance;
+    margin: 0 0 0.6rem;
+  }
+
+  .lede {
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 1.75rem;
+  }
+
+  .fact {
+    background: var(--surface);
+    padding: 1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .fact dt {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .fact dd {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fact dd small {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    letter-spacing: 0;
+  }
+
+  /* ---------- section furniture ---------- */
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  h2 {
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ---------- legend ---------- */
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+
+  .swatch {
+    width: 22px;
+    height: 9px;
+    border-radius: 3px;
+    flex: none;
+  }
+
+  .swatch.diamond {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    rotate: 45deg;
+    background: var(--ink);
+  }
+
+  /* ---------- gantt ---------- */
+
+  .chart {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .scroller {
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .inner {
+    width: max-content;
+    min-width: 100%;
+    position: relative;
+  }
+
+  .weekends {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--label-w);
+    right: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      repeating-linear-gradient(to right,
+        var(--rule) 0, var(--rule) 1px,
+        transparent 1px, transparent calc(7 * var(--day))),
+      repeating-linear-gradient(to right,
+        transparent 0, transparent calc(2 * var(--day)),
+        var(--weekend) calc(2 * var(--day)), var(--weekend) calc(4 * var(--day)),
+        transparent calc(4 * var(--day)), transparent calc(7 * var(--day)));
+    background-position: calc(2 * var(--day)) 0, 0 0;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: var(--label-w) repeat(61, var(--day));
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    min-height: var(--row-h);
+  }
+
+  .label {
+    grid-column: 1;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 0.5rem 1rem 0.5rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .label .name {
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .label .who {
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+  }
+
+  /* --- calendar header --- */
+
+  .head-month .label,
+  .head-week .label {
+    background: var(--surface-2);
+  }
+
+  .head-month {
+    min-height: 30px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .head-week {
+    min-height: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .head-month .cell,
+  .head-week .cell {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    background: var(--surface-2);
+  }
+
+  .head-month .cell {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding-left: 0.6rem;
+    border-left: 1px solid var(--border);
+  }
+
+  .head-week .cell {
+    font-size: 0.66rem;
+    color: var(--ink-soft);
+    padding-left: 0.4rem;
+    border-left: 1px solid var(--border-soft);
+  }
+
+  /* --- track groups --- */
+
+  .track-head {
+    min-height: 34px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .track-head .label {
+    background: var(--surface-2);
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .track-head .title {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+  }
+
+  .track-head .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .row.task {
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .row.task:last-child {
+    border-bottom: 0;
+  }
+
+  /* --- bars --- */
+
+  .bar {
+    grid-column: calc(var(--s) + 1) / calc(var(--e) + 1);
+    height: 21px;
+    border-radius: 5px;
+    background: var(--c);
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(20, 10, 45, 0.18);
+  }
+
+  .bar.ghost {
+    background: transparent;
+    border: 1.5px dashed var(--c);
+    color: var(--c);
+    box-shadow: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .bar { color: #14162a; }
+  }
+
+  :root[data-theme="dark"] .bar { color: #14162a; }
+  :root[data-theme="light"] .bar { color: #fff; }
+  :root[data-theme="dark"] .bar.ghost,
+  :root[data-theme="light"] .bar.ghost { color: var(--c); }
+
+  /* --- milestone ruler --- */
+
+  .row.milestones {
+    min-height: 46px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .row.milestones .label {
+    background: var(--surface-2);
+  }
+
+  .ms {
+    grid-column: calc(var(--s) + 1) / calc(var(--s) + 2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .ms i {
+    width: 11px;
+    height: 11px;
+    rotate: 45deg;
+    background: var(--ink);
+    border-radius: 2px;
+    display: block;
+  }
+
+  .ms b {
+    position: absolute;
+    top: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    background: var(--surface-2);
+    padding: 0 3px;
+  }
+
+  .ms.flip b {
+    transform: translateX(-42%);
+  }
+
+  /* ---------- milestone list ---------- */
+
+  .milestone-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .milestone-list div {
+    background: var(--surface);
+    padding: 1rem 1.15rem;
+  }
+
+  .milestone-list .date {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    color: var(--lavender);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  .milestone-list .what {
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .milestone-list p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  /* ---------- notes ---------- */
+
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .note {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.15rem 1.3rem;
+    border-left: 3px solid var(--flag, var(--ink-soft));
+  }
+
+  .note h3 {
+    margin: 0 0 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .note .tag {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--flag, var(--ink-soft));
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .note p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    line-height: 1.6;
+  }
+
+  .note p + p {
+    margin-top: 0.6rem;
+  }
+
+  footer {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+    line-height: 1.6;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 640px) {
+    :root { --label-w: 180px; --day: 18px; }
+    .wrap { padding: 2rem 1rem 3rem; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Tamara &middot; AiQ Assessment</p>
+    <h1>Care roles rollout &mdash; scenarios, build, pilot</h1>
+    <p class="lede">
+      Extending the AiQ assessment from Strategy &amp; Ops to three more Care roles, through to a
+      validated pilot. Scenario work is fast-tracked; the secure deployment runs as its own track and
+      does not hold up the pilot.
+    </p>
+
+    <dl class="facts">
+      <div class="fact">
+        <dt>Window</dt>
+        <dd>9 weeks<small>22 Jul &ndash; 17 Sep 2026</small></dd>
+      </div>
+      <div class="fact">
+        <dt>Pilot launch</dt>
+        <dd>13 Aug<small>3 weeks from today</small></dd>
+      </div>
+      <div class="fact">
+        <dt>New roles</dt>
+        <dd>3<small>Trainer, QA, Content</small></dd>
+      </div>
+      <div class="fact">
+        <dt>Live today</dt>
+        <dd>1<small>Strategy &amp; Ops IC</small></dd>
+      </div>
+    </dl>
+  </header>
+
+  <section>
+    <h2>Timeline</h2>
+
+    <div class="legend">
+      <span><i class="swatch" style="background: var(--t-scenario)"></i> Scenario design</span>
+      <span><i class="swatch" style="background: var(--t-build)"></i> Product build</span>
+      <span><i class="swatch" style="background: var(--t-pilot)"></i> Pilot &amp; validation</span>
+      <span><i class="swatch" style="background: var(--t-infra)"></i> Infrastructure</span>
+      <span><i class="swatch diamond"></i> Milestone</span>
+    </div>
+
+    <div class="chart">
+      <div class="scroller">
+        <div class="inner">
+          <div class="weekends"></div>
+
+          <div class="row head-month">
+            <div class="label"></div>
+            <div class="cell" style="grid-column: 2 / 12">July</div>
+            <div class="cell" style="grid-column: 12 / 43">August</div>
+            <div class="cell" style="grid-column: 43 / 62">September</div>
+          </div>
+
+          <div class="row head-week">
+            <div class="label"><span class="who">Week beginning</span></div>
+            <div class="cell" style="grid-column: 2 / 6">22</div>
+            <div class="cell" style="grid-column: 6 / 13">26 Jul</div>
+            <div class="cell" style="grid-column: 13 / 20">02 Aug</div>
+            <div class="cell" style="grid-column: 20 / 27">09</div>
+            <div class="cell" style="grid-column: 27 / 34">16</div>
+            <div class="cell" style="grid-column: 34 / 41">23</div>
+            <div class="cell" style="grid-column: 41 / 48">30 Aug</div>
+            <div class="cell" style="grid-column: 48 / 55">06 Sep</div>
+            <div class="cell" style="grid-column: 55 / 62">13</div>
+          </div>
+
+          <!-- ── Track A ── -->
+          <div class="row track-head">
+            <div class="label">
+              <i class="dot" style="background: var(--t-scenario)"></i>
+              <span class="title" style="color: var(--t-scenario)">Scenario design</span>
+            </div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Articulate 3 Care scenarios</span>
+              <span class="who">Nawaf &middot; AI fast-track</span>
+            </div>
+            <div class="bar" style="--s: 1; --e: 3; --c: var(--t-scenario)">2d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Validation session with the 3 roles</span>
+              <span class="who">Trainer &middot; QA Advisor &middot; Content</span>
+            </div>
+            <div class="bar" style="--s: 5; --e: 7; --c: var(--t-scenario)">2d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Collect artifacts &amp; permissions</span>
+              <span class="who">QA rubric, tone-of-voice SOP, real AI outputs</span>
+            </div>
+            <div class="bar" style="--s: 5; --e: 10; --c: var(--t-scenario)">5d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Revise Trainer &amp; Content scenarios</span>
+              <span class="who">From session feedback</span>
+            </div>
+            <div class="bar" style="--s: 7; --e: 9; --c: var(--t-scenario)">2d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Write the QA scenario</span>
+              <span class="who">Blocked until baseline answers land</span>
+            </div>
+            <div class="bar ghost" style="--s: 7; --e: 10; --c: var(--t-scenario)">3d</div>
+          </div>
+
+          <!-- ── Track B ── -->
+          <div class="row track-head">
+            <div class="label">
+              <i class="dot" style="background: var(--t-build)"></i>
+              <span class="title" style="color: var(--t-build)">Product build</span>
+            </div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Add role families &amp; routing</span>
+              <span class="who">scenario_library &middot; assessment_profiles</span>
+            </div>
+            <div class="bar" style="--s: 12; --e: 15; --c: var(--t-build)">3d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Scoring validation &amp; regression tests</span>
+              <span class="who">Strong/weak separation per new role</span>
+            </div>
+            <div class="bar" style="--s: 15; --e: 17; --c: var(--t-build)">2d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Fixes from the dry run</span>
+              <span class="who">Nawaf</span>
+            </div>
+            <div class="bar" style="--s: 21; --e: 23; --c: var(--t-build)">2d</div>
+          </div>
+
+          <!-- ── Track C ── -->
+          <div class="row track-head">
+            <div class="label">
+              <i class="dot" style="background: var(--t-pilot)"></i>
+              <span class="title" style="color: var(--t-pilot)">Pilot &amp; validation</span>
+            </div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Internal dry run</span>
+              <span class="who">Strategy &amp; Ops team</span>
+            </div>
+            <div class="bar" style="--s: 19; --e: 21; --c: var(--t-pilot)">2d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Pilot with Care</span>
+              <span class="who">Nancee's team &amp; departments</span>
+            </div>
+            <div class="bar" style="--s: 23; --e: 38; --c: var(--t-pilot)">11d &middot; 13 Aug &ndash; 27 Aug</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">3rd-party tool research spike</span>
+              <span class="who">Design input, runs alongside pilot</span>
+            </div>
+            <div class="bar ghost" style="--s: 23; --e: 38; --c: var(--t-pilot)">11d &middot; observe &amp; design</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Analyse results, calibrate scoring</span>
+              <span class="who">Nawaf</span>
+            </div>
+            <div class="bar" style="--s: 40; --e: 45; --c: var(--t-pilot)">5d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Scenario v2 revision</span>
+              <span class="who">Whatever the pilot proved wrong</span>
+            </div>
+            <div class="bar" style="--s: 47; --e: 52; --c: var(--t-pilot)">5d</div>
+          </div>
+
+          <!-- ── Track D ── -->
+          <div class="row track-head">
+            <div class="label">
+              <i class="dot" style="background: var(--t-infra)"></i>
+              <span class="title" style="color: var(--t-infra)">Infrastructure</span>
+            </div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Open the DevOps conversation</span>
+              <span class="who">Requirements &amp; data classification</span>
+            </div>
+            <div class="bar" style="--s: 1; --e: 10; --c: var(--t-infra)">7d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Security &amp; privacy review</span>
+              <span class="who">PII, retention, RLS, access</span>
+            </div>
+            <div class="bar" style="--s: 12; --e: 31; --c: var(--t-infra)">15d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Provision private environment</span>
+              <span class="who">DevOps</span>
+            </div>
+            <div class="bar" style="--s: 33; --e: 45; --c: var(--t-infra)">10d</div>
+          </div>
+
+          <div class="row task">
+            <div class="label">
+              <span class="name">Migrate &amp; cut over</span>
+              <span class="who">Move off the current setup</span>
+            </div>
+            <div class="bar" style="--s: 47; --e: 59; --c: var(--t-infra)">10d</div>
+          </div>
+
+          <!-- ── milestones ── -->
+          <div class="row milestones">
+            <div class="label"><span class="who">Milestones</span></div>
+            <div class="ms" style="--s: 9"><i></i><b>Scenarios locked</b></div>
+            <div class="ms" style="--s: 16"><i></i><b>Live in product</b></div>
+            <div class="ms flip" style="--s: 23"><i></i><b>Pilot launch</b></div>
+            <div class="ms flip" style="--s: 44"><i></i><b>Results in</b></div>
+            <div class="ms flip" style="--s: 58"><i></i><b>Secure env live</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">Shaded columns are Fri&ndash;Sat. Dashed bars are unconfirmed or exploratory. Scroll sideways for the full window.</p>
+  </section>
+
+  <section>
+    <h2>Milestones</h2>
+    <div class="milestone-list">
+      <div>
+        <span class="date">THU 30 JUL</span>
+        <span class="what">Scenarios locked</span>
+        <p>All three validated by the people who do the work, artifacts collected, permission granted to use anonymised real incidents.</p>
+      </div>
+      <div>
+        <span class="date">THU 06 AUG</span>
+        <span class="what">Live in product</span>
+        <p>Three new role families route correctly and pass scoring validation alongside the existing Strategy &amp; Ops profile.</p>
+      </div>
+      <div>
+        <span class="date">THU 13 AUG</span>
+        <span class="what">Pilot launch</span>
+        <p>Nancee's team and departments start taking the assessment on the current setup.</p>
+      </div>
+      <div>
+        <span class="date">THU 03 SEP</span>
+        <span class="what">Results in</span>
+        <p>Pilot analysed, scoring calibrated against what strong and weak performers actually said, 3rd-party tool direction decided.</p>
+      </div>
+      <div>
+        <span class="date">THU 17 SEP</span>
+        <span class="what">Secure environment live</span>
+        <p>Off the current setup and onto private, approved hosting before any wider rollout.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What could move these dates</h2>
+    <div class="notes">
+      <div class="note" style="--flag: var(--t-scenario)">
+        <span class="tag">Dependency</span>
+        <h3>The QA scenario can't be written yet</h3>
+        <p>Trainer and Content both have drafts. QA has none &mdash; the baseline questions about what they review, against what rubric, and what happens after a score are still unanswered.</p>
+        <p>If those answers don't come out of the validation session, the QA scenario slips and only two roles reach the pilot.</p>
+      </div>
+      <div class="note" style="--flag: var(--t-pilot)">
+        <span class="tag">Open question</span>
+        <h3>Does the Trainer scenario match the real job?</h3>
+        <p>The draft assumes trainers build their own material under deadline pressure, but the questionnaire says instructional designers own that. Ask directly in the session.</p>
+        <p>If the answer is no, switch to the delivery-side version: an agent asks a question the deck doesn't cover and the trainer reaches for AI live.</p>
+      </div>
+      <div class="note" style="--flag: var(--t-infra)">
+        <span class="tag">Accepted risk</span>
+        <h3>The pilot runs before the secure deployment</h3>
+        <p>Deliberate, to protect the pilot date. Until cutover on 17 Sep, real Care responses sit on the current setup &mdash; so keep participation to named pilot users and hold off on any wider rollout.</p>
+      </div>
+      <div class="note" style="--flag: var(--t-pilot)">
+        <span class="tag">Scope note</span>
+        <h3>3rd-party tool assessment stays a spike</h3>
+        <p>Observe how pilot participants describe using tools beyond ChatGPT, then design the capability from real language. Keeping it out of the pilot scope protects the validity of what the pilot is actually testing.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Working week Sun&ndash;Thu. Durations are working days.
+    Track A is fast-tracked at your estimate of two days for articulation; everything downstream keys off the
+    validation session landing in the week of 26 July.
+  </footer>
+
+</div>

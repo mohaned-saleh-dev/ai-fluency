@@ -19,6 +19,11 @@
   };
   /** Persisted so reload / new tab / recovery after errors can continue the same server session. */
   const STORAGE_KEY = "aiq_csuite_active_session";
+  // Stable per-browser identity, separate from the per-session key. It is what lets a
+  // retake rotate to a scenario the person has not seen, and what keeps a restarted
+  // first attempt on the same scenario. Not an account — if storage is cleared, the
+  // server simply treats the next session as a first attempt.
+  const PARTICIPANT_KEY = "aiq_csuite_participant";
   let wrapCtaCountdown = null;
 
   /* ——— Onboarding: home landing page, then a 6-step wizard before the chat ——— */
@@ -45,9 +50,9 @@
   // (Care → Strategy & Ops). Other seniorities are shown but not selectable yet.
   const LEVEL_OPTIONS = [
     { value: "ic", label: "Individual contributor", sub: "I own my work, not a team", enabled: true },
-    { value: "people_manager", label: "People manager / team lead", sub: "I run a team day to day", enabled: false },
-    { value: "head_of", label: "Head of function / director", sub: "I own a function or department", enabled: false },
-    { value: "executive", label: "Executive", sub: "VP, C-suite, GM", enabled: false },
+    { value: "people_manager", label: "People manager / team lead", sub: "I run a team day to day", enabled: true },
+    { value: "head_of", label: "Head of function / director", sub: "I own a function or department", enabled: true },
+    { value: "executive", label: "Executive", sub: "VP, C-suite, GM", enabled: true },
   ];
   // Labels must match assessment_profiles.JOB_FAMILIES on the backend.
   const FAMILY_LABELS = {
@@ -64,77 +69,82 @@
   // job_family buckets above (used for scenario + scoring weights) — the mapping is
   // surfaced to the participant via #familyHint rather than asked as a separate question.
   const TAMARA_DEPARTMENTS = [
-    { id: "4058413101", name: "Business Banking", children: [
-      { id: "4058414101", name: "Product", family: "product_engineering" },
-      { id: "gen-4058413101", name: "General / other", family: "go_to_market" },
-    ] },
+    // Care — fully built out. Bespoke scenarios for Quality/Training/Content/Strategy & Ops;
+    // front-line & the rest fall back to the generalized Care scenario (ops: "Angry VIP customer").
     { id: "4042652101", name: "Care", enabled: true, children: [
-      { id: "4045758101", name: "Product", family: "product_engineering", enabled: false },
-      { id: "4058322101", name: "Data", family: "product_engineering", enabled: false },
-      { id: "4045757101", name: "Engineering", family: "product_engineering", enabled: false },
-      { id: "gen-4042652101", name: "Strategy & Ops", family: "finance", scenario: "care_strategy_ops", enabled: true },
+      { id: "care-customer-advisor", name: "Customer Care Advisor", family: "care_operations", scenario: "care_customer_advisor", enabled: true },
+      { id: "care-partner-advisor", name: "Partner Care Advisor", family: "care_operations", scenario: "care_partner_advisor", enabled: true },
+      { id: "care-escalations", name: "Escalations & Disputes", family: "care_operations", scenario: "care_escalations", enabled: true },
+      { id: "care-quality", name: "Quality", family: "care_operations", scenario: "care_quality", enabled: true },
+      { id: "care-training", name: "Training", family: "care_operations", scenario: "care_training", enabled: true },
+      { id: "care-content", name: "Content", family: "care_operations", scenario: "care_content", enabled: true },
+      { id: "care-workforce", name: "Workforce / RTA", family: "care_operations", scenario: "care_workforce", enabled: true },
+      { id: "care-strategy-ops", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "care-tech", name: "Tech (Eng / Data / Product)", family: "product_engineering", scenario: "care_tech", enabled: true },
+      { id: "care-general", name: "General / other", family: "care_operations", scenario: "care_general", enabled: true },
     ] },
-    { id: "4011393101", name: "CEO Office", family: "general_management" },
-    { id: "4031964101", name: "Commercial", children: [
-      { id: "4031965101", name: "Data", family: "product_engineering" },
-      { id: "4031966101", name: "Product", family: "product_engineering" },
-      { id: "4058438101", name: "Engineering", family: "product_engineering" },
-      { id: "gen-4031964101", name: "General / other", family: "go_to_market" },
+    // Strategy & Ops is offered inside each division below (generalized), so there is no
+    // standalone org-wide card. Other divisions also carry a generalized catch-all;
+    // division-specific roles are not built yet.
+    { id: "4058413101", name: "Business Banking", enabled: true, children: [
+      { id: "bb-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "bb-gen", name: "General / other", family: "go_to_market", enabled: true },
     ] },
-    { id: "4059295101", name: "Communications", children: [
-      { id: "4059296101", name: "Design", family: "go_to_market" },
-      { id: "gen-4059295101", name: "General / other", family: "go_to_market" },
+    { id: "4011393101", name: "CEO Office", enabled: true, children: [
+      { id: "ceo-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "ceo-gen", name: "General / other", family: "general_management", enabled: true },
     ] },
-    { id: "4058415101", name: "Credit", children: [
-      { id: "4058416101", name: "Data", family: "product_engineering" },
-      { id: "4058417101", name: "Engineering", family: "product_engineering" },
-      { id: "4058418101", name: "Product", family: "product_engineering" },
-      { id: "gen-4058415101", name: "General / other", family: "finance" },
+    { id: "4031964101", name: "Commercial", enabled: true, children: [
+      { id: "comm-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "comm-gen", name: "General / other", family: "go_to_market", enabled: true },
     ] },
-    { id: "4058429101", name: "Embedded Finance", children: [
-      { id: "4058430101", name: "Data", family: "product_engineering" },
-      { id: "4058431101", name: "Design", family: "product_engineering" },
-      { id: "4058432101", name: "Product", family: "product_engineering" },
-      { id: "4058433101", name: "Engineering", family: "product_engineering" },
-      { id: "gen-4058429101", name: "General / other", family: "finance" },
+    { id: "4059295101", name: "Communications", enabled: true, children: [
+      { id: "comms-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "comms-gen", name: "General / other", family: "go_to_market", enabled: true },
     ] },
-    { id: "4000623101", name: "Finance", children: [
-      { id: "4031955101", name: "Data", family: "product_engineering" },
-      { id: "gen-4000623101", name: "General / other", family: "finance" },
+    { id: "4058415101", name: "Credit", enabled: true, children: [
+      { id: "credit-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "credit-gen", name: "General / other", family: "finance", enabled: true },
     ] },
-    { id: "4000620101", name: "Global Platforms", children: [
-      { id: "4058425101", name: "Data", family: "product_engineering" },
-      { id: "4058428101", name: "Engineering", family: "product_engineering" },
-      { id: "4058443101", name: "Product", family: "product_engineering" },
-      { id: "gen-4000620101", name: "General / other", family: "general_management" },
+    { id: "4058429101", name: "Embedded Finance", enabled: true, children: [
+      { id: "ef-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "ef-gen", name: "General / other", family: "product_engineering", enabled: true },
     ] },
-    { id: "4058419101", name: "Growth", children: [
-      { id: "4058421101", name: "Engineering", family: "product_engineering" },
-      { id: "4058423101", name: "Design", family: "go_to_market" },
-      { id: "4058420101", name: "Data", family: "product_engineering" },
-      { id: "4058422101", name: "Product", family: "product_engineering" },
-      { id: "gen-4058419101", name: "General / other", family: "go_to_market" },
+    { id: "4000623101", name: "Finance", enabled: true, children: [
+      { id: "finance-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "finance-gen", name: "General / other", family: "finance", enabled: true },
     ] },
-    { id: "4058434101", name: "Internal Audit", family: "risk_legal" },
-    { id: "4029205101", name: "Legal", family: "risk_legal" },
-    { id: "4031962101", name: "People & Places", family: "hr_people" },
-    { id: "4058444101", name: "Personal Banking", children: [
-      { id: "4058446101", name: "Design", family: "product_engineering" },
-      { id: "4058445101", name: "Data", family: "product_engineering" },
-      { id: "4058447101", name: "Engineering", family: "product_engineering" },
-      { id: "4058448101", name: "Product", family: "product_engineering" },
-      { id: "gen-4058444101", name: "General / other", family: "go_to_market" },
+    { id: "4000620101", name: "Global Platforms", enabled: true, children: [
+      { id: "gp-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "gp-gen", name: "General / other", family: "general_management", enabled: true },
     ] },
-    { id: "4031967101", name: "Risk", children: [
-      { id: "4031968101", name: "Engineering", family: "product_engineering" },
-      { id: "4031970101", name: "Data", family: "product_engineering" },
-      { id: "4031969101", name: "Product", family: "product_engineering" },
-      { id: "gen-4031967101", name: "General / other", family: "risk_legal" },
+    { id: "4058419101", name: "Growth", enabled: true, children: [
+      { id: "growth-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "growth-gen", name: "General / other", family: "go_to_market", enabled: true },
     ] },
-    { id: "4031941101", name: "User Experience", children: [
-      { id: "4031942101", name: "Design", family: "product_engineering" },
-      { id: "4031944101", name: "Product", family: "product_engineering" },
-      { id: "gen-4031941101", name: "General / other", family: "product_engineering" },
+    { id: "4058434101", name: "Internal Audit", enabled: true, children: [
+      { id: "ia-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "ia-gen", name: "General / other", family: "risk_legal", enabled: true },
+    ] },
+    { id: "4029205101", name: "Legal", enabled: true, children: [
+      { id: "legal-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "legal-gen", name: "General / other", family: "risk_legal", enabled: true },
+    ] },
+    { id: "4031962101", name: "People & Places", enabled: true, children: [
+      { id: "pp-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "pp-gen", name: "General / other", family: "hr_people", enabled: true },
+    ] },
+    { id: "4058444101", name: "Personal Banking", enabled: true, children: [
+      { id: "pb-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "pb-gen", name: "General / other", family: "product_engineering", enabled: true },
+    ] },
+    { id: "4031967101", name: "Risk", enabled: true, children: [
+      { id: "risk-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "risk-gen", name: "General / other", family: "risk_legal", enabled: true },
+    ] },
+    { id: "4031941101", name: "User Experience", enabled: true, children: [
+      { id: "ux-so", name: "Strategy & Ops", family: "finance", scenario: "strategy_ops", enabled: true },
+      { id: "ux-gen", name: "General / other", family: "product_engineering", enabled: true },
     ] },
   ];
   const SKILL_OPTIONS = [
@@ -380,6 +390,23 @@
     const shell = document.querySelector(".shell");
     if (shell) shell.classList.toggle("shell--chat", !!on);
     document.body.classList.toggle("chat-active", !!on);
+  }
+
+  function participantKey() {
+    try {
+      let k = (localStorage.getItem(PARTICIPANT_KEY) || "").trim();
+      if (!k) {
+        k =
+          window.crypto && window.crypto.randomUUID
+            ? window.crypto.randomUUID()
+            : String(Math.random()).slice(2) + "-" + String(Date.now());
+        localStorage.setItem(PARTICIPANT_KEY, k);
+      }
+      return k;
+    } catch (_) {
+      // Private mode / storage blocked: the server falls back to a first attempt.
+      return "";
+    }
   }
 
   function persistActiveSession(sid) {
@@ -1204,6 +1231,7 @@
       const slider = document.getElementById("betSlider");
       const o = await api("/api/session/start", {
         seed: s,
+        participant_key: participantKey() || undefined,
         level: onboarding.level || undefined,
         job_family: onboarding.family || undefined,
         job_function: onboarding.jobFunction || undefined,

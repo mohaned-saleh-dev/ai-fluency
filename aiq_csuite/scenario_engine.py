@@ -11,16 +11,23 @@ owns what surrounds them:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import random
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from coaching_engine import fam_cluster
-from config import BASE_DIR
+from config import BASE_DIR, OPENAI_SCORING_MODEL
 from llm_json import llm_json
 
 _LIBRARY_PATH = BASE_DIR / "knowledge" / "scenario_library.json"
+
+# The prescribed question ladder, in order. The interviewer asks these one at a time,
+# in its own words, and only introduces the scenario's twist once all three are answered
+# — the twist is the test of whether verification was real, so it has to land after the
+# person has already committed to how they'd work.
+LADDER_BEATS = ("inputs", "output", "validation")
 
 # Facets the evidence extractor reports; they map onto D1..D6 at scoring time.
 FACETS = (
@@ -92,6 +99,118 @@ def _load_library() -> dict:
     return json.loads(_LIBRARY_PATH.read_text(encoding="utf-8"))
 
 
+# Scenario pool per job function. A role's pool size is also its retake cap: a
+# participant is served each variant at most once, then fresh attempts pause until new
+# variants ship (see select_variant / retake_status).
+#
+# Strategy & Ops carries six because S&O roles are vertical-agnostic — the pool spans
+# operational, Commercial, Personal Banking, and Business Banking deliberately, so the
+# assessment works regardless of which function the team supports. The three Care roles
+# carry three each. Dimension weights are unaffected by which variant is served.
+_SCENARIO_VARIANTS: Dict[str, List[str]] = {
+    "strategy_ops": [
+        "strategy_ops",      # A · The Monday readout        (operational)
+        "strategy_ops_v2",   # B · The staffing model        (operational)
+        "strategy_ops_v3",   # C · The vendor benchmark      (operational)
+        "strategy_ops_v4",   # D · The campaign renewal      (Commercial)
+        "strategy_ops_v5",   # E · The dormant cohort        (Personal Banking)
+        "strategy_ops_v6",   # F · The approvals slowdown    (Business Banking)
+    ],
+    "care_quality": ["care_quality", "care_quality_v2", "care_quality_v3"],
+    "care_training": ["care_training", "care_training_v2", "care_training_v3"],
+    "care_content": ["care_content", "care_content_v2", "care_content_v3"],
+}
+
+# Job functions that are the same job reached through a different picker entry. They
+# share one scenario pool and one dimension lean, so a participant cannot farm a second
+# set of scenarios by picking the other label.
+_FUNCTION_ALIASES: Dict[str, str] = {
+    "care_strategy_ops": "strategy_ops",
+}
+
+
+def canonical_function(func: Optional[str]) -> str:
+    """Collapse alias job functions onto the key that owns the scenario pool."""
+    s = (func or "").strip()
+    return _FUNCTION_ALIASES.get(s, s)
+
+
+def _variant_pool(cluster: str, lib: dict) -> List[str]:
+    """Populated variants for a role, in declaration order. Empty for single-scenario
+    roles — those have no rotation and no retake cap."""
+    return [
+        v
+        for v in _SCENARIO_VARIANTS.get(cluster, ())
+        if str((lib.get(v) or {}).get("primary_setup") or "").strip()
+    ]
+
+
+def _stable_index(seed: str, attempt_no: int, n: int) -> int:
+    """Deterministic index from (seed, attempt). Uses sha256 rather than random.Random
+    so the mapping is stable across Python versions and process restarts — a participant
+    who abandons and restarts attempt 1 must land on the same scenario."""
+    if n <= 1:
+        return 0
+    digest = hashlib.sha256(f"{seed}|{int(attempt_no)}".encode("utf-8")).hexdigest()
+    return int(digest, 16) % n
+
+
+def select_variant(
+    cluster: str,
+    lib: dict,
+    seed: str,
+    attempt_no: int = 1,
+    served: Sequence[str] = (),
+) -> Dict[str, Any]:
+    """Pick the scenario variant for this attempt.
+
+    Rotation: a retake is always served a variant the participant has not seen — the
+    selection excludes previously served variants and keys off the attempt number, so a
+    second attempt measures the verification habit itself, not memory of a specific
+    twist. When every variant has been served the pool is exhausted; callers decide
+    whether to pause the retake (the API does) or repeat one.
+    """
+    pool = _variant_pool(cluster, lib)
+    if not pool:
+        return {
+            "variant": cluster,
+            "pool": [],
+            "pool_size": 0,
+            "served": [],
+            "attempt_no": max(1, int(attempt_no or 1)),
+            "exhausted": False,
+        }
+    served_set = [s for s in served if s in pool]
+    fresh = [v for v in pool if v not in served_set]
+    exhausted = not fresh
+    candidates = fresh or pool
+    chosen = candidates[_stable_index(seed, attempt_no, len(candidates))]
+    return {
+        "variant": chosen,
+        "pool": pool,
+        "pool_size": len(pool),
+        "served": served_set,
+        "attempt_no": max(1, int(attempt_no or 1)),
+        "exhausted": exhausted,
+    }
+
+
+def scenario_pool_for(assessment: dict) -> Tuple[str, List[str]]:
+    """(role key, populated variant pool) for an assessment — what the API needs to
+    decide whether a fresh retake is still available, without building a full plan."""
+    ass = assessment or {}
+    lib = _load_library()
+    func = canonical_function(ass.get("job_function"))
+    entry = lib.get(func) if func else None
+    if isinstance(entry, dict) and str(entry.get("primary_setup") or "").strip():
+        cluster = func
+    else:
+        cluster = _scenario_cluster(
+            str(ass.get("job_family") or "other"), str(ass.get("level") or "head_of")
+        )
+    return cluster, _variant_pool(cluster, lib)
+
+
 def _scenario_cluster(fam: str, level: str) -> str:
     """Pick library cluster. Senior/leadership tiers get a strategic scenario instead of the
     tactical IC one: general_management → coo_office; product_engineering → product_exec;
@@ -106,8 +225,22 @@ def _scenario_cluster(fam: str, level: str) -> str:
     return base
 
 
-def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
-    """Role-specific scenario brief stored in variation_json."""
+def build_scenario_plan(
+    assessment: dict,
+    client_seed: str,
+    *,
+    attempt_no: int = 1,
+    served: Sequence[str] = (),
+    selection_seed: Optional[str] = None,
+) -> dict:
+    """Role-specific scenario brief stored in variation_json.
+
+    ``selection_seed`` is the participant's stable key when we have one, so attempt 1
+    resolves to the same scenario every time they restart it; ``client_seed`` (fresh per
+    session) still drives cosmetic variety like the opening line. ``served`` lists the
+    variants this participant has already completed for this role, which the rotation
+    excludes.
+    """
     ass = assessment or {}
     fam = str(ass.get("job_family") or "other")
     level = str(ass.get("level") or "head_of")
@@ -115,12 +248,22 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
     # A specific job function (e.g. Care → Strategy & Ops) can point at its own scenario,
     # decoupled from the coarse job_family used for dimension weights. Fall back to the
     # family/level cluster when no populated function-specific scenario exists.
-    func = str(ass.get("job_function") or "").strip()
+    func = canonical_function(ass.get("job_function"))
     func_entry = lib.get(func) if func else None
     if isinstance(func_entry, dict) and str(func_entry.get("primary_setup") or "").strip():
         cluster = func
     else:
         cluster = _scenario_cluster(fam, level)
+    rng = random.Random(client_seed)
+    role_key = cluster
+    pick = select_variant(
+        cluster,
+        lib,
+        str(selection_seed or client_seed),
+        attempt_no=attempt_no,
+        served=served,
+    )
+    cluster = pick["variant"]
     base = dict(lib.get(cluster) or {})
     if not str(base.get("primary_setup") or "").strip():
         # Never run a session on a missing or blank library entry — a scenario with no
@@ -128,7 +271,6 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
         # generic scenario and record the cluster we actually used.
         cluster = "gm"
         base = dict(lib.get("gm") or {})
-    rng = random.Random(client_seed)
     level_note = {
         "ic": "Ask for hands-on detail: their own prompts, edits, and checks.",
         "people_manager": "Ask how they coach the team, not only personal use.",
@@ -136,9 +278,19 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
         "executive": "Ask for portfolio, governance, and how they set expectations.",
     }.get(level, "Match seniority in depth.")
 
+    ladder_raw = base.get("question_ladder")
+    ladder = (
+        {k: str(ladder_raw.get(k) or "").strip() for k in LADDER_BEATS}
+        if isinstance(ladder_raw, dict)
+        else {}
+    )
+    if not all(ladder.get(k) for k in LADDER_BEATS):
+        ladder = {}
+
     return {
-        "version": 2,
+        "version": 3,
         "cluster": cluster,
+        "role_key": role_key,
         "level": level,
         "level_note": level_note,
         "job_family_label": ass.get("job_function_label") or ass.get("job_family_label") or fam,
@@ -153,6 +305,10 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
         "standards": {
             "focus": base.get("standards_prompt", ""),
         },
+        # The prescribed three-beat ladder (inputs → output → validation), asked one at a
+        # time. Empty for legacy scenarios, which fall back to the free-form probe bank.
+        "question_ladder": ladder,
+        "gauging": str(base.get("gauging") or "").strip(),
         "probe_bank": list(
             base.get("probe_bank")
             or [
@@ -163,6 +319,13 @@ def build_scenario_plan(assessment: dict, client_seed: str) -> dict:
         ),
         "standards_question": base.get("standards_question") or "",
         "opening_id": rng.randrange(0, 6),
+        "attempt": {
+            "number": pick["attempt_no"],
+            "pool_size": pick["pool_size"],
+            "is_retake": pick["attempt_no"] > 1,
+            "served_before": list(pick["served"]),
+            "pool_exhausted": pick["exhausted"],
+        },
     }
 
 
@@ -202,7 +365,7 @@ Return JSON:
 }}
 Rules: quotes are short (max 20 words each) **verbatim** excerpts from the USER's own turns — copy word-for-word, never paraphrase or invent; use an empty list when the user said nothing relevant (summaries belong in "observed"). confidence low if thin chat. No markdown."""
     try:
-        out = llm_json(prompt, temperature=0.15, max_tokens=2800)
+        out = llm_json(prompt, temperature=0.15, max_tokens=2800, model=OPENAI_SCORING_MODEL)
     except Exception:
         return {"facets": {}, "overall_gaps": [], "strongest_signals": []}
     return _ground_facet_quotes(out, messages)
@@ -319,7 +482,7 @@ Return JSON only:
 }}
 Rules: 3-5 next_steps, each action must reference something they said or did not show. No phrase "pick a routine deliverable". Strings: no unescaped double quotes inside values."""
     try:
-        return llm_json(prompt, temperature=0.25, max_tokens=2400)
+        return llm_json(prompt, temperature=0.25, max_tokens=2400, model=OPENAI_SCORING_MODEL)
     except Exception:
         return {}
 

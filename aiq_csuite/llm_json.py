@@ -21,13 +21,17 @@ def llm_json(
     system: str = "Return only valid JSON. No markdown fences.",
     temperature: float = 0.2,
     max_tokens: int = 2500,
+    model: Optional[str] = None,
 ) -> Dict[str, Any]:
+    """``model`` overrides the configured one — used by the scoring and report path, which
+    can afford a slower, stronger model than a live interview turn can."""
     mode, err = llm_mode()
     if mode == "error":
         raise RuntimeError(err)
     if mode == "openai":
         raw = openai_generate_text(
             prompt,
+            model=model,
             temperature=temperature,
             max_output_tokens=max_tokens,
             system_instruction=system,

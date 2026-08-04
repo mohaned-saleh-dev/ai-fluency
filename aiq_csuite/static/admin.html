@@ -9,16 +9,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0f0b1f;
-      --panel: #1b1232;
-      --panel-2: #25164a;
-      --line: #3d2b6f;
-      --ink: #f4efff;
-      --muted: #bcaee5;
-      --accent: #9c4dff;
-      --good: #19c37d;
-      --warn: #f6b100;
-      --bad: #ff7b7b;
+      --bg: #f2f2ff;
+      --panel: #ffffff;
+      --panel-2: #faf9ff;
+      --line: #e0dcf0;
+      --ink: #2a3051;
+      --muted: #5c6280;
+      --accent: #9600f1;
+      --accent-2: #5300ba;
+      --good: #12a86a;
+      --warn: #b4780a;
+      --bad: #d64545;
     }
     * { box-sizing: border-box; }
     html { font-size: 17px; }
@@ -26,7 +27,7 @@
       margin: 0;
       color: var(--ink);
       font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-      background: radial-gradient(1200px 700px at 8% 0%, #2f1a5a 0%, #120c24 58%, #0f0b1f 100%) fixed;
+      background: radial-gradient(1200px 700px at 8% 0%, #f4ecff 0%, #f7f5ff 58%, #f2f2ff 100%) fixed;
     }
     .hidden { display: none !important; }
     .shell { width: min(1560px, 97vw); margin: 0 auto; padding: 1rem 0 1.8rem; }
@@ -39,46 +40,46 @@
       text-transform: uppercase;
       font-weight: 800;
       color: #fff;
-      background: linear-gradient(90deg, #6f2ae8, var(--accent));
+      background: linear-gradient(90deg, #9600f1, #5300ba);
       cursor: pointer;
     }
     .btn.ghost {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(207, 183, 255, 0.26);
+      background: #ffffff;
+      border: 1px solid var(--line);
       color: var(--ink);
     }
-    .err { color: #ff9a9a; font-size: 0.82rem; min-height: 1rem; margin-top: 0.45rem; }
+    .err { color: var(--bad); font-size: 0.82rem; min-height: 1rem; margin-top: 0.45rem; }
 
     /* Login */
     .login-wrap { min-height: 96vh; display: grid; place-items: center; }
     .login-card {
       width: min(520px, 94vw);
       border-radius: 16px;
-      border: 1px solid rgba(174, 132, 255, 0.28);
-      background: linear-gradient(160deg, rgba(31, 20, 58, 0.95), rgba(16, 11, 31, 0.96));
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--line);
+      background: #ffffff;
+      box-shadow: 0 24px 64px rgba(41, 13, 87, 0.14);
       padding: 1.05rem 1.05rem 0.9rem;
     }
-    .kicker { margin: 0 0 0.38rem; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; }
-    .title { margin: 0; font-size: 1.4rem; letter-spacing: -0.01em; }
+    .kicker { margin: 0 0 0.38rem; font-size: 0.62rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; }
+    .title { margin: 0; font-size: 1.4rem; letter-spacing: -0.01em; color: var(--ink); }
     .sub { margin: 0.4rem 0 0.75rem; color: var(--muted); font-size: 0.9rem; line-height: 1.42; }
     .in {
       width: 100%;
       padding: 0.68rem 0.72rem;
       border-radius: 12px;
-      border: 1px solid rgba(199, 170, 255, 0.32);
+      border: 1px solid var(--line);
       outline: none;
-      background: rgba(255, 255, 255, 0.05);
+      background: #ffffff;
       color: var(--ink);
       font-size: 0.94rem;
     }
-    .in:focus { border-color: #c59bff; box-shadow: 0 0 0 3px rgba(177, 122, 255, 0.2); }
+    .in:focus { border-color: #9600f1; box-shadow: 0 0 0 3px rgba(150, 0, 241, 0.15); }
     .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; }
     .btn.is-loading { opacity: 0.72; pointer-events: none; cursor: wait; }
     .login-status {
       min-height: 1.35rem;
       font-size: 0.78rem;
-      color: #c9b8ff;
+      color: var(--muted);
       margin-top: 0.45rem;
       display: flex;
       align-items: center;
@@ -88,8 +89,8 @@
       content: "";
       width: 0.85rem;
       height: 0.85rem;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-top-color: #fff;
+      border: 2px solid rgba(150, 0, 241, 0.25);
+      border-top-color: #9600f1;
       border-radius: 50%;
       animation: aiq-admin-spin 0.65s linear infinite;
       flex-shrink: 0;
@@ -99,12 +100,12 @@
     /* Dashboard */
     .dash-loading {
       font-size: 0.72rem;
-      color: #d4c4ff;
+      color: var(--accent-2);
       padding: 0.35rem 0.55rem;
       margin-bottom: 0.55rem;
       border-radius: 10px;
-      background: rgba(124, 72, 230, 0.18);
-      border: 1px solid rgba(186, 156, 255, 0.28);
+      background: rgba(150, 0, 241, 0.08);
+      border: 1px solid rgba(150, 0, 241, 0.18);
       display: flex;
       align-items: center;
       gap: 0.45rem;
@@ -113,8 +114,8 @@
       content: "";
       width: 0.75rem;
       height: 0.75rem;
-      border: 2px solid rgba(255, 255, 255, 0.18);
-      border-top-color: #e8ddff;
+      border: 2px solid rgba(150, 0, 241, 0.22);
+      border-top-color: #9600f1;
       border-radius: 50%;
       animation: aiq-admin-spin 0.65s linear infinite;
     }
@@ -123,7 +124,7 @@
       content: "";
       width: 0.75rem;
       height: 0.75rem;
-      border: 2px solid rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(150, 0, 241, 0.2);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: aiq-admin-spin 0.65s linear infinite;
@@ -132,31 +133,64 @@
     .top { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
     .top h1 { margin: 0; font-size: 1.18rem; letter-spacing: -0.01em; }
     .top p { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--muted); }
-    .layout { display: grid; grid-template-columns: minmax(480px, 0.95fr) minmax(640px, 1.5fr); gap: 0.8rem; }
+    .layout { display: grid; grid-template-columns: minmax(480px, 0.95fr) minmax(640px, 1.5fr); gap: 1.15rem; }
     @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
-    .card { border: 1px solid rgba(175, 143, 242, 0.24); border-radius: 14px; background: linear-gradient(160deg, rgba(34, 21, 64, 0.94), rgba(16, 11, 31, 0.96)); overflow: hidden; }
-    .card-h { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.7rem 0.85rem; border-bottom: 1px solid rgba(175, 143, 242, 0.18); background: rgba(130, 75, 242, 0.1); }
+    .card { border: 1px solid var(--line); border-radius: 14px; background: #ffffff; overflow: hidden; box-shadow: 0 8px 32px rgba(150, 0, 241, 0.06); }
+    .card-h { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.85rem 1.05rem; border-bottom: 1px solid var(--line); background: #f7f3ff; }
+
+    /* --- Panel body -------------------------------------------------------------
+       Cards carry no padding of their own, so a body without this class sits flush
+       against the border. Matches .detail so every panel shares one inset. */
+    .card-b { padding: 1rem 1.05rem 1.15rem; }
+    .card-b > h3:first-child { margin-top: 0; }
+
+    /* Uniform stat tiles. auto-fit keeps every tile the same width and reflows by
+       count, instead of each one shrinking to its own text (which read as ragged). */
+    .stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.6rem; margin-bottom: 1.1rem; }
+    .stat-tiles .kpi { min-height: 0; padding: 0.6rem 0.7rem 0.65rem; }
+    .stat-tiles .kpi .v { font-size: 1.05rem; margin-top: 0.15rem; }
+    .stat-tiles .kpi .k { font-size: 0.62rem; }
+
+    /* Numeric summary tables: label column takes the slack, figures stay narrow and
+       right-aligned so columns read down as numbers rather than drifting. */
+    .stat-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; table-layout: auto; }
+    .stat-table th, .stat-table td { padding: 0.5rem 0.55rem; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+    .stat-table th { background: #f2ecfb; font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-2); position: static; }
+    .stat-table th:first-child, .stat-table td:first-child { text-align: left; width: 99%; white-space: normal; }
+    .stat-table tbody tr:last-child td { border-bottom: 0; }
+
+    /* Room around each chart so figures do not butt up against the text above them. */
+    .chart-block { margin: 0.5rem 0 0.4rem; }
+    /* One shared caution style — the small-n and dead-dimension notices were each
+       carrying their own inline colours and drifted apart. */
+    .note-warn {
+      margin: 0.55rem 0 0; font-size: 0.72rem; line-height: 1.45; color: #8a5a00;
+      background: #fff6e6; border: 1px solid #f0dcae; border-radius: 8px; padding: 0.5rem 0.6rem;
+    }
+    .chart-note { margin: 0.45rem 0 0; font-size: 0.7rem; color: var(--muted); line-height: 1.45; }
+    .sec-sub { font-size: 0.85rem; margin: 1.5rem 0 0.15rem; color: var(--ink); }
+    .sec-sub:first-child { margin-top: 0; }
     .card-h h2 { margin: 0; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
     .card-h .meta { font-size: 0.68rem; color: var(--muted); }
 
     .sess-wrap { max-height: 80vh; overflow: auto; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { border-bottom: 1px solid rgba(178, 151, 241, 0.13); padding: 0.46rem 0.46rem; text-align: left; font-size: 0.72rem; vertical-align: top; }
-    th { position: sticky; top: 0; z-index: 2; background: #301a58; color: #d9c9ff; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    th, td { border-bottom: 1px solid var(--line); padding: 0.46rem 0.46rem; text-align: left; font-size: 0.72rem; vertical-align: top; }
+    th { position: sticky; top: 0; z-index: 2; background: #f2ecfb; color: var(--accent-2); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; }
     .sess-wrap table { table-layout: auto; }
     .sess-wrap th, .sess-wrap td { padding: 0.6rem 0.6rem; font-size: 0.8rem; white-space: nowrap; }
     .sess-wrap th { font-size: 0.66rem; }
     .sess-wrap td.name-cell { white-space: normal; }
-    .sess-wrap tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.018); }
+    .sess-wrap tbody tr:nth-child(even) { background: #faf9ff; }
     tr.srow { cursor: pointer; }
-    .sess-wrap tr.srow:hover { background: rgba(157, 84, 255, 0.14); }
-    .sess-wrap tr.srow.active { background: rgba(157, 84, 255, 0.22); }
+    .sess-wrap tr.srow:hover { background: rgba(150, 0, 241, 0.07); }
+    .sess-wrap tr.srow.active { background: rgba(150, 0, 241, 0.12); }
     .btn-admin-del {
       font-size: 0.6rem; padding: 0.2rem 0.45rem; min-width: auto; line-height: 1.2;
-      background: rgba(255, 90, 90, 0.2); border: 1px solid rgba(255, 140, 140, 0.45);
+      background: rgba(214, 69, 69, 0.1); border: 1px solid rgba(214, 69, 69, 0.4); color: #c23636;
       text-transform: none; letter-spacing: 0.02em; font-weight: 700;
     }
-    .btn-admin-del:hover { background: rgba(255, 90, 90, 0.35); }
+    .btn-admin-del:hover { background: rgba(214, 69, 69, 0.2); }
     .card-h-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; max-width: 72%; }
     th.no-click, td.del-cell { text-align: center; width: 3.2rem; }
     td.del-cell { cursor: default; }
@@ -165,42 +199,42 @@
       display: inline-flex; align-items: center; justify-content: center;
       width: 1.05rem; height: 1.05rem; margin-left: 0.35rem;
       border-radius: 999px;
-      background: rgba(246, 177, 0, 0.22);
-      border: 1px solid rgba(246, 177, 0, 0.65);
-      color: #ffce5c;
+      background: rgba(180, 120, 10, 0.15);
+      border: 1px solid rgba(180, 120, 10, 0.5);
+      color: #a86f0a;
       font-size: 0.64rem;
       font-weight: 900;
       cursor: default;
       vertical-align: middle;
     }
-    .sid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255, 255, 255, 0.08); border-radius: 5px; padding: 0.05rem 0.3rem; font-size: 0.68rem; }
-    .pill { display: inline-block; padding: 0.09rem 0.4rem; border-radius: 999px; background: #6f35e5; color: #fff; font-size: 0.67rem; font-weight: 800; }
-    .muted { color: #a89bcf; }
+    .sid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #f2f2ff; border: 1px solid var(--line); border-radius: 5px; padding: 0.05rem 0.3rem; font-size: 0.68rem; color: var(--muted); }
+    .pill { display: inline-block; padding: 0.09rem 0.4rem; border-radius: 999px; background: #9600f1; color: #fff; font-size: 0.67rem; font-weight: 800; }
+    .muted { color: var(--muted); }
     .detail { max-height: 80vh; overflow: auto; padding: 0.8rem 0.9rem 0.95rem; font-size: 0.92rem; line-height: 1.5; }
     .metrics-hero {
-      border: 1px solid rgba(160, 130, 255, 0.35);
+      border: 1px solid var(--line);
       border-radius: 14px;
-      background: linear-gradient(160deg, rgba(45, 28, 82, 0.5), rgba(20, 14, 40, 0.85));
+      background: linear-gradient(160deg, #f6f1ff, #ffffff);
       padding: 0.65rem 0.6rem 0.75rem;
       margin-bottom: 0.65rem;
       overflow: visible;
     }
-    .metrics-hero h3 { font-size: 0.8rem; letter-spacing: 0.11em; margin: 0 0 0.4rem; color: #f0e8ff; font-weight: 800; }
-    .metrics-hero .lead { margin: 0 0 0.55rem; font-size: 0.8rem; line-height: 1.45; color: #c9b8ed; }
+    .metrics-hero h3 { font-size: 0.8rem; letter-spacing: 0.11em; margin: 0 0 0.4rem; color: var(--ink); font-weight: 800; }
+    .metrics-hero .lead { margin: 0 0 0.55rem; font-size: 0.8rem; line-height: 1.45; color: var(--muted); }
     .kpis { display: grid; grid-template-columns: repeat(1, minmax(220px, 1fr)); gap: 0.75rem; }
     @media (min-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(230px, 1fr)); } }
     @media (min-width: 1180px) { .kpis { grid-template-columns: repeat(3, minmax(230px, 1fr)); } }
     @media (max-width: 600px) { .kpis { grid-template-columns: 1fr; } }
-    .kpi { position: relative; border: 1px solid rgba(175, 146, 240, 0.28); border-radius: 14px; padding: 0.68rem 0.7rem 0.7rem; background: rgba(255, 255, 255, 0.04); min-height: 6.4rem; }
+    .kpi { position: relative; border: 1px solid var(--line); border-radius: 14px; padding: 0.68rem 0.7rem 0.7rem; background: #faf9ff; min-height: 6.4rem; }
     .kpi .k-row { display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; margin-bottom: 0.1rem; }
-    .kpi .k { font-size: 0.74rem; color: #ddd4f5; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; flex: 1; }
-    .kpi .v { font-size: 1.28rem; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.3; margin-top: 0.3rem; }
+    .kpi .k { font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; flex: 1; }
+    .kpi .v { font-size: 1.28rem; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1.3; margin-top: 0.3rem; }
     .hint-ico {
       flex-shrink: 0;
-      width: 0.92rem; height: 0.92rem; border-radius: 999px; border: 1px solid rgba(199, 170, 255, 0.5);
-      background: rgba(130, 75, 242, 0.4); color: #fff; font-size: 0.5rem; font-weight: 900; cursor: pointer; line-height: 1; padding: 0;
+      width: 0.92rem; height: 0.92rem; border-radius: 999px; border: 1px solid rgba(150, 0, 241, 0.4);
+      background: rgba(150, 0, 241, 0.12); color: #9600f1; font-size: 0.5rem; font-weight: 900; cursor: pointer; line-height: 1; padding: 0;
     }
-    .hint-ico:hover, .hint-ico:focus { background: rgba(180, 120, 255, 0.55); outline: none; box-shadow: 0 0 0 2px rgba(177, 122, 255, 0.4); }
+    .hint-ico:hover, .hint-ico:focus { background: rgba(150, 0, 241, 0.22); outline: none; box-shadow: 0 0 0 2px rgba(150, 0, 241, 0.25); }
     .hint-pop {
       display: none;
       position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% - 2px);
@@ -209,117 +243,117 @@
       font-size: 0.86rem;
       line-height: 1.55;
       font-weight: 600;
-      color: #ece6ff;
-      background: #1f1438;
-      border: 1px solid rgba(190, 160, 255, 0.45);
+      color: var(--ink);
+      background: #ffffff;
+      border: 1px solid var(--line);
       border-radius: 10px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 12px 40px rgba(41, 13, 87, 0.18);
     }
     .kpi .hint-pop.open, .kpi--wide .hint-pop.open, .has-hint .hint-pop.open { display: block; }
     .kpi--wide { grid-column: 1 / -1; min-height: 6.3rem; }
     .kpi--wide .hint-pop { max-width: 100%; }
-    .hint-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; color: #f5efff; }
+    .hint-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; color: var(--ink); }
     .hint-list { margin: 0; padding-left: 1.05rem; }
     .hint-list li { margin: 0.12rem 0; }
-    .hint-list li::marker { color: #c7a8ff; }
+    .hint-list li::marker { color: #9600f1; }
     .kpi .co, .kpi-co {
       margin-top: 0.3rem;
       font-size: 0.65rem;
       line-height: 1.4;
-      color: #9e8cc9;
+      color: var(--muted);
       font-weight: 500;
       letter-spacing: 0.01em;
     }
-    .panel-title { margin: 0 0 0.2rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #f2e8ff; font-weight: 800; }
-    .chart-legend { margin: 0.35rem 0 0.15rem; font-size: 0.75rem; line-height: 1.45; color: #c4b0e0; font-weight: 500; }
-    .chart-why { margin: 0 0 0.5rem; padding: 0.6rem 0.7rem; font-size: 0.9rem; line-height: 1.55; font-weight: 700; color: #f1e9ff; background: rgba(255,255,255,0.07); border-radius: 12px; border: 1px solid rgba(150, 120, 220, 0.3); }
-    .chart-why b { color: #fff; font-weight: 800; }
+    .panel-title { margin: 0 0 0.2rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink); font-weight: 800; }
+    .chart-legend { margin: 0.35rem 0 0.15rem; font-size: 0.75rem; line-height: 1.45; color: var(--muted); font-weight: 500; }
+    .chart-why { margin: 0 0 0.5rem; padding: 0.6rem 0.7rem; font-size: 0.9rem; line-height: 1.55; font-weight: 700; color: var(--ink); background: #f6f1ff; border-radius: 12px; border: 1px solid var(--line); }
+    .chart-why b { color: #9600f1; font-weight: 800; }
     .chart-clean { display: grid; gap: 0.45rem; }
     .turn-row { display: grid; grid-template-columns: 54px 1fr 70px; gap: 0.45rem; align-items: center; }
-    .turn-lbl { font-size: 0.76rem; color: #f2e9ff; font-weight: 700; }
-    .turn-track { position: relative; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(175,146,240,0.35); overflow: hidden; }
-    .turn-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #7f4dff, #d09cff); }
-    .turn-val { font-size: 0.75rem; text-align: right; font-weight: 700; color: #f2ebff; }
+    .turn-lbl { font-size: 0.76rem; color: var(--ink); font-weight: 700; }
+    .turn-track { position: relative; height: 14px; border-radius: 999px; background: #f2f2ff; border: 1px solid var(--line); overflow: hidden; }
+    .turn-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #9600f1, #cea4ff); }
+    .turn-val { font-size: 0.75rem; text-align: right; font-weight: 700; color: var(--ink); }
     .dim-clean { display: grid; gap: 0.42rem; }
-    .dim-row { border: 1px solid rgba(175,146,240,0.25); background: rgba(255,255,255,0.03); border-radius: 10px; padding: 0.42rem 0.5rem; }
+    .dim-row { border: 1px solid var(--line); background: #faf9ff; border-radius: 10px; padding: 0.42rem 0.5rem; }
     .dim-head { display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline; margin-bottom: 0.18rem; }
     .dim-head b { font-size: 0.78rem; }
-    .dim-head span { font-size: 0.72rem; color: #dccdff; font-weight: 700; }
-    .dim-track { position: relative; height: 12px; border-radius: 999px; border: 1px solid rgba(175,146,240,0.32); background: rgba(255,255,255,0.05); overflow: hidden; }
-    .dim-target { position: absolute; left:0; top:0; bottom:0; background: rgba(167,138,230,0.55); }
-    .dim-actual { position: absolute; left:0; top:0; bottom:0; background: linear-gradient(90deg, #12c87c, #5fd9c2); }
-    .ev-wrap { min-height: 10rem; padding: 0.35rem 0.4rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(160, 130, 220, 0.22); }
-    .ev-h { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #c4b0ee; font-weight: 800; margin: 0.35rem 0 0.2rem; }
+    .dim-head span { font-size: 0.72rem; color: var(--muted); font-weight: 700; }
+    .dim-track { position: relative; height: 12px; border-radius: 999px; border: 1px solid var(--line); background: #f2f2ff; overflow: hidden; }
+    .dim-target { position: absolute; left:0; top:0; bottom:0; background: #cea4ff; }
+    .dim-actual { position: absolute; left:0; top:0; bottom:0; background: linear-gradient(90deg, #12a86a, #17b880); }
+    .ev-wrap { min-height: 10rem; padding: 0.35rem 0.4rem; border-radius: 8px; background: #faf9ff; border: 1px solid var(--line); }
+    .ev-h { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-2); font-weight: 800; margin: 0.35rem 0 0.2rem; }
     .ev-h:first-child { margin-top: 0; }
-    .ev-wrap ul { margin: 0.15rem 0 0 1.1rem; padding: 0; color: #e8dfff; font-size: 0.8rem; line-height: 1.45; }
+    .ev-wrap ul { margin: 0.15rem 0 0 1.1rem; padding: 0; color: var(--ink); font-size: 0.8rem; line-height: 1.45; }
     .ev-wrap li { margin: 0.1rem 0; }
-    .ev-note { margin-top: 0.3rem; font-size: 0.8rem; line-height: 1.45; color: #e4dcf8; font-weight: 500; }
+    .ev-note { margin-top: 0.3rem; font-size: 0.8rem; line-height: 1.45; color: var(--muted); font-weight: 500; }
     .sec { margin-top: 0.85rem; }
-    .sec h3 { margin: 0 0 0.4rem; font-size: 0.78rem; color: #eee6ff; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; }
+    .sec h3 { margin: 0 0 0.4rem; font-size: 0.78rem; color: var(--ink); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.46rem; }
     @media (max-width: 980px) { .grid2 { grid-template-columns: 1fr; } }
-    .panel { border: 1px solid rgba(172, 142, 240, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.03); padding: 0.4rem 0.44rem; }
-    .chart { width: 100%; height: 200px; display: block; background: rgba(20, 13, 40, 0.58); border-radius: 8px; border: 1px solid rgba(162, 129, 236, 0.18); }
-    .caption { margin-top: 0.25rem; color: #b3a6d8; font-size: 0.76rem; line-height: 1.4; }
+    .panel { border: 1px solid var(--line); border-radius: 10px; background: #faf9ff; padding: 0.4rem 0.44rem; }
+    .chart { width: 100%; height: 200px; display: block; background: #f7f5ff; border-radius: 8px; border: 1px solid var(--line); }
+    .caption { margin-top: 0.25rem; color: var(--muted); font-size: 0.76rem; line-height: 1.4; }
     .list { display: grid; gap: 0.34rem; }
-    .itm { border-left: 3px solid var(--accent); border-radius: 10px; background: rgba(255, 255, 255, 0.05); padding: 0.5rem 0.55rem; }
+    .itm { border-left: 3px solid var(--accent); border-radius: 10px; background: #faf9ff; padding: 0.5rem 0.55rem; }
     .itm b { font-size: 0.85rem; }
-    .itm p { margin: 0.1rem 0 0; color: #f0e8ff; font-size: 0.8rem; line-height: 1.5; font-weight: 600; }
+    .itm p { margin: 0.1rem 0 0; color: var(--ink); font-size: 0.8rem; line-height: 1.5; font-weight: 600; }
     .rec-panel .itm p { font-size: 0.9rem; line-height: 1.55; font-weight: 700; white-space: normal; }
-    .rec-panel .rec-lead { font-size: 0.7rem; line-height: 1.45; font-weight: 600; color: #b9a4df; margin: 0 0 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .rec-panel .rec-lead { font-size: 0.7rem; line-height: 1.45; font-weight: 600; color: var(--muted); margin: 0 0 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; }
     .rec-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0.55rem; }
-    .rec-action-card { border: 1px solid rgba(175,146,240,0.28); background: rgba(0,0,0,0.2); border-radius: 10px; padding: 0.5rem 0.55rem 0.55rem; margin-bottom: 0.42rem; }
-    .rec-action-card h4 { margin: 0 0 0.2rem; font-size: 0.84rem; color: #f3ecff; font-weight: 800; letter-spacing: 0.01em; }
-    .rec-action-card .rec-meta { font-size: 0.7rem; color: #c9b3ee; font-weight: 600; line-height: 1.4; margin-bottom: 0.4rem; }
-    .rec-action-card .rec-sub { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: #9e86d4; font-weight: 800; margin: 0.35rem 0 0.2rem; }
+    .rec-action-card { border: 1px solid var(--line); background: #faf9ff; border-radius: 10px; padding: 0.5rem 0.55rem 0.55rem; margin-bottom: 0.42rem; }
+    .rec-action-card h4 { margin: 0 0 0.2rem; font-size: 0.84rem; color: var(--ink); font-weight: 800; letter-spacing: 0.01em; }
+    .rec-action-card .rec-meta { font-size: 0.7rem; color: var(--muted); font-weight: 600; line-height: 1.4; margin-bottom: 0.4rem; }
+    .rec-action-card .rec-sub { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent-2); font-weight: 800; margin: 0.35rem 0 0.2rem; }
     .rec-action-card ul { margin: 0.1rem 0 0.15rem; padding-left: 1.05rem; }
-    .rec-action-card li { color: #ebe4ff; font-size: 0.78rem; line-height: 1.5; font-weight: 500; margin: 0.15rem 0; }
-    .rec-action-card .rec-rational { font-size: 0.7rem; color: #9fa0c4; line-height: 1.4; font-style: italic; margin: 0.3rem 0 0; }
-    .rec-action-card .rec-ground { font-size: 0.68rem; color: #d4c2f2; line-height: 1.4; margin-top: 0.35rem; padding: 0.3rem; border-left: 2px solid rgba(150, 120, 220, 0.45); }
+    .rec-action-card li { color: var(--ink); font-size: 0.78rem; line-height: 1.5; font-weight: 500; margin: 0.15rem 0; }
+    .rec-action-card .rec-rational { font-size: 0.7rem; color: var(--muted); line-height: 1.4; font-style: italic; margin: 0.3rem 0 0; }
+    .rec-action-card .rec-ground { font-size: 0.68rem; color: var(--ink); line-height: 1.4; margin-top: 0.35rem; padding: 0.3rem; border-left: 2px solid rgba(150, 0, 241, 0.35); }
     .course-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 36rem; overflow: auto; padding-right: 0.15rem; }
-    .course-card { border: 1px solid rgba(175,146,240,0.25); background: rgba(255,255,255,0.04); border-radius: 10px; padding: 0.5rem 0.55rem; }
+    .course-card { border: 1px solid var(--line); background: #faf9ff; border-radius: 10px; padding: 0.5rem 0.55rem; }
     .course-card b { font-size: 0.82rem; display: block; margin-bottom: 0.12rem; }
-    .course-card p { margin: 0.12rem 0; font-size: 0.74rem; color: #e9e0ff; line-height: 1.45; }
-    .course-link { font-size: 0.72rem; font-weight: 700; color: #d9beff; text-decoration: underline; text-underline-offset: 2px; }
+    .course-card p { margin: 0.12rem 0; font-size: 0.74rem; color: var(--muted); line-height: 1.45; }
+    .course-link { font-size: 0.72rem; font-weight: 700; color: #9600f1; text-decoration: underline; text-underline-offset: 2px; }
     @media (max-width: 980px) { .rec-grid { grid-template-columns: 1fr; } }
     .resp-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-    .resp-table th, .resp-table td { padding: 0.55rem 0.5rem; border-bottom: 1px solid rgba(170, 143, 238, 0.16); }
-    .resp-table th { position: static; background: rgba(106, 57, 214, 0.32); font-size: 0.68rem; font-weight: 800; }
+    .resp-table th, .resp-table td { padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--line); }
+    .resp-table th { position: static; background: #f2ecfb; font-size: 0.68rem; font-weight: 800; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
-    .raw { margin: 0; white-space: pre-wrap; font-size: 0.66rem; line-height: 1.35; color: #d8cdf4; max-height: 15rem; overflow: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(169,139,236,0.2); border-radius: 8px; padding: 0.4rem; }
-    .link { color: #d4bcff; text-decoration: underline; text-underline-offset: 2px; }
+    .raw { margin: 0; white-space: pre-wrap; font-size: 0.66rem; line-height: 1.35; color: var(--ink); max-height: 15rem; overflow: auto; background: #faf9ff; border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem; }
+    .link { color: #9600f1; text-decoration: underline; text-underline-offset: 2px; }
     .has-hint { position: relative; }
     .gap-hero {
-      border: 1px solid rgba(172, 142, 240, 0.35);
+      border: 1px solid var(--line);
       border-radius: 12px;
-      background: linear-gradient(120deg, rgba(130, 75, 242, 0.22), rgba(255, 255, 255, 0.03));
+      background: linear-gradient(120deg, rgba(150, 0, 241, 0.08), #ffffff);
       padding: 0.55rem 0.58rem 0.62rem;
       margin-bottom: 0.55rem;
     }
     .gap-hero__title { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
     .gap-hero__title h3 { margin: 0 !important; flex: 1; font-size: 0.82rem !important; }
-    .gap-hero h3 { margin: 0 0 0.4rem !important; font-size: 0.82rem !important; letter-spacing: 0.1em !important; color: #f6f0ff !important; font-weight: 800 !important; }
+    .gap-hero h3 { margin: 0 0 0.4rem !important; font-size: 0.82rem !important; letter-spacing: 0.1em !important; color: var(--ink) !important; font-weight: 800 !important; }
     .gap-row { margin-top: 0.48rem; }
     .gap-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.18rem; }
     .gap-row-head b { font-size: 0.85rem; font-weight: 800; }
-    .gap-row-head span { font-size: 0.78rem; color: #efe8ff; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .gap-row-head span { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; }
     .bar-track {
       position: relative;
       height: 10px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(167, 138, 230, 0.22);
+      background: #f2f2ff;
+      border: 1px solid var(--line);
       overflow: hidden;
     }
     .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
-    .bar-fill.actual { background: linear-gradient(90deg, #19c37d, #6f2ae8); }
-    .bar-fill.target { background: rgba(167, 138, 230, 0.55); }
+    .bar-fill.actual { background: linear-gradient(90deg, #12a86a, #9600f1); }
+    .bar-fill.target { background: #cea4ff; }
     .week-plan { display: grid; gap: 0.42rem; }
     .week-card {
       border-radius: 10px;
-      border: 1px solid rgba(172, 142, 240, 0.22);
-      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line);
+      background: #faf9ff;
       padding: 0.42rem 0.46rem;
       display: grid;
       grid-template-columns: 52px 1fr;
@@ -328,8 +362,9 @@
     }
     .week-badge {
       border-radius: 10px;
-      background: rgba(130, 75, 242, 0.35);
-      border: 1px solid rgba(199, 170, 255, 0.35);
+      background: rgba(150, 0, 241, 0.12);
+      border: 1px solid rgba(150, 0, 241, 0.25);
+      color: #7a12c7;
       font-weight: 800;
       font-size: 0.62rem;
       letter-spacing: 0.08em;
@@ -339,7 +374,7 @@
       line-height: 1.25;
     }
     .week-body h4 { margin: 0; font-size: 0.9rem; font-weight: 800; letter-spacing: -0.01em; }
-    .week-body .sub { margin: 0.12rem 0 0.28rem; color: #c9b8ef; font-size: 0.8rem; line-height: 1.45; }
+    .week-body .sub { margin: 0.12rem 0 0.28rem; color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
     .pill-grid { display: flex; flex-wrap: wrap; gap: 0.22rem; margin-top: 0.18rem; }
     .mini-pill {
       font-size: 0.58rem;
@@ -348,9 +383,9 @@
       font-weight: 800;
       padding: 0.12rem 0.32rem;
       border-radius: 999px;
-      border: 1px solid rgba(199, 170, 255, 0.28);
-      color: #efe6ff;
-      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: var(--accent-2);
+      background: #f6f1ff;
     }
     .clip { white-space: pre-wrap; word-break: break-word; max-height: 5.5rem; overflow: auto; }
     .turn-text {
@@ -359,74 +394,78 @@
       line-height: 1.5;
       font-size: 0.78rem;
       font-weight: 500;
-      color: #f0e8ff;
+      color: var(--ink);
     }
-    .turn-text--q { border-left: 3px solid #9c4dff; padding: 0.4rem 0.5rem; background: rgba(120, 70, 220, 0.12); border-radius: 0 8px 8px 0; }
+    .turn-text--q { border-left: 3px solid #9600f1; padding: 0.4rem 0.5rem; background: rgba(150, 0, 241, 0.07); border-radius: 0 8px 8px 0; }
     .turn-text--a { max-height: 20rem; overflow: auto; }
     .turn-text--q { max-height: 24rem; overflow-y: auto; }
-    .status-ongoing { color: #f6b100; }
-    .status-ended { color: #19c37d; }
+    .status-ongoing { color: var(--warn); }
+    .status-ended { color: var(--good); }
     .sess-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .name-cell { min-width: 7rem; }
     .admin-name-input {
       width: 100%; max-width: 9.5rem;
-      background: rgba(255, 255, 255, 0.06);
-      color: #f3eeff;
-      border: 1px solid rgba(167, 138, 230, 0.32);
+      background: #ffffff;
+      color: var(--ink);
+      border: 1px solid var(--line);
       border-radius: 6px;
       padding: 0.18rem 0.4rem;
       font: inherit;
       font-size: 0.72rem;
       outline: none;
     }
-    .admin-name-input::placeholder { color: rgba(220, 205, 255, 0.42); }
-    .admin-name-input:focus { border-color: #a78ae6; box-shadow: 0 0 0 1px rgba(167, 138, 230, 0.45); }
+    .admin-name-input::placeholder { color: rgba(92, 98, 128, 0.6); }
+    .admin-name-input:focus { border-color: #9600f1; box-shadow: 0 0 0 1px rgba(150, 0, 241, 0.35); }
     .admin-name-input--lg { font-size: 0.82rem; max-width: 14rem; padding: 0.24rem 0.55rem; }
     .admin-name-editor {
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.1rem 0.5rem; border-radius: 999px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(167, 138, 230, 0.22);
+      background: #f6f1ff;
+      border: 1px solid var(--line);
     }
-    .admin-name-editor__l { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #c4b0ee; font-weight: 700; }
-    .resp-table th:nth-child(4), .resp-table td:nth-child(4) { width: 32%; }
-    .resp-table th:nth-child(2), .resp-table td:nth-child(2) { min-width: 8rem; }
-    .report-hero__label { margin: 0 0 0.35rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; color: #b3a0da; }
+    .admin-name-editor__l { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+    /* Column sizing for the per-turn transcript table only. These were global on
+       .resp-table, which silently blew out column 4 of every other table using the class
+       (the per-role summary rendered D1 four times wider than D2-D6). Scoped to the table
+       they were written for. */
+    .resp-table--turns th:nth-child(4), .resp-table--turns td:nth-child(4) { width: 32%; }
+    .resp-table--turns th:nth-child(2), .resp-table--turns td:nth-child(2) { min-width: 8rem; }
+    .report-hero__label { margin: 0 0 0.35rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; color: var(--muted); }
     .report-hero {
-      border: 1px solid rgba(175, 146, 240, 0.28);
+      border: 1px solid var(--line);
       border-radius: 12px;
       padding: 0.5rem 0.58rem 0.55rem;
       margin-bottom: 0.65rem;
-      background: rgba(0, 0, 0, 0.2);
+      background: #faf9ff;
     }
-    .report-hero__p { margin: 0.15rem 0 0; font-size: 0.76rem; line-height: 1.45; color: #c9b8e8; }
-    .report-hero__p strong { color: #f4f0ff; }
-    .report-hero__aiq { font-size: 0.8rem; font-weight: 800; color: #d8c5ff; margin: 0.2rem 0 0; }
+    .report-hero__p { margin: 0.15rem 0 0; font-size: 0.76rem; line-height: 1.45; color: var(--muted); }
+    .report-hero__p strong { color: var(--ink); }
+    .report-hero__aiq { font-size: 0.8rem; font-weight: 800; color: #9600f1; margin: 0.2rem 0 0; }
     .report-toc {
       display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.65rem;
       margin: 0 0 0.7rem; padding: 0.4rem 0.5rem;
-      border: 1px solid rgba(160, 130, 220, 0.2); border-radius: 10px;
-      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line); border-radius: 10px;
+      background: #faf9ff;
       font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
     }
-    .report-toc a { color: #c9a8ff; text-decoration: none; border-bottom: 1px solid rgba(201, 168, 255, 0.35); }
-    .report-toc a:hover { color: #fff; border-color: #fff; }
-    .report-toc .report-toc__s { color: #7a6a9a; text-transform: none; letter-spacing: 0.02em; font-weight: 600; }
+    .report-toc a { color: #9600f1; text-decoration: none; border-bottom: 1px solid rgba(150, 0, 241, 0.35); }
+    .report-toc a:hover { color: #5300ba; border-color: #5300ba; }
+    .report-toc .report-toc__s { color: var(--muted); text-transform: none; letter-spacing: 0.02em; font-weight: 600; }
     .report-sec { margin-bottom: 0.9rem; scroll-margin-top: 0.5rem; }
     .report-sec__h {
       display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.4rem; padding-bottom: 0.35rem;
-      border-bottom: 1px solid rgba(150, 120, 220, 0.22);
-      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #d8c2ff; font-weight: 800;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-2); font-weight: 800;
     }
     .report-sec__n {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 1.5rem; height: 1.5rem; border-radius: 999px; background: linear-gradient(135deg, #6f2ae8, #8b5cff);
+      min-width: 1.5rem; height: 1.5rem; border-radius: 999px; background: linear-gradient(135deg, #9600f1, #5300ba);
       font-size: 0.62rem; color: #fff; letter-spacing: 0.02em;
     }
     .report-sec__sub { margin: 0 0 0.5rem; font-size: 0.72rem; line-height: 1.4; }
     .rec-panel.rec-stack { display: block; }
     .rec-panel .rec-stacked { display: block; }
-    .rec-panel .rec-stacked .rec-links { margin-top: 0.6rem; padding-top: 0.55rem; border-top: 1px solid rgba(150, 120, 220, 0.2); }
+    .rec-panel .rec-stacked .rec-links { margin-top: 0.6rem; padding-top: 0.55rem; border-top: 1px solid var(--line); }
   </style>
 </head>
 <body>
@@ -454,9 +493,26 @@
       </div>
       <div class="row" style="margin-top:0">
         <button id="refreshBtn" class="btn ghost" type="button">Refresh</button>
+        <button id="exportCsvBtn" class="btn ghost" type="button" title="One row per session with every dimension score, role, scenario and attempt — for pilot analysis">Export CSV</button>
         <button id="logoutBtn" class="btn ghost" type="button">Logout</button>
       </div>
     </div>
+
+    <section class="card" id="cohortCard" style="margin-bottom:1.15rem">
+      <div class="card-h">
+        <h2>Pilot at a glance</h2>
+        <span class="meta">all sessions, not just the 200 listed below</span>
+      </div>
+      <div id="cohortBody" class="card-b"><p class="meta">Loading…</p></div>
+    </section>
+
+    <section class="card" id="distCard" style="margin-bottom:1.15rem">
+      <div class="card-h">
+        <h2>Score distribution</h2>
+        <span class="meta">is the assessment separating people?</span>
+      </div>
+      <div id="distBody" class="card-b"><p class="meta">Loading…</p></div>
+    </section>
 
     <div class="layout">
       <section class="card">
@@ -464,7 +520,7 @@
           <h2>All runs</h2>
           <span id="count" class="meta">0 loaded</span>
         </div>
-        <p id="dbMeta" class="meta" style="font-size:0.68rem;opacity:0.82;margin:-0.35rem 0 0.55rem;line-height:1.35;color:rgba(230,220,255,0.88)"></p>
+        <p id="dbMeta" class="meta" style="font-size:0.68rem;opacity:0.82;margin:-0.35rem 0 0.55rem;line-height:1.35;color:#5c6280"></p>
         <div class="sess-wrap">
           <table>
             <thead>
@@ -473,6 +529,9 @@
                 <th>Status</th>
                 <th>Name</th>
                 <th>Session</th>
+                <th title="Role the participant selected — this sets the dimension weights.">Role</th>
+                <th title="Which scenario variant was served. Retakes rotate to one the participant has not seen.">Scenario</th>
+                <th title="Attempt number for this participant and role. 1 = first attempt.">Att</th>
                 <th>Dur</th>
                 <th>Msgs</th>
                 <th>AiQ</th>
@@ -618,6 +677,243 @@
         return j;
       }
 
+      // --- Pilot cohort view -------------------------------------------------------
+      // Medians, not means: a pilot is small enough that one outlier drags a mean, and a
+      // shifted average is the kind of thing that gets quoted in a readout unchallenged.
+      function renderCohort(sum) {
+        const box = $("cohortBody");
+        if (!box) return;
+        if (!sum || !sum.started) {
+          box.innerHTML = "<p class='meta'>No sessions yet.</p>";
+          return;
+        }
+        const n = (v, suffix) => (v == null ? "—" : esc(String(v)) + (suffix || ""));
+        const kpis = [
+          ["Started", sum.started, "sessions opened"],
+          ["Completed", sum.completed + (sum.completion_rate != null ? " (" + sum.completion_rate + "%)" : ""), "reached the end and got a report"],
+          ["Scored", sum.scored, "produced a composite"],
+          ["Retakes", sum.retakes, "attempt 2 or later"],
+          // Say which population the median is over. Falling back to "all runs" while
+          // still captioned "excludes low-signal" is exactly how a soft number ends up
+          // quoted as a hard one.
+          sum.median_aiq_clean != null
+            ? ["Median AiQ", sum.median_aiq_clean, "median of runs with enough signal to trust (n=" + (sum.scored - sum.low_signal) + ")"]
+            : ["Median AiQ*", sum.median_aiq_all, "*every scored run is flagged low-signal, so this includes them — treat as indicative only"],
+          ["Low signal", sum.low_signal, "too short or too thin to trust"],
+          ["Median length", formatShortSec(sum.median_duration_sec), "start to finish"],
+          ["Median replies", sum.median_user_messages, "participant turns"],
+        ];
+        let html = "<div class='stat-tiles'>";
+        kpis.forEach((k) => {
+          html += "<div class='kpi' title='" + esc(k[2]) + "'>" +
+                  "<div class='k'>" + esc(k[0]) + "</div><div class='v'>" + n(k[1]) + "</div></div>";
+        });
+        html += "</div>";
+
+        const bands = sum.bands || {};
+        const bandOrder = ["AiQ1", "AiQ2", "AiQ3", "AiQ4"];
+        const bandTotal = bandOrder.reduce((a, b) => a + (bands[b] || 0), 0);
+        if (bandTotal) {
+          html += "<h3 class='sec-sub'>Band distribution</h3>" +
+                  "<div style='display:flex;gap:0.45rem;flex-wrap:wrap;margin:0.5rem 0 0.4rem'>";
+          bandOrder.forEach((b) => {
+            const c = bands[b] || 0;
+            const pct = Math.round((100 * c) / bandTotal);
+            html += "<span class='pill' title='" + esc(b + ": " + c + " of " + bandTotal) + "'>" +
+                    esc(b) + " · " + c + " (" + pct + "%)</span>";
+          });
+          html += "</div>";
+        }
+
+        const roles = sum.by_role || [];
+        if (roles.length) {
+          const labels = sum.dimension_labels || {};
+          html += "<h3 class='sec-sub'>Scores by role</h3>" +
+                  "<p class='chart-note' style='margin-bottom:0.5rem'>Median per dimension. At pilot size each row rests on a handful of sessions — read as direction, not measurement.</p>" +
+                  "<div style='overflow-x:auto'><table class='stat-table'><thead><tr>" +
+                  "<th>Role</th><th>n</th><th>Median AiQ</th>";
+          for (let i = 1; i <= 6; i++) {
+            html += "<th title='" + esc(labels["D" + i] || "") + "'>D" + i + "</th>";
+          }
+          html += "<th title='Runs too short or too thin to read with confidence'>Low sig</th></tr></thead><tbody>";
+          roles.forEach((r) => {
+            html += "<tr><td>" + esc(r.role) + "</td><td>" + esc(r.sessions) + "</td>" +
+                    "<td><b>" + n(r.median_aiq) + "</b></td>";
+            for (let i = 1; i <= 6; i++) {
+              html += "<td>" + n((r.median_dims || {})["D" + i]) + "</td>";
+            }
+            html += "<td>" + esc(r.low_signal || 0) + "</td></tr>";
+          });
+          html += "</tbody></table></div>";
+        }
+
+        const cov = sum.scenario_coverage || {};
+        const covKeys = Object.keys(cov).sort();
+        if (covKeys.length) {
+          html += "<h3 class='sec-sub'>Scenario coverage</h3>" +
+                  "<p class='chart-note' style='margin-bottom:0.5rem'>How evenly the pool is being used. A variant far ahead of the rest means selection is skewed, not the population.</p>" +
+                  "<div style='display:flex;gap:0.4rem;flex-wrap:wrap'>";
+          covKeys.forEach((k) => {
+            html += "<span class='pill' style='font-size:0.68rem'>" + esc(k) + " · " + esc(cov[k]) + "</span>";
+          });
+          html += "</div>";
+        }
+        box.innerHTML = html;
+      }
+
+      // --- Distribution charts -----------------------------------------------------
+      // Inline SVG, no libraries: the admin page must render offline and behind a strict
+      // CSP like everything else here.
+      function histogramSvg(bins, opts) {
+        const o = opts || {};
+        const W = 720, H = 210, PL = 38, PR = 12, PT = 14, PB = 34;
+        const iw = W - PL - PR, ih = H - PT - PB;
+        const maxN = Math.max(1, ...bins.map((b) => b.n));
+        const bw = iw / bins.length;
+        let g = "";
+        // Band boundaries at 25.5 / 55.5 / 80.5 — where AiQ1|2|3|4 actually cut. Lines go
+        // down first (behind the bars); their labels are painted last, or a tall bar sits
+        // on top of the label and it becomes unreadable.
+        let markerLabels = "";
+        (o.markers || []).forEach((m) => {
+          const x = PL + (m.at / 100) * iw;
+          g += "<line x1='" + x + "' y1='" + PT + "' x2='" + x + "' y2='" + (PT + ih) +
+               "' stroke='#c9c4e0' stroke-width='1' stroke-dasharray='3 3'/>";
+          markerLabels += "<text x='" + (x + 3) + "' y='" + (PT + 9) + "' font-size='9' fill='#6f6b87' " +
+               "stroke='#ffffff' stroke-width='2.6' paint-order='stroke' stroke-linejoin='round'>" + esc(m.label) + "</text>";
+        });
+        bins.forEach((b, i) => {
+          const h = (b.n / maxN) * ih;
+          const x = PL + i * bw, y = PT + ih - h;
+          g += "<rect x='" + (x + 2) + "' y='" + y + "' width='" + (bw - 4) + "' height='" + h +
+               "' rx='2' fill='#9600F1' opacity='0.78'><title>" + esc(b.lo + "-" + b.hi + ": " + b.n + " session" + (b.n === 1 ? "" : "s")) + "</title></rect>";
+          if (b.n) g += "<text x='" + (x + bw / 2) + "' y='" + (y - 3) + "' font-size='9' text-anchor='middle' fill='#5c6280'>" + b.n + "</text>";
+          if (i % 2 === 0) g += "<text x='" + (x + bw / 2) + "' y='" + (PT + ih + 13) + "' font-size='9' text-anchor='middle' fill='#8a86a3'>" + b.lo + "</text>";
+        });
+        // Median and interquartile range — the honest summary at small n.
+        if (o.median != null) {
+          const mx = PL + (o.median / 100) * iw;
+          g += "<line x1='" + mx + "' y1='" + (PT - 4) + "' x2='" + mx + "' y2='" + (PT + ih) + "' stroke='#5300BA' stroke-width='2'/>" +
+               "<text x='" + mx + "' y='" + (PT + ih + 26) + "' font-size='9.5' text-anchor='middle' fill='#5300BA'>median " + esc(o.median) + "</text>";
+        }
+        if (o.p25 != null && o.p75 != null) {
+          const a = PL + (o.p25 / 100) * iw, b2 = PL + (o.p75 / 100) * iw;
+          g += "<rect x='" + a + "' y='" + PT + "' width='" + Math.max(1, b2 - a) + "' height='" + ih + "' fill='#5300BA' opacity='0.07'/>";
+        }
+        g += "<line x1='" + PL + "' y1='" + (PT + ih) + "' x2='" + (PL + iw) + "' y2='" + (PT + ih) + "' stroke='#d8d5e8'/>";
+        g += markerLabels;
+        return "<svg viewBox='0 0 " + W + " " + H + "' style='width:100%;height:auto' role='img' aria-label='Distribution of composite AiQ scores'>" + g + "</svg>";
+      }
+
+      function dimBandsSvg(dims) {
+        const W = 720, rowH = 26, PL = 150, PR = 90;
+        const H = dims.length * rowH + 22;
+        const iw = W - PL - PR;
+        let g = "<text x='" + PL + "' y='11' font-size='9' fill='#8a86a3'>low 0–3</text>" +
+                "<text x='" + (PL + iw * 0.45) + "' y='11' font-size='9' fill='#8a86a3'>mid 4–7</text>" +
+                "<text x='" + (PL + iw * 0.86) + "' y='11' font-size='9' fill='#8a86a3'>high 8–10</text>";
+        dims.forEach((d, i) => {
+          const y = 20 + i * rowH;
+          const b = d.anchor_bands || {};
+          const tot = Math.max(1, (b.low || 0) + (b.mid || 0) + (b.high || 0));
+          const segs = [["low", b.low || 0, "#e8a33d"], ["mid", b.mid || 0, "#9600F1"], ["high", b.high || 0, "#3aa981"]];
+          let x = PL;
+          g += "<text x='0' y='" + (y + 13) + "' font-size='10' fill='#3c3a4d'>" + esc(d.code + " " + d.label) + "</text>";
+          segs.forEach((s) => {
+            const w = (s[1] / tot) * iw;
+            if (w > 0) {
+              g += "<rect x='" + x + "' y='" + y + "' width='" + w + "' height='16' fill='" + s[2] + "' opacity='0.82'>" +
+                   "<title>" + esc(s[0] + ": " + s[1] + " of " + tot) + "</title></rect>";
+              if (w > 18) g += "<text x='" + (x + w / 2) + "' y='" + (y + 12) + "' font-size='9' text-anchor='middle' fill='#fff'>" + s[1] + "</text>";
+            }
+            x += w;
+          });
+          g += "<text x='" + (PL + iw + 8) + "' y='" + (y + 12) + "' font-size='9.5' fill='#5c6280'>med " +
+               esc(d.median == null ? "—" : d.median) + " · sd " + esc(d.sd == null ? "—" : d.sd) + "</text>";
+        });
+        return "<svg viewBox='0 0 " + W + " " + H + "' style='width:100%;height:auto' role='img' aria-label='Score spread per dimension against the behavioural anchor bands'>" + g + "</svg>";
+      }
+
+      function scatterSvg(pairs) {
+        const W = 360, H = 240, P = 34;
+        const iw = W - P * 2, ih = H - P * 2;
+        let g = "<line x1='" + P + "' y1='" + (H - P) + "' x2='" + (W - P) + "' y2='" + (H - P) + "' stroke='#d8d5e8'/>" +
+                "<line x1='" + P + "' y1='" + P + "' x2='" + P + "' y2='" + (H - P) + "' stroke='#d8d5e8'/>" +
+                "<line x1='" + P + "' y1='" + (H - P) + "' x2='" + (W - P) + "' y2='" + P + "' stroke='#c9c4e0' stroke-dasharray='4 4'/>" +
+                "<text x='" + (W / 2) + "' y='" + (H - 6) + "' font-size='9.5' text-anchor='middle' fill='#8a86a3'>they predicted →</text>" +
+                "<text x='10' y='" + (H / 2) + "' font-size='9.5' fill='#8a86a3' transform='rotate(-90 10," + (H / 2) + ")'>they scored →</text>";
+        pairs.forEach((p) => {
+          const x = P + (p.expected / 100) * iw;
+          const y = H - P - (p.actual / 100) * ih;
+          g += "<circle cx='" + x.toFixed(1) + "' cy='" + y.toFixed(1) + "' r='4' fill='#9600F1' opacity='0.6'>" +
+               "<title>predicted " + esc(p.expected) + " · scored " + esc(p.actual) + "</title></circle>";
+        });
+        return "<svg viewBox='0 0 " + W + " " + H + "' style='width:100%;max-width:360px;height:auto' role='img' aria-label='Self-predicted score against measured score'>" + g + "</svg>";
+      }
+
+      function renderDistribution(dist) {
+        const box = $("distBody");
+        if (!box) return;
+        const c = (dist && dist.composite) || {};
+        if (!c.n) {
+          box.innerHTML = "<p class='meta'>No scored sessions yet.</p>";
+          return;
+        }
+        const thin = c.n < 20;
+        let html = "";
+        if (thin) {
+          html += "<p class='note-warn' style='margin:0 0 0.85rem'>n=" + esc(c.n) +
+                  " — too few to read a shape from. Below ~20 a histogram is noise; use the spread numbers, not the silhouette.</p>";
+        }
+        html += "<div class='stat-tiles'>" +
+          "<div class='kpi' title='Half the scores fall inside this range. The single best read on whether the assessment separates people.'><div class='k'>IQR</div><div class='v'>" +
+            esc(c.p25) + "–" + esc(c.p75) + (c.iqr != null ? " (" + esc(c.iqr) + ")" : "") + "</div></div>" +
+          "<div class='kpi' title='Standard deviation of the composite.'><div class='k'>SD</div><div class='v'>" + esc(c.sd) + "</div></div>" +
+          "<div class='kpi'><div class='k'>Range</div><div class='v'>" + esc(c.min) + "–" + esc(c.max) + "</div></div>" +
+          "<div class='kpi'><div class='k'>Median</div><div class='v'>" + esc(c.median) + "</div></div>" +
+          "<div class='kpi'><div class='k'>Mean</div><div class='v'>" + esc(c.mean) + "</div></div>" +
+          "</div>";
+        html += "<div class='chart-block'>" + histogramSvg(c.bins || [], {
+          median: c.median, p25: c.p25, p75: c.p75,
+          markers: [{ at: 25.5, label: "AiQ2" }, { at: 55.5, label: "AiQ3" }, { at: 80.5, label: "AiQ4" }],
+        }) + "</div>";
+        html += "<p class='chart-note'>Composite AiQ, 10-point bins. Shaded band = middle 50%. Dashed lines = maturity-band cuts.</p>";
+
+        const dims = (dist && dist.dimensions) || [];
+        if (dims.length) {
+          html += "<h3 class='sec-sub'>Where each dimension lands</h3>" +
+                  "<p class='chart-note' style='margin-bottom:0.55rem'>Against the scoring anchors. A dimension with nearly everyone in one band is not separating anyone — it adds weight to the composite without adding information.</p>" +
+                  "<div class='chart-block'>" + dimBandsSvg(dims) + "</div>";
+          const dead = dims.filter((d) => d.n && (d.at_floor_pct >= 70 || d.at_ceiling_pct >= 70 || (d.sd != null && d.sd < 0.6)));
+          if (dead.length) {
+            html += "<p class='note-warn'>⚠ Not discriminating: " +
+                    dead.map((d) => esc(d.code)).join(", ") +
+                    " — nearly all scores sit in one band. Worth checking whether the interview actually elicits that dimension.</p>";
+          }
+        }
+
+        const pairs = (dist && dist.self_vs_actual) || [];
+        html += "<h3 class='sec-sub'>Self-predicted vs measured</h3>";
+        if (pairs.length >= 3) {
+          html += "<p class='chart-note' style='margin-bottom:0.55rem'>Each dot is one participant against the score they predicted before starting. Dots on the dashed line = the assessment agreed with them. A cloud with no direction at all is worth investigating.</p>" +
+                  "<div class='chart-block'>" + scatterSvg(pairs) + "</div>";
+        } else {
+          html += "<p class='chart-note'>Needs at least 3 scored sessions that recorded a prediction (" + esc(pairs.length) + " so far).</p>";
+        }
+        box.innerHTML = html;
+      }
+
+      async function loadCohort() {
+        try {
+          const sum = await api("/api/admin/summary");
+          renderCohort(sum);
+          renderDistribution(sum.distribution);
+        } catch (e) {
+          const box = $("cohortBody");
+          if (box) box.innerHTML = "<p class='meta'>Could not load summary: " + esc((e && e.message) || "error") + "</p>";
+        }
+      }
+
       function formatShortSec(sec) {
         if (sec == null || isNaN(Number(sec))) return "—";
         const n = Math.round(Number(sec));
@@ -649,11 +945,11 @@
         const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => maxV * t);
         const grid = yTicks.map((yv) => {
           const yy = yAt(yv);
-          return "<line x1='" + pl + "' y1='" + yy.toFixed(1) + "' x2='" + (w - pr) + "' y2='" + yy.toFixed(1) + "' stroke='rgba(180,160,230,0.12)' stroke-width='1' />";
+          return "<line x1='" + pl + "' y1='" + yy.toFixed(1) + "' x2='" + (w - pr) + "' y2='" + yy.toFixed(1) + "' stroke='rgba(42,48,81,0.10)' stroke-width='1' />";
         }).join("");
         const yLabs = yTicks.map((yv) => {
           const yy = yAt(yv) + 3;
-          return "<text x='" + (pl - 4) + "' y='" + yy.toFixed(1) + "' font-size='8' text-anchor='end' fill='rgba(200,180,255,0.7)'>" + esc(formatShortSec(yv)) + "</text>";
+          return "<text x='" + (pl - 4) + "' y='" + yy.toFixed(1) + "' font-size='8' text-anchor='end' fill='rgba(92,98,128,0.7)'>" + esc(formatShortSec(yv)) + "</text>";
         }).join("");
         const path = !n ? "" : (points
           .map((pt0, i) => {
@@ -665,18 +961,18 @@
         const circles = (points || []).map((pt0, i) => {
           const x = xAt(i);
           const y = yAt(Math.max(0, Number(pt0[key] || 0)));
-          return "<circle cx='" + x.toFixed(1) + "' cy='" + y.toFixed(1) + "' r='3' fill='" + color + "' stroke='rgba(20,8,40,0.5)' stroke-width='0.5' />";
+          return "<circle cx='" + x.toFixed(1) + "' cy='" + y.toFixed(1) + "' r='3' fill='" + color + "' stroke='rgba(255,255,255,0.9)' stroke-width='0.5' />";
         }).join("");
         const xStepLabel = n > 10 ? 2 : 1;
         const xLabs = (points || []).map((pt0, i) => {
           if (i % xStepLabel !== 0 && i !== n - 1) return "";
           const x = xAt(i) - 4;
           const turn = pt0.turn_idx != null ? String(pt0.turn_idx) : String(i + 1);
-          return "<text x='" + (x + 4) + "' y='" + (h - 8) + "' font-size='8' fill='rgba(200,180,255,0.8)' text-anchor='middle'>T" + esc(turn) + "</text>";
+          return "<text x='" + (x + 4) + "' y='" + (h - 8) + "' font-size='8' fill='rgba(92,98,128,0.8)' text-anchor='middle'>T" + esc(turn) + "</text>";
         }).join("");
-        const yTitle = "<text x='12' y='" + (pt + ch / 2) + "' font-size='8' fill='rgba(200,180,255,0.55)' transform='rotate(-90,12," + (pt + ch / 2) + ")'>Seconds to compose</text>";
-        const xTitle = "<text x='" + (pl + cw / 2) + "' y='" + (h - 2) + "' font-size='8' text-anchor='middle' fill='rgba(200,180,255,0.55)'>User reply (turn #)</text>";
-        const sub = "<text x='" + (pl + cw / 2) + "' y='10' font-size='7' text-anchor='middle' fill='rgba(200,180,255,0.4)'>Upticks = that reply took more time to send after the prior interviewer line (see table for exact same numbers).</text>";
+        const yTitle = "<text x='12' y='" + (pt + ch / 2) + "' font-size='8' fill='rgba(92,98,128,0.55)' transform='rotate(-90,12," + (pt + ch / 2) + ")'>Seconds to compose</text>";
+        const xTitle = "<text x='" + (pl + cw / 2) + "' y='" + (h - 2) + "' font-size='8' text-anchor='middle' fill='rgba(92,98,128,0.55)'>User reply (turn #)</text>";
+        const sub = "<text x='" + (pl + cw / 2) + "' y='10' font-size='7' text-anchor='middle' fill='rgba(92,98,128,0.4)'>Upticks = that reply took more time to send after the prior interviewer line (see table for exact same numbers).</text>";
         svg.innerHTML = sub + yTitle + yLabs + grid +
           "<path d='" + path + "' fill='none' stroke='" + color + "' stroke-width='2.2' stroke-linecap='round' />" +
           circles + xLabs + xTitle;
@@ -686,7 +982,7 @@
         const svg = $(svgId);
         if (!svg) return;
         if (!rows || !rows.length) {
-          svg.innerHTML = "<text x='20' y='100' font-size='9' fill='rgba(200,180,255,0.55)'>No dimension data</text>";
+          svg.innerHTML = "<text x='20' y='100' font-size='9' fill='rgba(92,98,128,0.55)'>No dimension data</text>";
           return;
         }
         const w = svg.viewBox.baseVal.width || 600;
@@ -703,11 +999,11 @@
         const yTicks = [0, 2, 4, 6, 8, 10];
         const grid = yTicks.map((yv) => {
           const yy = yAt(yv);
-          return "<line x1='" + pl + "' y1='" + yy.toFixed(1) + "' x2='" + (w - pr) + "' y2='" + yy.toFixed(1) + "' stroke='rgba(180,160,230,0.1)' stroke-width='1' />";
+          return "<line x1='" + pl + "' y1='" + yy.toFixed(1) + "' x2='" + (w - pr) + "' y2='" + yy.toFixed(1) + "' stroke='rgba(42,48,81,0.10)' stroke-width='1' />";
         }).join("");
         const yLabs = yTicks.map((yv) => {
           const yy = yAt(yv) + 3;
-          return "<text x='" + (pl - 2) + "' y='" + yy.toFixed(1) + "' font-size='8' text-anchor='end' fill='rgba(200,180,255,0.65)'>" + esc(String(yv)) + "</text>";
+          return "<text x='" + (pl - 2) + "' y='" + yy.toFixed(1) + "' font-size='8' text-anchor='end' fill='rgba(92,98,128,0.65)'>" + esc(String(yv)) + "</text>";
         }).join("");
         const n = Math.max(1, (rows || []).length);
         const groupW = plotW / n;
@@ -731,15 +1027,15 @@
           const tNum = String(Number(tgt).toFixed(1));
           bars2.push(
             "<rect x='" + x1 + "' y='" + yA.toFixed(1) + "' width='" + barW + "' height='" + aH.toFixed(1) + "' rx='2' fill='" + cls + "'/>" +
-            "<rect x='" + x2 + "' y='" + yT.toFixed(1) + "' width='" + barW + "' height='" + tH.toFixed(1) + "' rx='2' fill='rgba(167,138,230,0.45)'/>" +
-            "<text x='" + (x1 + barW / 2) + "' y='" + labelYa.toFixed(1) + "' font-size='6' text-anchor='middle' fill='rgba(255,255,255,0.92)' font-weight='800'>" + esc(aNum) + "</text>" +
-            "<text x='" + (x2 + barW / 2) + "' y='" + labelYt.toFixed(1) + "' font-size='6' text-anchor='middle' fill='rgba(220,200,255,0.9)' font-weight='700'>" + esc(tNum) + "</text>" +
-            "<text x='" + cx + "' y='" + (h - 30) + "' font-size='9' text-anchor='middle' fill='rgba(220,206,255,0.9)' font-weight='700'>" + esc(r.code) + "</text>" +
-            "<text x='" + cx + "' y='" + (h - 18) + "' font-size='6.5' text-anchor='middle' fill='rgba(200,180,255,0.55)'>" + esc(sub) + "</text>"
+            "<rect x='" + x2 + "' y='" + yT.toFixed(1) + "' width='" + barW + "' height='" + tH.toFixed(1) + "' rx='2' fill='rgba(150,0,241,0.25)'/>" +
+            "<text x='" + (x1 + barW / 2) + "' y='" + labelYa.toFixed(1) + "' font-size='6' text-anchor='middle' fill='rgba(42,48,81,0.95)' font-weight='800'>" + esc(aNum) + "</text>" +
+            "<text x='" + (x2 + barW / 2) + "' y='" + labelYt.toFixed(1) + "' font-size='6' text-anchor='middle' fill='rgba(92,98,128,0.95)' font-weight='700'>" + esc(tNum) + "</text>" +
+            "<text x='" + cx + "' y='" + (h - 30) + "' font-size='9' text-anchor='middle' fill='rgba(42,48,81,0.9)' font-weight='700'>" + esc(r.code) + "</text>" +
+            "<text x='" + cx + "' y='" + (h - 18) + "' font-size='6.5' text-anchor='middle' fill='rgba(92,98,128,0.55)'>" + esc(sub) + "</text>"
           );
         });
-        const yTitle = "<text x='10' y='" + (p + pt + plotH / 2) + "' font-size='8' fill='rgba(200,180,255,0.5)' transform='rotate(-90,10," + (p + pt + plotH / 2) + ")'>Score (0–10)</text>";
-        const leg = "<text x='" + (pl + 8) + "' y='" + (pt - 1) + "' font-size='7' fill='rgba(200,180,255,0.55)'>▮ Actual (bright) · ▮ Target (ghost)</text>";
+        const yTitle = "<text x='10' y='" + (p + pt + plotH / 2) + "' font-size='8' fill='rgba(92,98,128,0.5)' transform='rotate(-90,10," + (p + pt + plotH / 2) + ")'>Score (0–10)</text>";
+        const leg = "<text x='" + (pl + 8) + "' y='" + (pt - 1) + "' font-size='7' fill='rgba(92,98,128,0.55)'>▮ Actual (bright) · ▮ Target (ghost)</text>";
         svg.innerHTML = yTitle + yLabs + grid + leg + bars2.join("");
       }
 
@@ -775,11 +1071,23 @@
             aiqCell += "<span class='ls-flag' title='" + esc(tip) + "'>!</span>";
           }
         }
+        const ass = s.assessment || {};
+        const roleTxt = ass.job_function_label || ass.job_family_label || "—";
+        const scenTxt = st.scenario_key || "—";
+        const attNo = st.attempt_no || 1;
+        // A retake is a different scenario, not a re-sit — flag it so a score is never
+        // compared against a first attempt without the reader knowing.
+        const attCell = attNo > 1
+          ? "<span class='pill' title='Retake — served a scenario this participant had not seen'>" + esc(attNo) + "</span>"
+          : "<span class='muted'>1</span>";
         return (
           "<td title='" + esc(ts(s.created_at)) + "'>" + esc(tsShort(s.created_at)) + "</td>" +
           "<td style='width:5.5rem'>" + statusPill(s) + "</td>" +
           nameCell +
           "<td><span class='sid'>" + esc((s.id || "").slice(0, 8)) + "</span></td>" +
+          "<td title='" + esc(roleTxt) + "' style='max-width:9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>" + esc(roleTxt) + "</td>" +
+          "<td title='" + esc(scenTxt) + "' style='font-size:0.72rem'>" + esc(scenTxt) + "</td>" +
+          "<td>" + attCell + "</td>" +
           "<td title='" + esc(st.duration_sec != null ? durHuman(st.duration_sec) : "") + "'>" + esc(st.duration_sec != null ? durShort(st.duration_sec) : "—") + "</td>" +
           "<td>" + esc((st.user_messages || 0) + "/" + (st.model_messages || 0)) + "</td>" +
           "<td>" + aiqCell + "</td>" +
@@ -1046,7 +1354,7 @@
           : struct.length
             ? struct.map(renderActionCard).join("")
             : rawSteps.map((s) => (
-                "<div class='rec-action-card'><h4>Next step (summary)</h4><p style='font-size:0.8rem;line-height:1.5;color:#ebe4ff;font-weight:500;margin:0'>" + formatLegacyActionLine(s) + "</p></div>"
+                "<div class='rec-action-card'><h4>Next step (summary)</h4><p style='font-size:0.8rem;line-height:1.5;color:#2a3051;font-weight:500;margin:0'>" + formatLegacyActionLine(s) + "</p></div>"
               )).join("");
         const courseHtml = courseRows.length
           ? courseRows
@@ -1142,7 +1450,7 @@
             "<div style='margin-bottom:0.55rem'>" +
             "<div class='ev-h' style='display:flex;justify-content:space-between;gap:0.5rem'>" +
             "<span>" + esc(code + " · " + (DIM_LABELS[code] || "")) + "</span>" +
-            "<span style='color:#e8dfff'>" + esc(sc) + " / 10</span>" +
+            "<span style='color:#2a3051'>" + esc(sc) + " / 10</span>" +
             "</div>" +
             (rationale ? "<p class='ev-note' style='margin:0.15rem 0 0.2rem'>" + esc(rationale) + "</p>" : "") +
             quotesHtml +
@@ -1225,7 +1533,7 @@
           );
         }).join("");
         return (
-          "<table class='resp-table'><thead><tr>" +
+          "<table class='resp-table resp-table--turns'><thead><tr>" +
           "<th>Turn</th><th>Interviewer question</th><th>Participant reply</th><th>Evaluation (structured below)</th>" +
           "<th title='Seconds from the prior interviewer line to this participant send (see Session metrics).'>Think time</th>" +
           "<th title='0–100 phrasing heuristic for this turn; not proof of authorship (see Session metrics).'>AI-style</th>" +
@@ -1380,15 +1688,22 @@
           const scores0 = o.scores || {};
           const aiqN = scores0.AiQ_0_100 != null ? num(scores0.AiQ_0_100, 1) : "—";
           const levelL = ass0.level_label || ass0.level || "—";
-          const famL = ass0.job_family_label || ass0.job_family || "—";
+          // The role they actually picked, not the coarse scoring family — otherwise a
+          // Strategy & Ops run reads as "Finance, strategy, corp dev" and two roles that
+          // share a family look like the same cohort.
+          const famL = ass0.job_function_label || ass0.job_family_label || ass0.job_family || "—";
+          const att0 = ass0.attempt || {};
+          const attTxt = Number(att0.number) > 1
+            ? " · <strong>Retake — attempt " + esc(String(att0.number)) + (att0.pool_size ? " of " + esc(String(att0.pool_size)) : "") + "</strong> (a scenario they had not seen)"
+            : "";
           const runHero =
             "<div class='report-hero'>" +
             "<div class='report-hero__label'>" + (evalConcluded ? "Run (scored)" : "Run (open)") + "</div>" +
-            "<p class='report-hero__p'>Profile they chose: <strong>" + esc(String(levelL)) + "</strong> · <strong>" + esc(String(famL)) + "</strong>. " +
+            "<p class='report-hero__p'>Profile they chose: <strong>" + esc(String(levelL)) + "</strong> · <strong>" + esc(String(famL)) + "</strong>" + attTxt + ". " +
             "Their replies: <strong>" + String(k.user_messages || 0) + "</strong> · your lines: <strong>" + String(k.model_messages || 0) + "</strong>.</p>" +
             (evalConcluded
               ? "<p class='report-hero__aiq'>Rough composite: <strong>" + aiqN + "</strong> / 100 — the dimension list below matters more than this one number.</p>"
-              : "<p class='report-hero__p' style='color:#9e8ad4'>You will get gaps and a composite after you end the run and it scores.</p>") +
+              : "<p class='report-hero__p' style='color:#5c6280'>You will get gaps and a composite after you end the run and it scores.</p>") +
             "</div>";
           const onToc = [
             { n: 1, id: "r-engage", label: "Engagement" },
@@ -1616,6 +1931,9 @@
           dm.innerHTML = targetLine ? targetLine + warn : "";
         }
         renderRows();
+        // Cohort numbers cover every session, not just the 200 listed, so they load
+        // separately. Fire-and-forget: a summary failure must never blank the run list.
+        loadCohort();
         if (!sessions.length) {
           selected = "";
           if ($("deleteSessionBtn")) $("deleteSessionBtn").classList.add("hidden");
@@ -1663,6 +1981,12 @@
           showLogin(e.message || "Unauthorized");
         }
       };
+      if ($("exportCsvBtn")) {
+        $("exportCsvBtn").onclick = function () {
+          // Token goes in the query string because this is a browser download, not fetch.
+          window.open(withToken("/api/admin/export.csv"), "_blank");
+        };
+      }
       $("logoutBtn").onclick = function () {
         clearToken();
         selected = "";

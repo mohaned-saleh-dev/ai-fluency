@@ -94,7 +94,18 @@ OPENAI_BASE = os.environ.get("OPENAI_BASE", "https://api.openai.com/v1").rstrip(
 # gemini-2.0-flash is 404 for many new users; use 2.5+ on https://ai.google.dev/gemini-api/docs/models
 # Override in .env: AIQ_GEMINI_MODEL=…
 GEMINI_MODEL = os.environ.get("AIQ_GEMINI_MODEL", "gemini-2.5-flash")
-OPENAI_MODEL = os.environ.get("AIQ_OPENAI_MODEL", "gpt-4o-mini")
+# Interview turns: a person is waiting mid-conversation, so this trades raw capability for
+# latency. gpt-5.4-mini measured ~2s/turn (same as gpt-4o-mini) while holding one question
+# per turn and delivering the scenario twist in character rather than announcing it.
+OPENAI_MODEL = os.environ.get("AIQ_OPENAI_MODEL", "gpt-5.4-mini")
+# End-of-session scoring and report writing: one batch call behind a progress screen, so a
+# slower, stronger model is affordable here in a way it is not mid-interview. Defaults to
+# the interview model; raise it only against scripts/run_scoring_validation.py, since
+# changing the scorer moves everyone's numbers and a single transcript cannot tell you
+# whether it moved them in the right direction.
+OPENAI_SCORING_MODEL = (
+    os.environ.get("AIQ_OPENAI_SCORING_MODEL", "").strip() or OPENAI_MODEL
+)
 # Second LLM call for "paste" detection: set 1 to use Gemini (more calls, more quota)
 AIQ_LLM_CLASSIFY = os.environ.get("AIQ_LLM_CLASSIFY", "").lower() in ("1", "true", "yes")
 # who answers: "gemini" | "openai" | "ollama" | "auto"

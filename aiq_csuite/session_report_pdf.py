@@ -60,6 +60,8 @@ def _build_report_html(
     rk = (scores.get("risk_1line") or "").strip()
     profile = enrich.get("profile_line") or ""
     band_blurb = (enrich.get("band_blurb") or "").strip()
+    attempt_line = (enrich.get("attempt_line") or "").strip()
+    attempt_suffix = f" &nbsp;·&nbsp; {_esc(attempt_line)}" if attempt_line else ""
 
     # --- Score vs expectation table ---
     score_rows = []
@@ -260,7 +262,7 @@ h1 {{ font-size: 17pt; font-weight: 800; margin: 0 0 2mm; letter-spacing: -0.02e
 <div class="hero">
   <div class="gau"><div class="gnum">{_esc(aiq_s)}</div><div class="gs">Composite · 0–100</div></div>
   <div>
-    <p class="profile"><b>Profile:</b> {_esc(profile) if profile else "—"}</p>
+    <p class="profile"><b>Profile:</b> {_esc(profile) if profile else "—"}{attempt_suffix}</p>
     <p class="profile" style="margin-top:0">Six dimensions below are weighted for this profile. Scores are 0–10 from this chat only.</p>
   </div>
 </div>
@@ -305,6 +307,9 @@ def _build_reportlab_fallback(
     ass = assessment or {}
     aiq = scores.get("AiQ_0_100", "—")
     prof = enrich.get("profile_line") or f"{ass.get('level_label', '')} · {ass.get('job_family_label', '')}"
+    att = (enrich.get("attempt_line") or "").strip()
+    if att:
+        prof = f"{prof} | {att}"
     aiq_num = aiq
     try:
         aiq_num = float(aiq) if aiq is not None and aiq != "" else None

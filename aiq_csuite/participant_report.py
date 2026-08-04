@@ -266,6 +266,24 @@ def _merge_llm_narrative(
     return out
 
 
+def _attempt_line(attempt: Any) -> str:
+    """'First attempt' / 'Retake — attempt 2 of 6'. Stated on every report so a score is
+    always read with the right context: a retake is a different scenario, not a re-sit."""
+    if not isinstance(attempt, dict):
+        return ""
+    try:
+        n = int(attempt.get("number") or 1)
+    except (TypeError, ValueError):
+        n = 1
+    try:
+        pool = int(attempt.get("pool_size") or 0)
+    except (TypeError, ValueError):
+        pool = 0
+    if n <= 1:
+        return "First attempt"
+    return f"Retake — attempt {n} of {pool}" if pool else f"Retake — attempt {n}"
+
+
 def build_report_enrichment(
     scores: dict,
     assessment: Optional[dict] = None,
@@ -353,9 +371,17 @@ def build_report_enrichment(
         "keep_doing": keep_doing,
         "band_blurb": band_blurb,
         "ranked_below": ranked_below,
+        # Show the function they actually picked ("Strategy & Ops"), not the coarse
+        # scoring family ("Finance, strategy, corp dev"), which reads wrong to them.
         "profile_line": " · ".join(
-            x for x in (ass.get("level_label") or "", ass.get("job_family_label") or "") if x
+            x
+            for x in (
+                ass.get("level_label") or "",
+                ass.get("job_function_label") or ass.get("job_family_label") or "",
+            )
+            if x
         ),
+        "attempt_line": _attempt_line(ass.get("attempt")),
     }
     narrative = None
     if session_enrichment and isinstance(session_enrichment, dict):
