@@ -1,14 +1,39 @@
-# https://render.com — deploy from repo root, Dockerfile in root.
-# After deploy, set secret EXPORT_JSON_URL in the Render dashboard (https URL to space_export.json).
-# Optional: EXPORT_JSON_BEARER for Authorization: Bearer <token>
+# Render Blueprint for AiQ CSuite (Flask). Required on the default branch as render.yaml.
+#
+# After deploy: Dashboard → your service → Environment → add secrets:
+#   OPENAI_API_KEY                     (primary LLM)
+#   GOOGLE_API_KEY or GEMINI_API_KEY   (fallback LLM)
+#   AIQ_ADMIN_SECRET                   (required for /admin)
+# Optional: AIQ_INTERVIEWER_REPAIR=1
+#
+# SQLite on free tier is ephemeral — prefer hosted Postgres:
+#   DATABASE_URL=postgresql://... (app switches to Postgres and ignores SQLite)
+#
+# Paid disk alternative:
+#   disk:
+#     name: aiq-sqlite
+#     mountPath: /var/data
+#     sizeGB: 1
+#   envVars:
+#     - key: AIQ_SQLITE_PATH
+#       value: /var/data/aiq_csuite.db
+
 services:
   - type: web
-    name: contentful-article-downloader
+    name: ai-fluency-aiq
     runtime: docker
     region: oregon
     plan: free
-    dockerfilePath: ./Dockerfile
+    rootDir: aiq_csuite
+    dockerfilePath: Dockerfile
     healthCheckPath: /api/health
     envVars:
-      - key: EXPORT_JSON_URL
+      - key: OPENAI_API_KEY
         sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: AIQ_ADMIN_SECRET
+        sync: false
+      # Optional: hosted Postgres (Supabase/Neon/etc); when set, app uses Postgres.
+      # - key: DATABASE_URL
+      #   sync: false

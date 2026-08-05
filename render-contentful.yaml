@@ -1,0 +1,14 @@
+# https://render.com — Contentful article downloader (not used by aiq-asessment).
+# After deploy, set secret EXPORT_JSON_URL in the Render dashboard (https URL to space_export.json).
+# Optional: EXPORT_JSON_BEARER for Authorization: Bearer <token>
+services:
+  - type: web
+    name: contentful-article-downloader
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: EXPORT_JSON_URL
+        sync: false
